@@ -1,5 +1,6 @@
 <!-- <link rel="import" href="jsonld-import.html"> -->
 <link rel="import" href="../polymer/polymer-element.html">
+<link rel="import" href="../events-target-behavior/events-target-behavior.html">
 <script>
 (function() {
 'use strict';
@@ -73,136 +74,74 @@ const ARRAY_SHAPE = RAML_V_SHAPES + '#ArrayShape';
  * @element api-view-model-transformer
  * @demo demo/index.html
  */
-class ApiViewModelTransformer extends HTMLElement {
+class ApiViewModelTransformer extends Polymer.mixinBehaviors(ArcBehaviors.EventsTargetBehavior, HTMLElement) {
   static get is() { return 'api-view-model-transformer'; }
-  constructor() {
-    super();
-    this.__data = {
-      manualModel: false
+  static get properties() {
+    return {
+      /**
+       * AMF model extracted from RAML or OAS spec and transformed to
+       * JSON/LD schema.
+       * This is an array of propertues for which view model is generated.
+       * It accepts model for headers, query parameters, uri parameters and
+       * body.
+       * If `manualModel` is not set, assigning a value to this property will
+       * trigger model computation. Otherwise call `computeViewModel()`
+       * function manually to generate the model.
+       */
+      amfModel: {
+        type: Array,
+        observer: '_amfModelChanged'
+      },
+      /**
+       * Generated view model from the `amfModel`
+       *
+       * @type {Array<Object>}
+       */
+      viewModel: {
+        type: Array,
+        notify: true,
+        readOnly: true
+      },
+      /**
+       * If set, assigning a value to `amfModel` will not trigger view model
+       * computation.
+       */
+      manualModel: Boolean,
+      /**
+       * AMF json/ld contect to use to find keys in the model.
+       *
+       * ### Example
+       * ```javascript
+       * {
+       *  "doc": "http://raml.org/vocabularies/document#",
+       *  "shapes": "http://raml.org/vocabularies/shapes#",
+       *  "raml-http": "http://raml.org/vocabularies/http#"
+       *  }
+       * ```
+       * This context generate the following keys for the `amfModel`:
+       * - `doc:Document` as `http://raml.org/vocabularies/document#Document`
+       * - `shapes:NilShape` as `http://raml.org/vocabularies/shapes#NilShape`
+       * - `raml-http:Parameter` as `http://raml.org/vocabularies/http#Parameter`
+       *
+       * Context can be used to reduce model size by shortering namespace
+       * declaration. Setting `amfContext` allows this element to propertly
+       * read the schema.
+       */
+      amfContext: Object
     };
   }
-  /**
-   * AMF model extracted from RAML or OAS spec and transformed to
-   * JSON/LD schema.
-   * This is an array of propertues for which view model is generated.
-   * It accepts model for headers, query parameters, uri parameters and
-   * body.
-   * If `manualModel` is not set, assigning a value to this property will
-   * trigger model computation. Otherwise call `computeViewModel()`
-   * function manually to generate the model.
-   *
-   * @param {Array} value AMF json/ld with headers definition.
-   */
-  set amfModel(model) {
-    this.__data.amfModel = model;
-    this._amfModelChanged(model);
+
+  constructor() {
+    super();
+    this._buildPropertyHandler = this._buildPropertyHandler.bind(this);
   }
-  /**
-   * @return {Array<Object>} Previously added model.
-   */
-  get amfModel() {
-    return this.__data.amfModel;
+
+  _attachListeners(node) {
+    node.addEventListener('api-property-model-build', this._buildPropertyHandler);
   }
-  /**
-   * Generated view model for the `amfModel`
-   * @return {Array<Object>} Generated type view model.
-   */
-  get viewModel() {
-    return this.__data.viewModel;
-  }
-  /**
-   * Sets view model property and notifies about the change.
-   *
-   * @param {Array<Object>} model Generated model
-   */
-  _setViewModel(model) {
-    this.__data.viewModel = model;
-    this.notifyChanged('view-model', model);
-  }
-  /**
-   * Value of the `manualModel` property.
-   * @return {Boolean} Previously set value or `false` by default.
-   */
-  get manualModel() {
-    return this.__data.manualModel;
-  }
-  /**
-   * If set, assigning a value to `amfModel` will not trigger view model
-   * computation.
-   * @param {Boolean} value
-   */
-  set manualModel(value) {
-    if (typeof value === 'boolean') {
-      this.__data.manualModel = value;
-    }
-    if (value) {
-      if (value === 'false') {
-        this.__data.manualModel = false;
-      } else {
-        this.__data.manualModel = true;
-      }
-    } else {
-      this.__data.manualModel = false;
-    }
-  }
-  /**
-   * AMF json/ld contect to use to find keys in the model.
-   *
-   * ### Example
-   * ```javascript
-   * {
-   *  "doc": "http://raml.org/vocabularies/document#",
-   *  "shapes": "http://raml.org/vocabularies/shapes#",
-   *  "raml-http": "http://raml.org/vocabularies/http#"
-   *  }
-   * ```
-   * This context generate the following keys for the `amfModel`:
-   * - `doc:Document` as `http://raml.org/vocabularies/document#Document`
-   * - `shapes:NilShape` as `http://raml.org/vocabularies/shapes#NilShape`
-   * - `raml-http:Parameter` as `http://raml.org/vocabularies/http#Parameter`
-   *
-   * Context can be used to reduce model size by shortering namespace
-   * declaration. Setting `amfContext` allows this element to propertly
-   * read the schema.
-   * @param {Object} value JSON ld `@context` property
-   */
-  set amfContext(value) {
-    this.__data.amfContext = value;
-  }
-  /**
-   * @return {Object} value JSON ld `@context` property previously set on this
-   * element
-   */
-  get amfContext() {
-    return this.__data.amfContext;
-  }
-  /**
-   * Updates properties when attribute change.
-   *
-   * @param {String} name Attribute name
-   * @param {any} oldValue Old value. Can be undefined
-   * @param {any} newValue New value of the attribute.
-   */
-  attributeChangedCallback(name, oldValue, newValue) {
-    switch (name) {
-      case 'amf-model': this.amfModel = newValue; break;
-      case 'manual-model': this.manualModel = newValue; break;
-      case 'amf-context': this.amfContext = newValue; break;
-    }
-  }
-  /**
-   * Notify about the change Polymer way.
-   * @param {String} type Dashed property name
-   * @param {any} model Value to notify
-   */
-  notifyChanged(type, model) {
-    let ev = new CustomEvent(type + '-changed', {
-      detail: {
-        value: model
-      },
-      bubbles: false
-    });
-    this.dispatchEvent(ev);
+
+  _detachListeners(node) {
+    node.removeEventListener('api-property-model-build', this._buildPropertyHandler);
   }
   /**
    * Called when either `amfModel` or `manualModel` propeties changed.
@@ -217,7 +156,7 @@ class ApiViewModelTransformer extends HTMLElement {
    * @param {Array} amfModel Current AMF model
    */
   _amfModelChanged(amfModel) {
-    if (this.manualModel !== false) {
+    if (this.manualModel) {
       return;
     }
     setTimeout(() => this.computeViewModel(amfModel, this.amfContext), 2);
@@ -374,7 +313,7 @@ class ApiViewModelTransformer extends HTMLElement {
     result.schema.examples = this._computeModelExamples(def);
     result.schema.items = result.schema.isArray ? this._computePropetyShapeItems(def) : undefined;
     result.inputType = this._computeModelInputType(result.schema.type, result.schema.items);
-    result.pattern = this._computeModelPattern(result.schema.inputType, result.schema.pattern);
+    result.pattern = this._computeModelPattern(result.schema.type, result.schema.pattern);
     return result;
   }
   /**
@@ -415,10 +354,13 @@ class ApiViewModelTransformer extends HTMLElement {
     result.examples = this._computeModelExamples(def);
     result.items = result.isArray ? this._computeModelItems(def) : undefined;
     result.inputType = this._computeModelInputType(result.type, result.items);
-    result.pattern = this._computeModelPattern(result.inputType, result.pattern);
+    result.pattern = this._computeModelPattern(result.type, result.pattern);
     if (result.examples && result.examples.length && result.examples[0].value) {
       result.inputPlaceholder = 'Example: ' +
         this._exampleAsValue(result.examples[0].value, opts);
+    }
+    if (!result.inputPlaceholder) {
+      result.inputPlaceholder = this._computeTypePlaceholder(result.type);
     }
     if (result.inputPlaceholder) {
       result.inputFloatLabel = true;
@@ -530,7 +472,7 @@ class ApiViewModelTransformer extends HTMLElement {
         case 'http://www.w3.org/2001/XMLSchema#date': return 'date';
         case 'http://www.w3.org/2001/XMLSchema#time': return 'time';
         case 'http://www.w3.org/2001/XMLSchema#dateTime': return 'dateTime';
-        case 'http://www.w3.org/2001/XMLSchema#dateTime': return 'float';
+        case 'http://www.w3.org/2001/XMLSchema#float': return 'float';
       }
     }
   }
@@ -796,26 +738,95 @@ class ApiViewModelTransformer extends HTMLElement {
       return 'number';
     } else if (type === 'boolean') {
       return 'boolean';
-    } else if (type === 'date-only') {
+    } else if (type === 'date-only' || type === 'date') {
       return 'date';
-    }
+    } /*else if (type === 'time-only' || type === 'time') {
+      return 'time';
+    }*/
     return 'text';
   }
   /**
    * Computes pattern for the input.
    *
-   * @param {String} inputType Type of the input field. Date types are
-   * getting date format patterns.
+   * @param {String} modelType Type of the property item.
    * @param {String} pattern Pattern declared on the property
    * @return {String|undefined} Pattern or undefined if does not exists.
    */
-  _computeModelPattern(inputType, pattern) {
+  _computeModelPattern(modelType, pattern) {
     if (!pattern) {
-      if (inputType === 'date') {
-        pattern = '[0-9]{4}-[0-9]{2}-[0-9]{2}';
+      switch (modelType) {
+        case 'time':
+          pattern = '[0-9]{2}:[0-9]{2}:[0-9]{2}(\.[0-9])*';
+          break;
+        case 'date':
+          pattern = '[0-9]{4}-[0-9]{2}-[0-9]{2}';
+          break;
+        case 'dateTime':
+          pattern = '[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(\.[0-9])*';
+          break;
       }
     }
     return pattern;
+  }
+  /**
+   * Computes a placeholder value for data and time inputs.
+   *
+   * @param {String} type Model type.
+   * @return {String|undefined} Placeholder value.
+   */
+  _computeTypePlaceholder(type) {
+    let value;
+    switch (type) {
+      case 'time':
+        value = '00:00:00';
+        break;
+      case 'date':
+        value = '0000-00-00';
+        break;
+      case 'dateTime':
+        value = '0000-00-00T00:00:00';
+        break;
+    }
+    return value;
+  }
+  /**
+   * Handler for the `api-property-model-build` custom event.
+   * Builds a property view model using event detail object as a base object.
+   *
+   * All changes are applied to the `detail` object. Requesting element must
+   * use the same object.
+   *
+   * @param {CustomEvent} e
+   */
+  _buildPropertyHandler(e) {
+    if (e.defaultPrevented) {
+      return;
+    }
+    e.stopImmediatePropagation();
+    e.preventDefault();
+    this.buildProperty(e.detail);
+  }
+  /**
+   * Builds empty view model without traversing AMF model.
+   *
+   * @param {?Object} defaults View model with default values. This values won't
+   * be set.
+   * @return {Object} Generated basic view model.
+   */
+  buildProperty(defaults) {
+    if (!defaults) {
+      defaults = {};
+    }
+    defaults.hasDescription = !!defaults.description;
+    const schema = defaults.schema || {};
+    defaults.schema = {
+      isEnum: schema.isEnum || false,
+      isArray: schema.isArray || false,
+      isBool: schema.isBool || false,
+      inputType: schema.inputType || 'text',
+      inputFloatLabel: (schema.inputFloatLabel || schema.inputPlaceholder) || false
+    };
+    return defaults;
   }
 }
 window.customElements.define(ApiViewModelTransformer.is, ApiViewModelTransformer);
