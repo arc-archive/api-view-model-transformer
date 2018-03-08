@@ -29,7 +29,7 @@ const ARRAY_SHAPE = RAML_V_SHAPES + '#ArrayShape';
 /**
  * An element to transform AMF LD model into a form view model.
  *
- * Note, this model does not include polyfills for `Promise` and `Array.from`.
+ * Note, this element does not include polyfills for `Promise` and `Array.from`.
  *
  * The model should be used to build a form view for request parameters
  * like header, query parameters, uri parameters or the body.
@@ -68,11 +68,48 @@ const ARRAY_SHAPE = RAML_V_SHAPES + '#ArrayShape';
  * input control to float a label.
  * - schema.isUnion {Boolean} - Flag describing union value
  * - schema.anyOf {Array<Object>} - List of possible types of the union.
+ *
+ * ## Example
+ *
+ * ```html
+ * <api-view-model-transformer on-view-model-changed="_updateView"></api-view-model-transformer>
+ * <script>
+ * const amfModel = getAmfFromRamlOrOas();
+ * const processor = document.querySelector('api-view-model-transformer');
+ * if (amfModel['@context']) {
+ *  processor.amfContext = amfModel['@context'];
+ * }
+ * processor.amfModel = extractHeadersForMethod(amfModel);
+ * processor.addEventListener('view-model-changed', (e) => {
+ *  console.log(e.detail.value);
+ * });
+ * < /script>
+ * ```
+ *
+ * This example uses `getAmfFromRamlOrOas()` function where you implement
+ * the logic of getting AMF json/ld data. It can be stored in file or parsed
+ * using AMF parsers. The `extractHeadersForMethod()` represents a logic to
+ * extract properties that you want to transform. It can be headers, query
+ * parameters or body type.
+ *
+ * ## JSON ld context
+ *
+ * JSON schema may contain `@context` property. It can be used to reduce size
+ * of the schema by replacing namespace ids with defined in `@context` keywords.
+ * This transformer does not consume whole AMF model, but only the portion that
+ * should be transformed. Because of that the tranformer is missing context
+ * for namespace resolving. Set `@context` value of the model to `amfContext`
+ * property so it can be expanded to the canonical form.
+ * **Tranformation won't work properly if namespace name are altered by context
+ * and `amfContext` property is not set.**
+ *
  * @extends HTMLElement
  * @customElement
  * @group API Elements
+ * @memberof API Elements
  * @element api-view-model-transformer
  * @demo demo/index.html
+ * @appliesMixin ArcBehaviors.EventsTargetBehavior
  */
 class ApiViewModelTransformer extends Polymer.mixinBehaviors(ArcBehaviors.EventsTargetBehavior, HTMLElement) {
   static get is() { return 'api-view-model-transformer'; }
