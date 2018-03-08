@@ -1,0 +1,32 @@
+{
+  "name": "api-view-model-transformer",
+  "version": "0.1.0",
+  "license": "Apache-2.0 OR CC-BY-4.0",
+  "description": "Insert description here.",
+  "devDependencies": {
+    "bower": "^1.8.0",
+    "polymer-cli": "^1.2.0",
+    "jsonld": "^1.0.1"
+  },
+  "private": false,
+  "main": [
+    "api-view-model-transformer.html"
+  ],
+  "author": "The Advanced REST client authors <arc@mulesoft.com>",
+  "scripts": {
+    "serve": "node_modules/.bin/polymer serve",
+    "lint": "node_modules/.bin/polymer lint api-view-model-tranformer.html --rules polymer-1",
+    "test-sauce": "node_modules/.bin/polymer test --plugin sauce --job-name \"api-view-model-tranformer:local-test\"",
+    "test": "node_modules/.bin/polymer test --plugin local",
+    "deps": "npm install --quiet && bower install --quiet",
+    "update-deps": "npm update --quiet && bower update --quiet"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/advanced-rest-client/api-view-model-tranformer.git"
+  },
+  "bugs": {
+    "url": "https://github.com/advanced-rest-client/api-view-model-tranformer/issues",
+    "email": "arc@mulesoft.com"
+  }
+}

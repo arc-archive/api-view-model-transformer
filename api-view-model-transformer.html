@@ -1,0 +1,823 @@
+<!-- <link rel="import" href="jsonld-import.html"> -->
+<link rel="import" href="../polymer/polymer-element.html">
+<script>
+(function() {
+'use strict';
+/**
+ * @license
+ * Copyright 2016 The Advanced REST client authors <arc@mulesoft.com>
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not
+ * use this file except in compliance with the License. You may obtain a copy of
+ * the License at
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+ * License for the specific language governing permissions and limitations under
+ * the License.
+ */
+const NUMBER_INPUT_TYPES = ['number', 'integer', 'float'];
+const RAML_V_HTTP = 'http://raml.org/vocabularies/http';
+const RAML_V_SHAPES = 'http://raml.org/vocabularies/shapes';
+const RAML_V_DOC = 'http://raml.org/vocabularies/document';
+const HYDRA_CORE = 'http://www.w3.org/ns/hydra/core';
+const SCHEMA = 'http://schema.org/';
+const SHACL = 'http://www.w3.org/ns/shacl';
+const RDF = 'http://www.w3.org/1999/02/22-rdf-syntax-ns';
+const ARRAY_SHAPE = RAML_V_SHAPES + '#ArrayShape';
+/**
+ * An element to transform AMF LD model into a form view model.
+ *
+ * Note, this model does not include polyfills for `Promise` and `Array.from`.
+ *
+ * The model should be used to build a form view for request parameters
+ * like header, query parameters, uri parameters or the body.
+ *
+ * ### Data model
+ * - binding {String} - one of `path`, `query`, `header`
+ * - name {String} - property (form) name
+ * - required {Boolean} - is property required
+ * - value {any} - Value of the property
+ * - description {String} - The description of the property
+ * - hasDescription {Boolean} - Flag describing if the property has a
+ * description.
+ * - schema {Object} - Property schma information
+ * - schema.type {String} - Data type of the property
+ * - schema.inputLabel {String} Label for the form control
+ * - schema.inputType {String} - type attribute of the `input` element.
+ * - schema.pattern {String} - Regex pattern of the property
+ * - schema.minLength {Number} - String property minimum length
+ * - schema.maxLength {Number} - String property maximum length
+ * - schema.defaultValue {any} - Default value of the property
+ * - schema.examples {Array<Object>} - List of examples for the form property.
+ * - schema.multipleOf {Number} - For numeric values, a `step` attribute of
+ * the `input` element.
+ * Each object may contain `name` (may be undefined) and must contain `value`
+ * property of the example.
+ * - schema.minimum {Number} - For numeric values, minimum value of the property
+ * - schema.maximum {Number} - For numeric values, maximum value of the property
+ * - schema.isEnum {Boolean} - Flag describing enumerable value
+ * - schema.enum {Array<any>} - Only if `schema.isEnum` is set. Values for enum
+ * input.
+ * - schema.isArray {Boolean} - Flag describing array value for the property
+ * - schema.items {Object} - Lsit of items definitions
+ * - schema.isBool {Boolean} - Flag describing boolean value for the property
+ * - schema.inputPlaceholder {?String} - A placeholder value for the input.
+ * - schema.inputFloatLabel {Boolean} - Only if placeholder is set. Instructs
+ * input control to float a label.
+ * - schema.isUnion {Boolean} - Flag describing union value
+ * - schema.anyOf {Array<Object>} - List of possible types of the union.
+ * @extends HTMLElement
+ * @customElement
+ * @group API Elements
+ * @element api-view-model-transformer
+ * @demo demo/index.html
+ */
+class ApiViewModelTransformer extends HTMLElement {
+  static get is() { return 'api-view-model-transformer'; }
+  constructor() {
+    super();
+    this.__data = {
+      manualModel: false
+    };
+  }
+  /**
+   * AMF model extracted from RAML or OAS spec and transformed to
+   * JSON/LD schema.
+   * This is an array of propertues for which view model is generated.
+   * It accepts model for headers, query parameters, uri parameters and
+   * body.
+   * If `manualModel` is not set, assigning a value to this property will
+   * trigger model computation. Otherwise call `computeViewModel()`
+   * function manually to generate the model.
+   *
+   * @param {[type]} value [description]
+   */
+  set amfModel(model) {
+    this.__data.amfModel = model;
+    this._amfModelChanged(model);
+  }
+  /**
+   * @return {Array<Object>} Previously added model.
+   */
+  get amfModel() {
+    return this.__data.amfModel;
+  }
+  /**
+   * Generated view model for the `amfModel`
+   * @return {Array<Object>} Generated type view model.
+   */
+  get viewModel() {
+    return this.__data.viewModel;
+  }
+  /**
+   * Sets view model property and notifies about the change.
+   *
+   * @param {Array<Object>} model Generated model
+   */
+  _setViewModel(model) {
+    this.__data.viewModel = model;
+    this.notifyChanged('view-model', model);
+  }
+  /**
+   * Value of the `manualModel` property.
+   * @return {Boolean} Previously set value or `false` by default.
+   */
+  get manualModel() {
+    return this.__data.manualModel;
+  }
+  /**
+   * If set, assigning a value to `amfModel` will not trigger view model
+   * computation.
+   * @param {Boolean} value
+   */
+  set manualModel(value) {
+    if (typeof value === 'boolean') {
+      this.__data.manualModel = value;
+    }
+    if (value) {
+      if (value === 'false') {
+        this.__data.manualModel = false;
+      } else {
+        this.__data.manualModel = true;
+      }
+    } else {
+      this.__data.manualModel = false;
+    }
+  }
+  /**
+   * AMF json/ld contect to use to find keys in the model.
+   *
+   * ### Example
+   * ```javascript
+   * {
+   *  "doc": "http://raml.org/vocabularies/document#",
+   *  "shapes": "http://raml.org/vocabularies/shapes#",
+   *  "raml-http": "http://raml.org/vocabularies/http#"
+   *  }
+   * ```
+   * This context generate the following keys for the `amfModel`:
+   * - `doc:Document` as `http://raml.org/vocabularies/document#Document`
+   * - `shapes:NilShape` as `http://raml.org/vocabularies/shapes#NilShape`
+   * - `raml-http:Parameter` as `http://raml.org/vocabularies/http#Parameter`
+   *
+   * Context can be used to reduce model size by shortering namespace
+   * declaration. Setting `amfContext` allows this element to propertly
+   * read the schema.
+   * @param {Object} value JSON ld `@context` property
+   */
+  set amfContext(value) {
+    this.__data.amfContext = value;
+  }
+  /**
+   * @return {Object} value JSON ld `@context` property previously set on this
+   * element
+   */
+  get amfContext() {
+    return this.__data.amfContext;
+  }
+  /**
+   * Updates properties when attribute change.
+   *
+   * @param {String} name Attribute name
+   * @param {any} oldValue Old value. Can be undefined
+   * @param {any} newValue New value of the attribute.
+   */
+  attributeChangedCallback(name, oldValue, newValue) {
+    switch (name) {
+      case 'amf-model': this.amfModel = newValue; break;
+      case 'manual-model': this.manualModel = newValue; break;
+      case 'amf-context': this.amfContext = newValue; break;
+    }
+  }
+  /**
+   * Notify about the change Polymer way.
+   * @param {String} type Dashed property name
+   * @param {any} model Value to notify
+   */
+  notifyChanged(type, model) {
+    let ev = new CustomEvent(type + '-changed', {
+      detail: {
+        value: model
+      },
+      bubbles: false
+    });
+    this.dispatchEvent(ev);
+  }
+  /**
+   * Called when either `amfModel` or `manualModel` propeties changed.
+   * If `manualModel` is falsy then it calls `computeViewModel()` function.
+   *
+   * Note, this function won't be called when sub property of the model
+   * change. For peformance rerasons it won't be supported.
+   *
+   * Note, `computeViewModel` is called asynchronusly so `amfContext`
+   * property can be set.
+   *
+   * @param {Array} amfModel Current AMF model
+   */
+  _amfModelChanged(amfModel) {
+    if (this.manualModel !== false) {
+      return;
+    }
+    setTimeout(() => this.computeViewModel(amfModel, this.amfContext), 2);
+  }
+
+  /**
+   * Computes view model from AMF data model. This should not be called if
+   * `manualModel` is not set. Use `amfModel` property instead.
+   *
+   * @param {?Array} amfModel AMF type model. If not set it uses `amfModel`
+   * property of the element.
+   * @param {?Object} amfContext JSON ld schema context. The same as
+   * `amfContext` property. Don't set the property on the element when using
+   * manual model computation. Instead call this function with context.
+   */
+  computeViewModel(amfModel, amfContext) {
+    this._setViewModel(undefined);
+    if (!amfModel || !amfModel.length) {
+      return;
+    }
+    var hasContext = !!amfContext;
+    var promise;
+    if (hasContext) {
+      promise = this._expandSchema(amfModel, amfContext);
+    } else {
+      promise = Promise.resolve(amfModel);
+    }
+    return promise
+    .then((model) => this._computeViewModelRecursive(Array.from(model)))
+    .then((model) => this._setViewModel(model));
+  }
+  /**
+   * Conputes model for each item recursively. It allows browser to return
+   * the event loop and prohibit ANR to show.
+   *
+   * @param {Array} items List of remanding AMF model items.
+   * This shuld be copy of the model since this function removes items from
+   * the list.
+   * @param {?Array} result Result of model comupation. It's repoted by
+   * the Promise.
+   * @return {Promise} Promise resolved to thre view model.
+   */
+  _computeViewModelRecursive(items, result) {
+    result = result || [];
+    if (!items || !items.length) {
+      return Promise.resolve(result);
+    }
+    var item = items.shift();
+    var model = this.uiModelForAmfItem(item);
+    if (model) {
+      result.push(model);
+    } else {
+      console.warn('Unable to compute view data model for', item);
+    }
+    return Promise.resolve()
+    .then(() => this._computeViewModelRecursive(items, result));
+  }
+  /**
+   * Creates a UI model item from AMF json/ld model.
+   * @param {Object} amfItem AMF model with schema for
+   * `http://raml.org/vocabularies/http#Parameter`
+   * @return {Object} UI data model.
+   */
+  uiModelForAmfItem(amfItem) {
+    if (this._modelHasType(amfItem, RAML_V_HTTP + '#Parameter')) {
+      return this._uiModelForParameter(amfItem);
+    }
+    if (this._modelHasType(amfItem, SHACL + '#PropertyShape')) {
+      return this._uiModelForPropertyShape(amfItem);
+    }
+  }
+  /**
+   * Creates a UI model item from AMF json/ld model for a parameter.
+   * @param {Object} amfItem AMF model with schema for
+   * `http://raml.org/vocabularies/http#Parameter`
+   * @return {Object} UI data model.
+   */
+  _uiModelForParameter(amfItem) {
+    var result = {};
+    result.binding = this._computeBinding(amfItem);
+    var valueDelimiter = this._computeValueDelimiter(result.binding);
+    var decodeValues = this._computeDecodeValues(result.binding);
+    result.name = this._computeFormName(amfItem);
+    result.description = this._computeDescription(amfItem);
+    result.hasDescription = !!result.description;
+    result.required = this._computeRequired(amfItem);
+    var processOptions = {
+      name: result.name,
+      required: result.required,
+      valueDelimiter: valueDelimiter,
+      decodeValues: decodeValues
+    };
+    result.schema = this._computeParameterSchema(amfItem, processOptions);
+    if (result.required && typeof result.schema.defaultValue !== 'undefined') {
+      result.value = result.schema.isArray ?
+        this.__parseArrayExample(result.schema.defaultValue, processOptions) :
+        this._exampleAsValue(result.schema.defaultValue, processOptions);
+    }
+    if (typeof result.value === 'undefined' && result.required) {
+      if (result.schema.examples) {
+        result.value = this._exampleAsValue(result.schema.examples[0].value, processOptions);
+      }
+      if (typeof result.value === 'undefined' && result.schema.isEnum) {
+        result.value = this._exampleAsValue(result.schema.enum[0], processOptions);
+      }
+    }
+
+    if (result.value && result.schema.isArray && typeof result.value === 'string') {
+      var _v = this.__parseArrayExample(result.value);
+      result.value = _v instanceof Array ? _v : [_v];
+    }
+
+    if (result.schema.isArray && !result.value) {
+      result.value = [''];
+    }
+
+    if (result.isBoolean && typeof result.value === 'boolean') {
+      result.value = String(result.value);
+    }
+    return result;
+  }
+  /**
+   * Creates a UI model item from AMF json/ld model for a parameter.
+   * @param {Object} amfItem AMF model with schema for
+   * `http://raml.org/vocabularies/http#Parameter`
+   * @return {Object} UI data model.
+   */
+  _uiModelForPropertyShape(amfItem) {
+    const result = {};
+    result.binding = 'type';
+    result.name = this._computeShaclProperty(amfItem, 'name');
+    let def = amfItem[RAML_V_SHAPES + '#range'];
+    if (!def) {
+      return result;
+    }
+    def = def[0];
+    result.description = this._computeDescription(def);
+    result.hasDescription = !!result.description;
+    result.required = this._computeRequired(def);
+    result.schema = {};
+    result.schema.type = this._computeModelType(def);
+    result.schema.inputLabel = this._computeInputLabel(def, result.required, result.name);
+    result.schema.pattern = this._computeShaclProperty(def, 'pattern');
+    result.schema.minLength = this._computeShaclProperty(def, 'minLength');
+    result.schema.maxLength = this._computeShaclProperty(def, 'maxLength');
+    result.schema.defaultValue = this._computeShaclProperty(def, 'defaultValue');
+    result.schema.multipleOf = this._computeVocabularyShapeProperty(def, 'multipleOf');
+    result.schema.minimum = this._computeShaclProperty(def, 'minInclusive');
+    result.schema.maximum = this._computeShaclProperty(def, 'maxInclusive');
+    result.schema.enum = this._computeModelEnum(def);
+    result.schema.isEnum = !!result.schema.enum;
+    result.schema.isArray = result.schema.type === 'array';
+    result.schema.isBool = result.schema.type === 'boolean';
+    result.schema.examples = this._computeModelExamples(def);
+    result.schema.items = result.schema.isArray ? this._computePropetyShapeItems(def) : undefined;
+    result.inputType = this._computeModelInputType(result.schema.type, result.schema.items);
+    result.pattern = this._computeModelPattern(result.schema.inputType, result.schema.pattern);
+    return result;
+  }
+  /**
+   * Computes schema property of the view model from AMF model.
+   *
+   * @param {Object} model AFM json/ld model.
+   * @param {Object} opts Options for model generation.
+   * - required {Boolean} true if item is required.
+   * - name {String} Property name
+   * - valueDelimite {String}
+   * - decodeValues {Boolean}
+   * @return {Object} Schema part of the view model
+   */
+  _computeParameterSchema(model, opts) {
+    opts = opts || {};
+    var result = {};
+    var key = RAML_V_HTTP + '#schema';
+    if (!model[key]) {
+      return;
+    }
+    var def = model[key][0];
+    /**
+     * - schema.inputType {String} - type attribute of the `input` element.
+     */
+    result.type = this._computeModelType(def);
+    result.inputLabel = this._computeInputLabel(def, opts.required, opts.name);
+    result.pattern = this._computeShaclProperty(def, 'pattern');
+    result.minLength = this._computeShaclProperty(def, 'minLength');
+    result.maxLength = this._computeShaclProperty(def, 'maxLength');
+    result.defaultValue = this._computeShaclProperty(def, 'defaultValue');
+    result.multipleOf = this._computeVocabularyShapeProperty(def, 'multipleOf');
+    result.minimum = this._computeShaclProperty(def, 'minInclusive');
+    result.maximum = this._computeShaclProperty(def, 'maxInclusive');
+    result.enum = this._computeModelEnum(def);
+    result.isEnum = !!result.enum;
+    result.isArray = result.type === 'array';
+    result.isBool = result.type === 'boolean';
+    result.examples = this._computeModelExamples(def);
+    result.items = result.isArray ? this._computeModelItems(def) : undefined;
+    result.inputType = this._computeModelInputType(result.type, result.items);
+    result.pattern = this._computeModelPattern(result.inputType, result.pattern);
+    if (result.examples && result.examples.length && result.examples[0].value) {
+      result.inputPlaceholder = 'Example: ' +
+        this._exampleAsValue(result.examples[0].value, opts);
+    }
+    if (result.inputPlaceholder) {
+      result.inputFloatLabel = true;
+    }
+    return result;
+  }
+  /**
+   * Uses the json-ld library to expand context properties.
+   * @param {Object} compacted Compacted form of the schema.
+   * @return {Promise} Resolved promise to a restored object
+   */
+  _expandSchema(model, context) {
+    var data = {
+      '@context': context,
+      amfModelData: model
+    };
+    /* global jsonld, Promise */
+    return new Promise(function(resolve, reject) {
+      jsonld.expand(data, function(err, expanded) {
+        if (err) {
+          reject(err);
+        } else {
+          resolve(expanded.amfModelData);
+        }
+      });
+    });
+  }
+  /**
+   * Checks if a model has a type.
+   * @param {Object} model Model to test
+   * @param {String} type Type name
+   * @return {Boolean} True if model has a type.
+   */
+  _modelHasType(model, type) {
+    var types = model['@type'] || [];
+    for (var i = 0; i < types.length; i++) {
+      if (types[i] === type) {
+        return true;
+      }
+    }
+    return false;
+  }
+  /**
+   * Computes value of the `binding` property of the UI model.
+   * @param {Object} model AMF item model
+   * @return {String|undefined} Binding property or undefined if not found.
+   */
+  _computeBinding(model) {
+    var key = RAML_V_HTTP + '#binding';
+    if (!model[key]) {
+      return;
+    }
+    return model[key][0]['@value'];
+  }
+  /**
+   * Computes fomm (parameter) name from AMF model.
+   * @param {Object} model AMF item model
+   * @return {String|undefined} Name property or undefined if not found.
+   */
+  _computeFormName(model) {
+    var key = SCHEMA + 'name';
+    if (!model[key]) {
+      return;
+    }
+    return model[key][0]['@value'];
+  }
+  /**
+   * Computes description from AMF model.
+   * @param {Object} model AMF item model
+   * @return {String|undefined} Description property or undefined if not found.
+   */
+  _computeDescription(model) {
+    var key = SCHEMA + 'description';
+    if (!model[key]) {
+      return;
+    }
+    return model[key][0]['@value'];
+  }
+  /**
+   * Computes rwquired property from AMF model.
+   * @param {Object} model AMF item model
+   * @return {Boolean} True if the property is required.
+   */
+  _computeRequired(model) {
+    var key = HYDRA_CORE + '#required';
+    if (!model[key]) {
+      return;
+    }
+    return model[key][0]['@value'];
+  }
+  /**
+   * Computes type of the model. It's RAML data type property.
+   * @param {Object} model Property schema.
+   * @return {String} Type of the nproperty.
+   */
+  _computeModelType(model) {
+    if (this._modelHasType(model, RAML_V_SHAPES + '#UnionShape')) {
+      return 'union';
+    }
+    if (this._modelHasType(model, ARRAY_SHAPE)) {
+      return 'array';
+    }
+
+    if (this._modelHasType(model, SHACL + '#ScalarShape')) {
+      switch (model[SHACL + '#datatype'][0]['@id']) {
+        case 'http://www.w3.org/2001/XMLSchema#integer': return 'integer';
+        case 'http://www.w3.org/2001/XMLSchema#string': return 'string';
+        case 'http://www.w3.org/2001/XMLSchema#boolean': return 'boolean';
+        case 'http://www.w3.org/2001/XMLSchema#date': return 'date';
+        case 'http://www.w3.org/2001/XMLSchema#time': return 'time';
+        case 'http://www.w3.org/2001/XMLSchema#dateTime': return 'dateTime';
+        case 'http://www.w3.org/2001/XMLSchema#dateTime': return 'float';
+      }
+    }
+  }
+  /**
+   * Computes form input label value.
+   *
+   * @param {Object} def Property definition
+   * @param {Boolean} required True if the property is required
+   * @param {?String} name Property name
+   * @return {String} Input display name.
+   */
+  _computeInputLabel(def, required, name) {
+    var result = def[SCHEMA + 'name'];
+    if (result) {
+      result = result[0]['@value'];
+    }
+    result = result || name || 'Value';
+    if (required) {
+      result += '*';
+    }
+    return result;
+  }
+  /**
+   * Computes the value of a property that namespace starts with
+   * `http://www.w3.org/ns/shacl`.
+   *
+   * @param {Object} def Property AMF definition
+   * @param {String} property Name of the schema.
+   * @return {any|undefined} Value of the property or undefined if not set.
+   */
+  _computeShaclProperty(def, property) {
+    var key = SHACL + '#' + property;
+    var val = def[key];
+    if (val) {
+      return val[0]['@value'];
+    }
+  }
+  /**
+   * Computes the value of a property that namespace starts with
+   * `http://raml.org/vocabularies/shapes`.
+   *
+   * @param {Object} def Property AMF definition
+   * @param {String} property Name of the schema.
+   * @return {any|undefined} Value of the property or undefined if not set.
+   */
+  _computeVocabularyShapeProperty(def, property) {
+    var key = RAML_V_SHAPES + '#' + property;
+    var val = def[key];
+    if (val) {
+      return val[0]['@value'];
+    }
+  }
+  /**
+   * Computes enum values for the view model.
+   * @param {[type]} def [description]
+   * @return {[type]} [description]
+   */
+  _computeModelEnum(def) {
+    var key = SHACL + '#in';
+    var val = def[key];
+    if (!val) {
+      return;
+    }
+    var result = [];
+    return this._computeEnumIterator(val, result);
+  }
+  /**
+   * Computesa value for the `enum` property in the view model.
+   * @param {Array} model Current model item for `shacl#in` namespace
+   * @param {Array} result Collected values.
+   * @return {Array} Final result.
+   */
+  _computeEnumIterator(model, result) {
+    if (!model || !model.length) {
+      return result;
+    }
+    model = model[0];
+    var firstItem = this._getSchemaSafeValue(model, RDF + '#first');
+    if (firstItem) {
+      result.push(firstItem);
+    }
+    var val = model[RDF + '#rest'];
+    if (!val) {
+      return result;
+    }
+    return this._computeEnumIterator(val, result);
+  }
+  /**
+   * Gets a value (`@value`) for a property without exceptions.
+   *
+   * @param {Object} model Model for the value.
+   * @param {String} key Model key holding the value
+   * @return {any|undefined}
+   */
+  _getSchemaSafeValue(model, key) {
+    var root = model[key];
+    if (!root) {
+      return;
+    }
+    root = root[0];
+    if (!root) {
+      return;
+    }
+    return root['@value'];
+  }
+  /**
+   * Computes list of examples for the Property model.
+   *
+   * @param {Object} model AMF property model
+   * @return {Array<Object>|undefined} List of examples or `undefined` if not
+   * defined.
+   */
+  _computeModelExamples(model) {
+    var key = RAML_V_DOC + '#examples';
+    var def = model[key];
+    if (!def) {
+      return;
+    }
+    var result = [];
+    for (let i = 0, len = def.length; i < len; i++) {
+      var item = def[i];
+      var name = this._getSchemaSafeValue(item, SCHEMA + 'name');
+      var value = this._getSchemaSafeValue(item, RAML_V_DOC + '#value');
+      if (!name && !value) {
+        continue;
+      }
+      result.push({
+        name: name,
+        value: value,
+        hasName: !!name
+      });
+    }
+    return result;
+  }
+  /**
+   * Computes `items` property for AMF array property
+   *
+   * @param {Object} model AMF property model
+   * @return {Object} Array definition model
+   */
+  _computeModelItems(model) {
+    if (!this._modelHasType(model, ARRAY_SHAPE)) {
+      return;
+    }
+    var inherits = model[RAML_V_SHAPES + '#inherits'];
+    if (!inherits || !inherits.length) {
+      console.warn('Expected #inherits declaration');
+      return;
+    }
+    inherits = inherits[0];
+    var items = inherits[RAML_V_SHAPES + '#items'];
+    if (!items || !items.length) {
+      console.warn('Expected #items declaration');
+      return;
+    }
+    var item = items[0];
+    var type = this._computeModelType(item);
+    if (!type) {
+      return;
+    }
+    // TODO: add support for objects and unions.
+    return {
+      type: type
+    };
+  }
+
+  _computePropetyShapeItems(model) {
+    if (!this._modelHasType(model, ARRAY_SHAPE)) {
+      return;
+    }
+    let items = model[RAML_V_SHAPES + '#items'];
+    if (!items || !items.length) {
+      console.warn('Expected #items declaration');
+      return;
+    }
+    items = items[0];
+    //TODO: Import items.
+  }
+
+  _computeValueDelimiter(binding) {
+    switch (binding) {
+      case 'header': return ':';
+      case 'query': return '=';
+      default: return '';
+    }
+  }
+
+  _computeDecodeValues(binding) {
+    switch (binding) {
+      case 'query': return true;
+      default: return false;
+    }
+  }
+  /**
+   * Parses a string from example or enum value to be used as default value.
+   * @param {String} example Example value to process as a value
+   * @param {Object} opts Options:
+   * - name {String} Processed property name
+   * - valueDelimiter {?String} either `:` for headers or `=` for query params
+   * - decodeValues {Boolean} True to url decode value.
+   * @return {[type]} [description]
+   */
+  _exampleAsValue(example, opts) {
+    if (!example || typeof example !== 'string') {
+      return example;
+    }
+    example = example.trim();
+    if (opts.valueDelimiter && example.indexOf(opts.name + opts.valueDelimiter) === 0) {
+      example = example.substr(opts.name.length + 1);
+    }
+    if (opts.decodeValues) {
+      try {
+        example = decodeURIComponent(example.replace(/\+/g, ' '));
+      } catch (e) {}
+    }
+    return example;
+  }
+  /**
+   * Parses example in an array type.
+   *
+   * @param {String} example An array example
+   * @param {Object} opts Options:
+   * - name {String} Processed property name
+   * - valueDelimiter {?String} either `:` for headers or `=` for query params
+   * - decodeValues {Boolean} True to url decode value.
+   * @return {Array} Array of examples or string if cannot parse
+   */
+  __parseArrayExample(example, processOptions) {
+    try {
+      var arr = JSON.parse(example);
+      if (arr instanceof Array) {
+        return arr.map(function(item) {
+          return this._exampleAsValue(item, processOptions);
+        }, this);
+      }
+      return this._exampleAsValue(example, processOptions);
+    } catch (e) {}
+    return this._exampleAsValue(example, processOptions);
+  }
+
+  /**
+   * Computes rendered item input field type based on RAML definition.
+   *
+   * It will be either numeric or text. Type will be determined from
+   * item's type or, in case of array, item's items property.
+   *
+   * @param {String} type Property data type.
+   * @param {?Array} items Array items if any
+   * @return {String} Input field type.
+   */
+  _computeModelInputType(type, items) {
+    if (type === 'array') {
+      if (typeof items === 'string') {
+        return this.__computeInputType(items);
+      }
+      return this.__computeInputType(items.type);
+    }
+    return this.__computeInputType(type);
+  }
+
+  __computeInputType(type) {
+    if (type && NUMBER_INPUT_TYPES.indexOf(type) !== -1) {
+      return 'number';
+    } else if (type === 'boolean') {
+      return 'boolean';
+    } else if (type === 'date-only') {
+      return 'date';
+    }
+    return 'text';
+  }
+  /**
+   * Computes pattern for the input.
+   *
+   * @param {String} inputType Type of the input field. Date types are
+   * getting date format patterns.
+   * @param {String} pattern Pattern declared on the property
+   * @return {String|undefined} Pattern or undefined if does not exists.
+   */
+  _computeModelPattern(inputType, pattern) {
+    if (!pattern) {
+      if (inputType === 'date') {
+        pattern = '[0-9]{4}-[0-9]{2}-[0-9]{2}';
+      }
+    }
+    return pattern;
+  }
+}
+window.customElements.define(ApiViewModelTransformer.is, ApiViewModelTransformer);
+})();
+</script>
