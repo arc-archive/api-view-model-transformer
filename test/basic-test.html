@@ -15,31 +15,289 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
     <script src="../../webcomponentsjs/webcomponents-lite.js"></script>
     <script src="../../web-component-tester/browser.js"></script>
-    <script src="../../iron-test-helpers/test-helpers.js"></script>
-    <script src="../../iron-test-helpers/mock-interactions.js"></script>
-
-    <!-- Step 1: import the element to test -->
-    <link rel="import" href="../api-view-model-tranformer.html">
+    <link rel="import" href="../api-view-model-transformer.html">
   </head>
   <body>
 
     <test-fixture id="basic">
       <template>
-        <api-view-model-tranformer></api-view-model-tranformer>
+        <api-view-model-transformer></api-view-model-transformer>
       </template>
     </test-fixture>
 
     <script>
     /* global fixture, assert */
-    suite('basic', function() {
+    suite('Basic tests', () => {
 
-      var element;
+      let element;
       setup(function() {
         element = fixture('basic');
       });
 
-      test('`api-view-model-tranformer` should be initialized', function() {
-        assert.equal(element.isAttached, true, 'element.isAttached equals true');
+      test('manualModel is undefined by default', () => {
+        assert.isUndefined(element.manualModel);
+      });
+
+      test('Calls computeViewModel when amfModel change', (done) => {
+        element.amfModel = [];
+        element.computeViewModel = function() {
+          done();
+        };
+      });
+    });
+
+    suite('_modelHasType()', () => {
+      let element;
+      const model = {
+        '@type': [
+          'one',
+          'two',
+          'three'
+        ]
+      };
+      setup(function() {
+        element = fixture('basic');
+      });
+
+      test('Return false for undefined model', () => {
+        const result = element._modelHasType(undefined, '');
+        assert.isFalse(result);
+      });
+
+      test('Return false for empty model', () => {
+        const result = element._modelHasType([], '');
+        assert.isFalse(result);
+      });
+
+      test('Return true for existing type', () => {
+        const result = element._modelHasType(model, 'two');
+        assert.isTrue(result);
+      });
+
+      test('Return false for missing type', () => {
+        const result = element._modelHasType(model, 'some');
+        assert.isFalse(result);
+      });
+    });
+
+    suite('_computeBinding()', () => {
+      let element;
+      const model = {
+        'http://raml.org/vocabularies/http#binding': [{
+          '@value': 'test-value'
+        }]
+      };
+      suiteSetup(function() {
+        element = fixture('basic');
+      });
+
+      test('Returns undefined when no binding', () => {
+        const result = element._computeBinding({});
+        assert.isUndefined(result);
+      });
+
+      test('Returns binding value', () => {
+        const result = element._computeBinding(model);
+        assert.equal(result, 'test-value');
+      });
+    });
+
+    suite('_computeFormName()', () => {
+      let element;
+      const model = {
+        'http://schema.org/name': [{
+          '@value': 'test-value'
+        }]
+      };
+      suiteSetup(function() {
+        element = fixture('basic');
+      });
+
+      test('Returns undefined when no name', () => {
+        const result = element._computeFormName({});
+        assert.isUndefined(result);
+      });
+
+      test('Returns name value', () => {
+        const result = element._computeFormName(model);
+        assert.equal(result, 'test-value');
+      });
+    });
+
+    suite('_computeDescription()', () => {
+      let element;
+      const model = {
+        'http://schema.org/description': [{
+          '@value': 'test-value'
+        }]
+      };
+      suiteSetup(function() {
+        element = fixture('basic');
+      });
+
+      test('Returns undefined when no name', () => {
+        const result = element._computeDescription({});
+        assert.isUndefined(result);
+      });
+
+      test('Returns description value', () => {
+        const result = element._computeDescription(model);
+        assert.equal(result, 'test-value');
+      });
+    });
+
+    suite('_computeRequired()', () => {
+      let element;
+      const model = {
+        'http://www.w3.org/ns/hydra/core#required': [{
+          '@value': 'test-value'
+        }]
+      };
+      suiteSetup(function() {
+        element = fixture('basic');
+      });
+
+      test('Returns undefined when no name', () => {
+        const result = element._computeRequired({});
+        assert.isUndefined(result);
+      });
+
+      test('Returns required value', () => {
+        const result = element._computeRequired(model);
+        assert.equal(result, 'test-value');
+      });
+    });
+
+    suite('_computeModelType()', () => {
+      let element;
+      const union = 'http://raml.org/vocabularies/shapes#UnionShape';
+      const array = 'http://raml.org/vocabularies/shapes#ArrayShape';
+      const scalar = 'http://www.w3.org/ns/shacl#ScalarShape';
+      const xmlschema = 'http://www.w3.org/2001/XMLSchema';
+      const scalarModel = {
+        '@type': [scalar],
+      };
+      suiteSetup(function() {
+        element = fixture('basic');
+      });
+
+      test('Returns default value', () => {
+        const result = element._computeModelType({});
+        assert.equal(result, 'string');
+      });
+
+      test('Returns union type', () => {
+        const result = element._computeModelType({
+          '@type': [union]
+        });
+        assert.equal(result, 'union');
+      });
+
+      test('Returns array type', () => {
+        const result = element._computeModelType({
+          '@type': [array]
+        });
+        assert.equal(result, 'array');
+      });
+
+      test('Returns integer type', () => {
+        const model = Object.assign({}, scalarModel);
+        model['http://www.w3.org/ns/shacl#datatype'] = [{
+          '@id': xmlschema + '#integer'
+        }];
+        const result = element._computeModelType(model);
+        assert.equal(result, 'integer');
+      });
+
+      test('Returns string type', () => {
+        const model = Object.assign({}, scalarModel);
+        model['http://www.w3.org/ns/shacl#datatype'] = [{
+          '@id': xmlschema + '#string'
+        }];
+        const result = element._computeModelType(model);
+        assert.equal(result, 'string');
+      });
+
+      test('Returns boolean type', () => {
+        const model = Object.assign({}, scalarModel);
+        model['http://www.w3.org/ns/shacl#datatype'] = [{
+          '@id': xmlschema + '#boolean'
+        }];
+        const result = element._computeModelType(model);
+        assert.equal(result, 'boolean');
+      });
+
+      test('Returns date type', () => {
+        const model = Object.assign({}, scalarModel);
+        model['http://www.w3.org/ns/shacl#datatype'] = [{
+          '@id': xmlschema + '#date'
+        }];
+        const result = element._computeModelType(model);
+        assert.equal(result, 'date');
+      });
+
+      test('Returns time type', () => {
+        const model = Object.assign({}, scalarModel);
+        model['http://www.w3.org/ns/shacl#datatype'] = [{
+          '@id': xmlschema + '#time'
+        }];
+        const result = element._computeModelType(model);
+        assert.equal(result, 'time');
+      });
+
+      test('Returns dateTime type', () => {
+        const model = Object.assign({}, scalarModel);
+        model['http://www.w3.org/ns/shacl#datatype'] = [{
+          '@id': xmlschema + '#dateTime'
+        }];
+        const result = element._computeModelType(model);
+        assert.equal(result, 'dateTime');
+      });
+
+      test('Returns float type', () => {
+        const model = Object.assign({}, scalarModel);
+        model['http://www.w3.org/ns/shacl#datatype'] = [{
+          '@id': xmlschema + '#float'
+        }];
+        const result = element._computeModelType(model);
+        assert.equal(result, 'float');
+      });
+    });
+
+    suite('_computeInputLabel()', function() {
+      let element;
+      suiteSetup(function() {
+        element = fixture('basic');
+      });
+
+      test('Finds name in the model', () => {
+        const result = element._computeInputLabel({
+          'http://schema.org/name': [{
+            '@value': 'test-name'
+          }]
+        });
+        assert.equal(result, 'test-name');
+      });
+
+      test('Adds asterix when required', () => {
+        const result = element._computeInputLabel({
+          'http://schema.org/name': [{
+            '@value': 'test-name'
+          }]
+        }, true);
+        assert.equal(result, 'test-name*');
+      });
+
+      test('Uses property name when display name not found', () => {
+        const result = element._computeInputLabel({
+          'blank': 'test-name'
+        }, false, 'other-name');
+        assert.equal(result, 'other-name');
+      });
+
+      test('Uses default value', () => {
+        const result = element._computeInputLabel({}, false, undefined);
+        assert.equal(result, 'Value');
       });
     });
     </script>
