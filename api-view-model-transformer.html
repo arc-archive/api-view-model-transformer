@@ -1,6 +1,8 @@
 <!-- <link rel="import" href="jsonld-import.html"> -->
 <link rel="import" href="../polymer/polymer-element.html">
 <link rel="import" href="../events-target-behavior/events-target-behavior.html">
+<link rel="import" href="jsonld-import.html">
+
 <script>
 (function() {
 'use strict';
@@ -26,6 +28,7 @@ const SCHEMA = 'http://schema.org/';
 const SHACL = 'http://www.w3.org/ns/shacl';
 const RDF = 'http://www.w3.org/1999/02/22-rdf-syntax-ns';
 const ARRAY_SHAPE = RAML_V_SHAPES + '#ArrayShape';
+const XML_SCHEMA = 'http://www.w3.org/2001/XMLSchema';
 /**
  * An element to transform AMF LD model into a form view model.
  *
@@ -164,7 +167,15 @@ class ApiViewModelTransformer extends Polymer.mixinBehaviors(ArcBehaviors.Events
        * declaration. Setting `amfContext` allows this element to propertly
        * read the schema.
        */
-      amfContext: Object
+      amfContext: Object,
+      /**
+       * The declarations model for the AMF object. It is used when the
+       * transformer attempt to transform link value.
+       *
+       * If this property is not set then it dispatches `amf-resolve-link`
+       * custom event.
+       */
+      amfDeclarations: Array
     };
   }
 
@@ -214,8 +225,8 @@ class ApiViewModelTransformer extends Polymer.mixinBehaviors(ArcBehaviors.Events
     if (!amfModel || !amfModel.length) {
       return;
     }
-    var hasContext = !!amfContext;
-    var promise;
+    const hasContext = !!amfContext;
+    let promise;
     if (hasContext) {
       promise = this._expandSchema(amfModel, amfContext);
     } else {
@@ -241,8 +252,8 @@ class ApiViewModelTransformer extends Polymer.mixinBehaviors(ArcBehaviors.Events
     if (!items || !items.length) {
       return Promise.resolve(result);
     }
-    var item = items.shift();
-    var model = this.uiModelForAmfItem(item);
+    const item = items.shift();
+    const model = this.uiModelForAmfItem(item);
     if (model) {
       result.push(model);
     } else {
@@ -272,15 +283,15 @@ class ApiViewModelTransformer extends Polymer.mixinBehaviors(ArcBehaviors.Events
    * @return {Object} UI data model.
    */
   _uiModelForParameter(amfItem) {
-    var result = {};
+    const result = {};
     result.binding = this._computeBinding(amfItem);
-    var valueDelimiter = this._computeValueDelimiter(result.binding);
-    var decodeValues = this._computeDecodeValues(result.binding);
+    const valueDelimiter = this._computeValueDelimiter(result.binding);
+    const decodeValues = this._computeDecodeValues(result.binding);
     result.name = this._computeFormName(amfItem);
     result.description = this._computeDescription(amfItem);
     result.hasDescription = !!result.description;
     result.required = this._computeRequired(amfItem);
-    var processOptions = {
+    const processOptions = {
       name: result.name,
       required: result.required,
       valueDelimiter: valueDelimiter,
@@ -302,7 +313,7 @@ class ApiViewModelTransformer extends Polymer.mixinBehaviors(ArcBehaviors.Events
     }
 
     if (result.value && result.schema.isArray && typeof result.value === 'string') {
-      var _v = this.__parseArrayExample(result.value);
+      const _v = this.__parseArrayExample(result.value);
       result.value = _v instanceof Array ? _v : [_v];
     }
 
@@ -366,12 +377,12 @@ class ApiViewModelTransformer extends Polymer.mixinBehaviors(ArcBehaviors.Events
    */
   _computeParameterSchema(model, opts) {
     opts = opts || {};
-    var result = {};
-    var key = RAML_V_HTTP + '#schema';
+    const result = {};
+    const key = RAML_V_HTTP + '#schema';
     if (!model[key]) {
       return;
     }
-    var def = model[key][0];
+    const def = model[key][0];
     /**
      * - schema.inputType {String} - type attribute of the `input` element.
      */
@@ -410,20 +421,10 @@ class ApiViewModelTransformer extends Polymer.mixinBehaviors(ArcBehaviors.Events
    * @return {Promise} Resolved promise to a restored object
    */
   _expandSchema(model, context) {
-    var data = {
-      '@context': context,
-      amfModelData: model
-    };
-    /* global jsonld, Promise */
-    return new Promise(function(resolve, reject) {
-      jsonld.expand(data, function(err, expanded) {
-        if (err) {
-          reject(err);
-        } else {
-          resolve(expanded.amfModelData);
-        }
-      });
-    });
+    const data = model[0];
+    data['@context'] = context;
+    /* global jsonld */
+    return jsonld.expand(data);
   }
   /**
    * Checks if a model has a type.
@@ -432,8 +433,8 @@ class ApiViewModelTransformer extends Polymer.mixinBehaviors(ArcBehaviors.Events
    * @return {Boolean} True if model has a type.
    */
   _modelHasType(model, type) {
-    var types = model['@type'] || [];
-    for (var i = 0; i < types.length; i++) {
+    let types = model && model['@type'] || [];
+    for (let i = 0; i < types.length; i++) {
       if (types[i] === type) {
         return true;
       }
@@ -446,7 +447,7 @@ class ApiViewModelTransformer extends Polymer.mixinBehaviors(ArcBehaviors.Events
    * @return {String|undefined} Binding property or undefined if not found.
    */
   _computeBinding(model) {
-    var key = RAML_V_HTTP + '#binding';
+    const key = RAML_V_HTTP + '#binding';
     if (!model[key]) {
       return;
     }
@@ -458,7 +459,7 @@ class ApiViewModelTransformer extends Polymer.mixinBehaviors(ArcBehaviors.Events
    * @return {String|undefined} Name property or undefined if not found.
    */
   _computeFormName(model) {
-    var key = SCHEMA + 'name';
+    const key = SCHEMA + 'name';
     if (!model[key]) {
       return;
     }
@@ -470,7 +471,7 @@ class ApiViewModelTransformer extends Polymer.mixinBehaviors(ArcBehaviors.Events
    * @return {String|undefined} Description property or undefined if not found.
    */
   _computeDescription(model) {
-    var key = SCHEMA + 'description';
+    const key = SCHEMA + 'description';
     if (!model[key]) {
       return;
     }
@@ -482,7 +483,7 @@ class ApiViewModelTransformer extends Polymer.mixinBehaviors(ArcBehaviors.Events
    * @return {Boolean} True if the property is required.
    */
   _computeRequired(model) {
-    var key = HYDRA_CORE + '#required';
+    const key = HYDRA_CORE + '#required';
     if (!model[key]) {
       return;
     }
@@ -497,21 +498,23 @@ class ApiViewModelTransformer extends Polymer.mixinBehaviors(ArcBehaviors.Events
     if (this._modelHasType(model, RAML_V_SHAPES + '#UnionShape')) {
       return 'union';
     }
+
     if (this._modelHasType(model, ARRAY_SHAPE)) {
       return 'array';
     }
 
     if (this._modelHasType(model, SHACL + '#ScalarShape')) {
       switch (model[SHACL + '#datatype'][0]['@id']) {
-        case 'http://www.w3.org/2001/XMLSchema#integer': return 'integer';
-        case 'http://www.w3.org/2001/XMLSchema#string': return 'string';
-        case 'http://www.w3.org/2001/XMLSchema#boolean': return 'boolean';
-        case 'http://www.w3.org/2001/XMLSchema#date': return 'date';
-        case 'http://www.w3.org/2001/XMLSchema#time': return 'time';
-        case 'http://www.w3.org/2001/XMLSchema#dateTime': return 'dateTime';
-        case 'http://www.w3.org/2001/XMLSchema#float': return 'float';
+        case XML_SCHEMA + '#integer': return 'integer';
+        case XML_SCHEMA + '#string': return 'string';
+        case XML_SCHEMA + '#boolean': return 'boolean';
+        case XML_SCHEMA + '#date': return 'date';
+        case XML_SCHEMA + '#time': return 'time';
+        case XML_SCHEMA + '#dateTime': return 'dateTime';
+        case XML_SCHEMA + '#float': return 'float';
       }
     }
+    return 'string';
   }
   /**
    * Computes form input label value.
@@ -522,7 +525,7 @@ class ApiViewModelTransformer extends Polymer.mixinBehaviors(ArcBehaviors.Events
    * @return {String} Input display name.
    */
   _computeInputLabel(def, required, name) {
-    var result = def[SCHEMA + 'name'];
+    let result = def[SCHEMA + 'name'];
     if (result) {
       result = result[0]['@value'];
     }
@@ -541,8 +544,8 @@ class ApiViewModelTransformer extends Polymer.mixinBehaviors(ArcBehaviors.Events
    * @return {any|undefined} Value of the property or undefined if not set.
    */
   _computeShaclProperty(def, property) {
-    var key = SHACL + '#' + property;
-    var val = def[key];
+    const key = SHACL + '#' + property;
+    const val = def[key];
     if (val) {
       return val[0]['@value'];
     }
@@ -556,8 +559,8 @@ class ApiViewModelTransformer extends Polymer.mixinBehaviors(ArcBehaviors.Events
    * @return {any|undefined} Value of the property or undefined if not set.
    */
   _computeVocabularyShapeProperty(def, property) {
-    var key = RAML_V_SHAPES + '#' + property;
-    var val = def[key];
+    const key = RAML_V_SHAPES + '#' + property;
+    const val = def[key];
     if (val) {
       return val[0]['@value'];
     }
@@ -568,12 +571,12 @@ class ApiViewModelTransformer extends Polymer.mixinBehaviors(ArcBehaviors.Events
    * @return {[type]} [description]
    */
   _computeModelEnum(def) {
-    var key = SHACL + '#in';
-    var val = def[key];
+    const key = SHACL + '#in';
+    const val = def[key];
     if (!val) {
       return;
     }
-    var result = [];
+    const result = [];
     return this._computeEnumIterator(val, result);
   }
   /**
@@ -587,11 +590,11 @@ class ApiViewModelTransformer extends Polymer.mixinBehaviors(ArcBehaviors.Events
       return result;
     }
     model = model[0];
-    var firstItem = this._getSchemaSafeValue(model, RDF + '#first');
+    const firstItem = this._getSchemaSafeValue(model, RDF + '#first');
     if (firstItem) {
       result.push(firstItem);
     }
-    var val = model[RDF + '#rest'];
+    const val = model[RDF + '#rest'];
     if (!val) {
       return result;
     }
@@ -605,7 +608,7 @@ class ApiViewModelTransformer extends Polymer.mixinBehaviors(ArcBehaviors.Events
    * @return {any|undefined}
    */
   _getSchemaSafeValue(model, key) {
-    var root = model[key];
+    let root = model[key];
     if (!root) {
       return;
     }
@@ -623,16 +626,16 @@ class ApiViewModelTransformer extends Polymer.mixinBehaviors(ArcBehaviors.Events
    * defined.
    */
   _computeModelExamples(model) {
-    var key = RAML_V_DOC + '#examples';
-    var def = model[key];
+    const key = RAML_V_DOC + '#examples';
+    const def = model[key];
     if (!def) {
       return;
     }
-    var result = [];
+    const result = [];
     for (let i = 0, len = def.length; i < len; i++) {
-      var item = def[i];
-      var name = this._getSchemaSafeValue(item, SCHEMA + 'name');
-      var value = this._getSchemaSafeValue(item, RAML_V_DOC + '#value');
+      const item = def[i];
+      const name = this._getSchemaSafeValue(item, SCHEMA + 'name');
+      const value = this._getSchemaSafeValue(item, RAML_V_DOC + '#value');
       if (!name && !value) {
         continue;
       }
@@ -654,19 +657,19 @@ class ApiViewModelTransformer extends Polymer.mixinBehaviors(ArcBehaviors.Events
     if (!this._modelHasType(model, ARRAY_SHAPE)) {
       return;
     }
-    var inherits = model[RAML_V_SHAPES + '#inherits'];
+    let inherits = model[RAML_V_SHAPES + '#inherits'];
     if (!inherits || !inherits.length) {
       console.warn('Expected #inherits declaration');
       return;
     }
     inherits = inherits[0];
-    var items = inherits[RAML_V_SHAPES + '#items'];
+    const items = inherits[RAML_V_SHAPES + '#items'];
     if (!items || !items.length) {
       console.warn('Expected #items declaration');
       return;
     }
-    var item = items[0];
-    var type = this._computeModelType(item);
+    const item = items[0];
+    const type = this._computeModelType(item);
     if (!type) {
       return;
     }
@@ -686,7 +689,73 @@ class ApiViewModelTransformer extends Polymer.mixinBehaviors(ArcBehaviors.Events
       return;
     }
     items = items[0];
+    if (this._isLink(items)) {
+      model = this._importLink(items);
+      if (model) {
+        debugger;
+        return this.uiModelForAmfItem(model);
+      }
+      return;
+    }
+    debugger;
     //TODO: Import items.
+  }
+  /**
+   * Tests if current model part is actually a link to definition
+   *
+   * @param {Object} model Current model object.
+   */
+  _isLink(model) {
+    const key = RAML_V_DOC+ '#link-target';
+    return key in model;
+  }
+  /**
+   * Attempty to resolve declaration of a link.
+   * It tries tor use `amfDeclarations` property if it's set. Otherwise
+   * it sends `amf-resolve-link` custom event to ask hosting application
+   * for the data.
+   *
+   * @param {Object} model Model with `#link-target` property
+   * @return {Object|undefined} Resolved declaration or undefined.
+   */
+  _importLink(model) {
+    const key = RAML_V_DOC+ '#link-target';
+    const def = model[key][0]['@id'];
+    if (this.amfDeclarations) {
+      return this._searchDeclaration(def);
+    }
+    return this._requestDeclaration(def);
+  }
+  /**
+   * Searches `amfDeclarations` property for an id.
+   *
+   * @param {String} id Declaration ID
+   * @return {Object|undefined} Model declaration or undefined if not found.
+   */
+  _searchDeclaration(id) {
+    if (!this.amfDeclarations) {
+      return;
+    }
+    return this.amfDeclarations.find((i) => i['@id'] === id);
+  }
+  /**
+   * Dispatches `amf-resolve-link` custom event to ask hosting application
+   * to resolve AMF model link.
+   *
+   * @param {String} id Declaration ID
+   * @return {Object|undefined} Model declaration or undefined if not found.
+   */
+  _requestDeclaration(id) {
+    const ev = new CustomEvent('amf-resolve-link', {
+      detail: {
+        id: id
+      },
+      cancelable: true,
+      bubbles: true,
+      composed: true
+    });
+    this.dispatchEvent(ev);
+    return ev.detail.result;
   }
 
   _computeValueDelimiter(binding) {
@@ -739,7 +808,7 @@ class ApiViewModelTransformer extends Polymer.mixinBehaviors(ArcBehaviors.Events
    */
   __parseArrayExample(example, processOptions) {
     try {
-      var arr = JSON.parse(example);
+      const arr = JSON.parse(example);
       if (arr instanceof Array) {
         return arr.map(function(item) {
           return this._exampleAsValue(item, processOptions);
@@ -764,6 +833,9 @@ class ApiViewModelTransformer extends Polymer.mixinBehaviors(ArcBehaviors.Events
     if (type === 'array') {
       if (typeof items === 'string') {
         return this.__computeInputType(items);
+      }
+      if (!items) {
+        return 'string';
       }
       return this.__computeInputType(items.type);
     }
@@ -865,6 +937,19 @@ class ApiViewModelTransformer extends Polymer.mixinBehaviors(ArcBehaviors.Events
     };
     return defaults;
   }
+
+  /**
+   * Dispatched when the element is trying to resolve declaration link but
+   * `amfDeclarations` is not set. It asks hosting application for the data for
+   * the id.
+   *
+   * Handlers should cancel the event and set `result`property on event's
+   * `detail` object with the declaration.
+   *
+   * @event amf-resolve-link
+   * @param {String} id Declaration ID
+   * @param {Object} result A placeholder for comupation result
+   */
 }
 window.customElements.define(ApiViewModelTransformer.is, ApiViewModelTransformer);
 })();
