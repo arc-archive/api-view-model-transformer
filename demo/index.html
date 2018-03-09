@@ -50,7 +50,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       </div>
       <div class="vertical-section-container">
         <h2>Generated model: [[currentModelName]]</h2>
-        <api-view-model-transformer id="eml" amf-model="[[amfModel]]" on-view-model-changed="_updateView"></api-view-model-transformer>
+        <api-view-model-transformer id="eml" amf-model="[[amfModel]]" amf-declarations="[[amfDeclarations]]" on-view-model-changed="_updateView"></api-view-model-transformer>
         <output id="out"></output>
       </div>
     </template>
@@ -82,6 +82,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       fetch(file)
       .then((response) => response.json())
       .then((data) => {
+        scope.amfDeclarations = data[0]['http://raml.org/vocabularies/document#declares'];
         data = data[0]['http://raml.org/vocabularies/document#encodes'][0];
         data = data['http://raml.org/vocabularies/http#endpoint'][0];
         data = data['http://www.w3.org/ns/hydra/core#supportedOperation'][0];
