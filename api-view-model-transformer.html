@@ -71,6 +71,7 @@ const XML_SCHEMA = 'http://www.w3.org/2001/XMLSchema';
  * input control to float a label.
  * - schema.isUnion {Boolean} - Flag describing union value
  * - schema.anyOf {Array<Object>} - List of possible types of the union.
+ * - schema.enabled {Boolean} - Always `true`
  *
  * ## Example
  *
@@ -346,6 +347,7 @@ class ApiViewModelTransformer extends
     result.hasDescription = !!result.description;
     result.required = this._computeRequired(def);
     result.schema = {};
+    result.schema.enabled = true;
     result.schema.type = this._computeModelType(def);
     result.schema.inputLabel = this._computeInputLabel(def, result.required, result.name);
     result.schema.pattern = this._computeShaclProperty(def, 'pattern');
@@ -384,9 +386,7 @@ class ApiViewModelTransformer extends
       return;
     }
     const def = model[key][0];
-    /**
-     * - schema.inputType {String} - type attribute of the `input` element.
-     */
+    result.enabled = true;
     result.type = this._computeModelType(def);
     result.inputLabel = this._computeInputLabel(def, opts.required, opts.name);
     result.pattern = this._computeShaclProperty(def, 'pattern');
