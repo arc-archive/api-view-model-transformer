@@ -114,7 +114,8 @@ const XML_SCHEMA = 'http://www.w3.org/2001/XMLSchema';
  * @demo demo/index.html
  * @appliesMixin ArcBehaviors.EventsTargetBehavior
  */
-class ApiViewModelTransformer extends Polymer.mixinBehaviors(ArcBehaviors.EventsTargetBehavior, HTMLElement) {
+class ApiViewModelTransformer extends
+  Polymer.mixinBehaviors(ArcBehaviors.EventsTargetBehavior, Polymer.Element) {
   static get is() { return 'api-view-model-transformer'; }
   static get properties() {
     return {
