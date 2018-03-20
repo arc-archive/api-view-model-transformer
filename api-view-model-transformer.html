@@ -243,7 +243,10 @@ class ApiViewModelTransformer extends ArcBehaviors.EventsTargetBehavior(Polymer.
       }
       return this._computeViewModelRecursive(model);
     })
-    .then((model) => this._setViewModel(model));
+    .then((model) => {
+      this._setViewModel(model);
+      return model;
+    });
   }
   /**
    * Conputes model for each item recursively. It allows browser to return
