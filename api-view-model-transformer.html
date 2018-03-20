@@ -365,9 +365,13 @@ class ApiViewModelTransformer extends ArcBehaviors.EventsTargetBehavior(Polymer.
    * part of trait or annotation properties description.
    *
    * @param {Object} model Model to extract data from.
+   * @param {Object} processOptions
    * @return {Array} View model for items.
    */
-  modelForRawObject(model) {
+  modelForRawObject(model, processOptions) {
+    if (!processOptions) {
+      processOptions = {};
+    }
     const result = [];
     const keys = Object.keys(model);
     keys.forEach((key) => {
@@ -377,7 +381,7 @@ class ApiViewModelTransformer extends ArcBehaviors.EventsTargetBehavior(Polymer.
       let item = this._uiModelForRawObject(key, model[key][0]);
       if (item) {
         // debugger;
-        item = this._processAfterItemCreated(item, {});
+        item = this._processAfterItemCreated(item, processOptions);
         result.push(item);
       }
     });
