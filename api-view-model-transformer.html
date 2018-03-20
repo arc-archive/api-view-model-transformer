@@ -29,6 +29,7 @@ const SHACL = 'http://www.w3.org/ns/shacl';
 const RDF = 'http://www.w3.org/1999/02/22-rdf-syntax-ns';
 const ARRAY_SHAPE = RAML_V_SHAPES + '#ArrayShape';
 const XML_SCHEMA = 'http://www.w3.org/2001/XMLSchema';
+const DATA_VOC = 'http://raml.org/vocabularies/data';
 /**
  * An element to transform AMF LD model into a form view model.
  *
@@ -215,7 +216,7 @@ class ApiViewModelTransformer extends ArcBehaviors.EventsTargetBehavior(Polymer.
    * Computes view model from AMF data model. This should not be called if
    * `manualModel` is not set. Use `amfModel` property instead.
    *
-   * @param {?Array} amfModel AMF type model. If not set it uses `amfModel`
+   * @param {?Array|Object} amfModel AMF type model. If not set it uses `amfModel`
    * property of the element.
    * @param {?Object} amfContext JSON ld schema context. The same as
    * `amfContext` property. Don't set the property on the element when using
@@ -223,18 +224,25 @@ class ApiViewModelTransformer extends ArcBehaviors.EventsTargetBehavior(Polymer.
    */
   computeViewModel(amfModel, amfContext) {
     this._setViewModel(undefined);
-    if (!amfModel || !amfModel.length) {
-      return;
+    if (!amfModel) {
+      amfModel = this.amfModel;
     }
-    const hasContext = !!amfContext;
+    if (!amfModel) {
+      return Promise.resolve();
+    }
     let promise;
-    if (hasContext) {
+    if (!!amfContext) {
       promise = this._expandSchema(amfModel, amfContext);
     } else {
       promise = Promise.resolve(amfModel);
     }
     return promise
-    .then((model) => this._computeViewModelRecursive(Array.from(model)))
+    .then((model) => {
+      if (model instanceof Array) {
+        model = Array.from(model);
+      }
+      return this._computeViewModelRecursive(model);
+    })
     .then((model) => this._setViewModel(model));
   }
   /**
@@ -250,18 +258,29 @@ class ApiViewModelTransformer extends ArcBehaviors.EventsTargetBehavior(Polymer.
    */
   _computeViewModelRecursive(items, result) {
     result = result || [];
-    if (!items || !items.length) {
+    if (!items) {
       return Promise.resolve(result);
     }
-    const item = items.shift();
-    const model = this.uiModelForAmfItem(item);
-    if (model) {
-      result.push(model);
-    } else {
-      console.warn('Unable to compute view data model for', item);
+    const isArray = items instanceof Array;
+    if (isArray && !items.length) {
+      return Promise.resolve(result);
     }
-    return Promise.resolve()
-    .then(() => this._computeViewModelRecursive(items, result));
+    if (isArray) {
+      const item = items.shift();
+      const model = this.uiModelForAmfItem(item);
+      if (model) {
+        result.push(model);
+      } else {
+        console.warn('Unable to compute view data model for', item);
+      }
+      return Promise.resolve()
+      .then(() => this._computeViewModelRecursive(items, result));
+    }
+    if (this._modelHasType(items, DATA_VOC + '#Object')) {
+      return this.modelForRawObject(items);
+    } else {
+      return Promise.resolve(result);
+    }
   }
   /**
    * Creates a UI model item from AMF json/ld model.
@@ -299,32 +318,7 @@ class ApiViewModelTransformer extends ArcBehaviors.EventsTargetBehavior(Polymer.
       decodeValues: decodeValues
     };
     result.schema = this._computeParameterSchema(amfItem, processOptions);
-    if (result.required && typeof result.schema.defaultValue !== 'undefined') {
-      result.value = result.schema.isArray ?
-        this.__parseArrayExample(result.schema.defaultValue, processOptions) :
-        this._exampleAsValue(result.schema.defaultValue, processOptions);
-    }
-    if (typeof result.value === 'undefined' && result.required) {
-      if (result.schema.examples) {
-        result.value = this._exampleAsValue(result.schema.examples[0].value, processOptions);
-      }
-      if (typeof result.value === 'undefined' && result.schema.isEnum) {
-        result.value = this._exampleAsValue(result.schema.enum[0], processOptions);
-      }
-    }
-
-    if (result.value && result.schema.isArray && typeof result.value === 'string') {
-      const _v = this.__parseArrayExample(result.value);
-      result.value = _v instanceof Array ? _v : [_v];
-    }
-
-    if (result.schema.isArray && !result.value) {
-      result.value = [''];
-    }
-
-    if (result.isBoolean && typeof result.value === 'boolean') {
-      result.value = String(result.value);
-    }
+    this._processAfterItemCreated(result, processOptions);
     return result;
   }
   /**
@@ -361,10 +355,159 @@ class ApiViewModelTransformer extends ArcBehaviors.EventsTargetBehavior(Polymer.
     result.schema.isArray = result.schema.type === 'array';
     result.schema.isBool = result.schema.type === 'boolean';
     result.schema.examples = this._computeModelExamples(def);
-    result.schema.items = result.schema.isArray ? this._computePropetyShapeItems(def) : undefined;
-    result.inputType = this._computeModelInputType(result.schema.type, result.schema.items);
-    result.pattern = this._computeModelPattern(result.schema.type, result.schema.pattern);
+    result.schema.inputType = this._computeModelInputType(result.schema.type, result.schema.items);
+    result.schema.pattern = this._computeModelPattern(result.schema.type, result.schema.pattern);
+    this._processAfterItemCreated(result, {});
     return result;
+  }
+  /**
+   * Creates a view model for an object definition. Object definition can be
+   * part of trait or annotation properties description.
+   *
+   * @param {Object} model Model to extract data from.
+   * @return {Array} View model for items.
+   */
+  modelForRawObject(model) {
+    const result = [];
+    const keys = Object.keys(model);
+    keys.forEach((key) => {
+      if (key.indexOf(DATA_VOC) === -1) {
+        return;
+      }
+      let item = this._uiModelForRawObject(key, model[key][0]);
+      if (item) {
+        // debugger;
+        item = this._processAfterItemCreated(item, {});
+        result.push(item);
+      }
+    });
+    return result;
+  }
+  /**
+   * Creates a view model from "raw" item (model before resolving).
+   *
+   * @param {String} key Key of the item in the model.
+   * @param {String} model Item model
+   * @return {Object} View model
+   */
+  _uiModelForRawObject(key, model) {
+    const name = key.split('#')[1];
+    const result = {};
+    result.binding = 'type';
+    result.name = name;
+    let type = this._computeRawModelValue(model[DATA_VOC + '#type']);
+    if (!type) {
+      type = 'string';
+    }
+    let bracetIndex = type.indexOf('[]');
+    let items;
+    if (bracetIndex !== -1) {
+      items = type.substr(0, bracetIndex);
+      type = 'array';
+    }
+    result.description = this._computeRawModelValue(model[DATA_VOC + '#description']);
+    result.hasDescription = !!result.description;
+    result.required = this._computeRawModelValue(model[DATA_VOC + '#required']);
+    result.schema = {};
+    result.schema.enabled = true;
+    result.schema.type = type || 'string';
+    const displayName = this._computeRawModelValue(model[DATA_VOC + '#displayName']);
+    result.schema.inputLabel = this._completeInputLabel(displayName, name, result.required);
+    result.schema.minLength = this._computeRawModelValue(model[DATA_VOC + 'minLength']);
+    result.schema.maxLength = this._computeRawModelValue(model[DATA_VOC + 'maxLength']);
+    result.schema.defaultValue = this._computeRawModelValue(model[DATA_VOC + 'default']);
+    result.schema.multipleOf = this._computeRawModelValue(model[DATA_VOC + 'multipleOf']);
+    result.schema.minimum = this._computeRawModelValue(model[DATA_VOC + 'minimum']);
+    result.schema.maximum = this._computeRawModelValue(model[DATA_VOC + 'maximum']);
+    result.schema.enum = this._computeRawModelValue(model[DATA_VOC + 'enum']);
+    let pattern = this._computeRawModelValue(model[DATA_VOC + '#pattern']);
+    if (pattern instanceof Array) {
+      pattern = '[' + pattern[0] + ']';
+    }
+    result.schema.pattern = pattern;
+    result.schema.isEnum = !!result.schema.enum;
+    result.schema.isArray = result.schema.type === 'array';
+    result.schema.isBool = result.schema.type === 'boolean';
+    // result.schema.examples = this._computeModelExamples(def);
+    if (result.schema.isArray) {
+      result.schema.items = items ? items : this._computeRawModelValue(model[DATA_VOC + '#items']);
+    }
+    result.schema.inputType = this._computeModelInputType(result.schema.type, result.schema.items);
+    result.schema.pattern = this._computeModelPattern(result.schema.type, result.schema.pattern);
+    const example = this._computeRawModelValue(model[DATA_VOC + '#example']);
+    if (example) {
+      result.schema.examples = [example];
+    }
+    const examples = this._computeRawExamples(model[DATA_VOC + '#examples']);
+    if (examples) {
+      const existing = result.schema.examples || [];
+      result.schema.examples = existing.concat(examples);
+    }
+    return result;
+  }
+  /**
+   * Sets up additional properties like `value` or placeholder from
+   * values read from the AMF model.
+   *
+   * @param {Object} item Computed UI model.
+   * @param {Object} processOptions Model creation options
+   * @return {Object}
+   */
+  _processAfterItemCreated(item, processOptions) {
+    if (item.schema.examples && item.schema.examples.length && item.schema.examples[0].value) {
+      item.schema.inputPlaceholder = 'Example: ' +
+        this._exampleAsValue(item.schema.examples[0].value, processOptions);
+    }
+    if (!item.schema.inputPlaceholder) {
+      item.schema.inputPlaceholder = this._computeTypePlaceholder(item.type);
+    }
+    if (item.schema.inputPlaceholder) {
+      item.schema.inputFloatLabel = true;
+    }
+    if (item.required && typeof item.schema.defaultValue !== 'undefined') {
+      item.value = item.schema.isArray ?
+        this.__parseArrayExample(item.schema.defaultValue, processOptions) :
+        this._exampleAsValue(item.schema.defaultValue, processOptions);
+    }
+    if (typeof item.value === 'undefined' && item.required) {
+      if (item.schema.examples) {
+        item.value = this._exampleAsValue(item.schema.examples[0].value, processOptions);
+      }
+      if (typeof item.value === 'undefined' && item.schema.isEnum) {
+        item.value = this._exampleAsValue(item.schema.enum[0], processOptions);
+      }
+    }
+
+    if (item.value && item.schema.isArray && typeof item.value === 'string') {
+      const _v = this.__parseArrayExample(item.value);
+      item.value = _v instanceof Array ? _v : [_v];
+    }
+
+    if (item.schema.isArray && !item.value) {
+      item.value = [''];
+    }
+
+    if (item.isBoolean && typeof item.value === 'boolean') {
+      item.value = String(item.value);
+    }
+    return item;
+  }
+  /**
+   * Completes computation of input label.
+   *
+   * @param {?String} displayName Value of the `displayName` property
+   * @param {String} name Property name
+   * @param {Boolean} required Is item required
+   * @return {String} Common input label construction.
+   */
+  _completeInputLabel(displayName, name, required) {
+    if (!displayName) {
+      displayName = name || 'Input value';
+    }
+    if (required) {
+      displayName += '*';
+    }
+    return displayName;
   }
   /**
    * Computes schema property of the view model from AMF model.
@@ -403,16 +546,6 @@ class ApiViewModelTransformer extends ArcBehaviors.EventsTargetBehavior(Polymer.
     result.items = result.isArray ? this._computeModelItems(def) : undefined;
     result.inputType = this._computeModelInputType(result.type, result.items);
     result.pattern = this._computeModelPattern(result.type, result.pattern);
-    if (result.examples && result.examples.length && result.examples[0].value) {
-      result.inputPlaceholder = 'Example: ' +
-        this._exampleAsValue(result.examples[0].value, opts);
-    }
-    if (!result.inputPlaceholder) {
-      result.inputPlaceholder = this._computeTypePlaceholder(result.type);
-    }
-    if (result.inputPlaceholder) {
-      result.inputFloatLabel = true;
-    }
     return result;
   }
   /**
@@ -425,6 +558,34 @@ class ApiViewModelTransformer extends ArcBehaviors.EventsTargetBehavior(Polymer.
     data['@context'] = context;
     /* global jsonld */
     return jsonld.expand(data);
+  }
+  /**
+   * Computes list of examples from the Raw data model.
+   * @param {Object} model
+   * @return {Array|undefined}
+   */
+  _computeRawExamples(model) {
+    if (!model || !model[0]) {
+      return;
+    }
+    const result = [];
+    model = model[0];
+    const keys = Object.keys(model);
+    keys.forEach((key) => {
+      if (key.indexOf(DATA_VOC) === -1) {
+        return;
+      }
+      const name = key.split('#')[1];
+      const value = this._computeRawModelValue(model[key]);
+      if (value) {
+        result.push({
+          name: name,
+          value: value,
+          hasName: !!name
+        });
+      }
+    });
+    return result;
   }
   /**
    * Checks if a model has a type.
@@ -498,11 +659,9 @@ class ApiViewModelTransformer extends ArcBehaviors.EventsTargetBehavior(Polymer.
     if (this._modelHasType(model, RAML_V_SHAPES + '#UnionShape')) {
       return 'union';
     }
-
     if (this._modelHasType(model, ARRAY_SHAPE)) {
       return 'array';
     }
-
     if (this._modelHasType(model, SHACL + '#ScalarShape')) {
       switch (model[SHACL + '#datatype'][0]['@id']) {
         case XML_SCHEMA + '#integer': return 'integer';
@@ -517,6 +676,59 @@ class ApiViewModelTransformer extends ArcBehaviors.EventsTargetBehavior(Polymer.
     return 'string';
   }
   /**
+   * Computes type of the raw model.
+   *
+   * @param {Array} model Property schema.
+   * @return {String|undefined} Type of the nproperty.
+   */
+  _computeRawModelValue(model) {
+    if (!model || !model[0]) {
+      return;
+    }
+    const item = model[0];
+    const dataType = item['@type'][0];
+    switch (dataType) {
+      case DATA_VOC + '#Scalar':
+        return this._computeRawScalarValue(item);
+      case DATA_VOC + '#Array':
+        return this._computeRawArrayValue(item);
+    }
+  }
+
+  _computeRawScalarValue(item) {
+    let value = item[DATA_VOC + '#value'];
+    if (!value) {
+      return;
+    }
+    value = value[0];
+    const type = value['@type'];
+    value = value['@value'];
+    switch (type) {
+      case XML_SCHEMA + '#number':
+      case XML_SCHEMA + '#integer':
+        return Number(value);
+      case XML_SCHEMA + '#boolean':
+        return value === 'false' ? false : true;
+      default:
+        return value;
+    }
+  }
+
+  _computeRawArrayValue(item) {
+    let values = item[RDF + '#member'];
+    if (!values) {
+      return;
+    }
+    const result = [];
+    values.forEach((value) => {
+      const item = this._computeRawScalarValue(value);
+      if (item) {
+        result.push(item);
+      }
+    });
+    return;
+  }
+  /**
    * Computes form input label value.
    *
    * @param {Object} def Property definition
@@ -529,11 +741,7 @@ class ApiViewModelTransformer extends ArcBehaviors.EventsTargetBehavior(Polymer.
     if (result) {
       result = result[0]['@value'];
     }
-    result = result || name || 'Value';
-    if (required) {
-      result += '*';
-    }
-    return result;
+    return this._completeInputLabel(result, name, required);
   }
   /**
    * Computes the value of a property that namespace starts with
@@ -677,28 +885,6 @@ class ApiViewModelTransformer extends ArcBehaviors.EventsTargetBehavior(Polymer.
     return {
       type: type
     };
-  }
-
-  _computePropetyShapeItems(model) {
-    if (!this._modelHasType(model, ARRAY_SHAPE)) {
-      return;
-    }
-    let items = model[RAML_V_SHAPES + '#items'];
-    if (!items || !items.length) {
-      console.warn('Expected #items declaration');
-      return;
-    }
-    items = items[0];
-    if (this._isLink(items)) {
-      model = this._importLink(items);
-      if (model) {
-        debugger;
-        return this.uiModelForAmfItem(model);
-      }
-      return;
-    }
-    debugger;
-    //TODO: Import items.
   }
   /**
    * Tests if current model part is actually a link to definition
