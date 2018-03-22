@@ -1119,15 +1119,25 @@ class ApiViewModelTransformer extends ArcBehaviors.EventsTargetBehavior(Polymer.
     if (!defaults) {
       defaults = {};
     }
-    defaults.hasDescription = !!defaults.description;
-    const schema = defaults.schema || {};
-    defaults.schema = {
-      isEnum: schema.isEnum || false,
-      isArray: schema.isArray || false,
-      isBool: schema.isBool || false,
-      inputType: schema.inputType || 'text',
-      inputFloatLabel: (schema.inputFloatLabel || schema.inputPlaceholder) || false
+    const modelDefaults = {
+      name: 'property',
+      schema: {
+        type: 'string',
+        isEnum: false,
+        isArray: false,
+        isBool: false,
+        inputType: 'text'
+      }
     };
+    defaults = Object.assign(modelDefaults, defaults);
+    defaults.hasDescription = !!defaults.description;
+    defaults.schema.inputFloatLabel = (defaults.schema.inputFloatLabel || defaults.schema.inputPlaceholder) || false;
+    defaults.schema.inputType = this._computeModelInputType(defaults.schema.type, defaults.schema.items);
+    defaults.schema.pattern = this._computeModelPattern(defaults.schema.type, defaults.schema.pattern);
+    if (!defaults.schema.inputLabel) {
+      defaults.schema.inputLabel = defaults.name || 'Parameter value';
+    }
+    this._processAfterItemCreated(defaults, {});
     return defaults;
   }
 
