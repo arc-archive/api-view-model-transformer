@@ -343,6 +343,9 @@ class ApiViewModelTransformer extends ArcBehaviors.EventsTargetBehavior(Polymer.
     result.hasDescription = !!result.description;
     result.required = this._computeRequired(def);
     result.schema = {};
+    if (result.required === undefined) {
+      result.required = false;
+    }
     result.schema.enabled = true;
     result.schema.type = this._computeModelType(def);
     result.schema.inputLabel = this._computeInputLabel(def, result.required, result.name);
