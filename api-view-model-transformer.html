@@ -67,13 +67,15 @@ const DATA_VOC = 'http://raml.org/vocabularies/data';
  * - schema.isArray {Boolean} - Flag describing array value for the property
  * - schema.items {Object} - Lsit of items definitions
  * - schema.isBool {Boolean} - Flag describing boolean value for the property
+ * - schema.isFile {Boolean} - Flag describing File value for the property
  * - schema.inputPlaceholder {?String} - A placeholder value for the input.
  * - schema.inputFloatLabel {Boolean} - Only if placeholder is set. Instructs
  * input control to float a label.
  * - schema.isUnion {Boolean} - Flag describing union value
  * - schema.anyOf {Array<Object>} - List of possible types of the union.
  * - schema.enabled {Boolean} - Always `true`
- *
+ * - schema.fileTypes {Array<String>} List of file types defined for a file
+ * type.
  * ## Example
  *
  * ```html
@@ -363,6 +365,12 @@ class ApiViewModelTransformer extends ArcBehaviors.EventsTargetBehavior(Polymer.
     result.schema.examples = this._computeModelExamples(def);
     result.schema.inputType = this._computeModelInputType(result.schema.type, result.schema.items);
     result.schema.pattern = this._computeModelPattern(result.schema.type, result.schema.pattern);
+    if (result.schema.type === 'file') {
+      result.schema.isFile = true;
+      result.schema.fileTypes = this._computeModelArrayValue(def[RAML_V_SHAPES + '#fileType']);
+    } else {
+      result.schema.isFile = false;
+    }
     this._processAfterItemCreated(result, {});
     return result;
   }
@@ -672,6 +680,9 @@ class ApiViewModelTransformer extends ArcBehaviors.EventsTargetBehavior(Polymer.
     if (this._modelHasType(model, ARRAY_SHAPE)) {
       return 'array';
     }
+    if (this._modelHasType(model, RAML_V_SHAPES + '#FileShape')) {
+      return 'file';
+    }
     if (this._modelHasType(model, SHACL + '#ScalarShape')) {
       switch (model[SHACL + '#datatype'][0]['@id']) {
         case XML_SCHEMA + '#integer': return 'integer';
@@ -702,7 +713,18 @@ class ApiViewModelTransformer extends ArcBehaviors.EventsTargetBehavior(Polymer.
         return this._computeRawScalarValue(item);
       case DATA_VOC + '#Array':
         return this._computeRawArrayValue(item);
+      case RAML_V_SHAPES + '#FileShape':
+        return this._computeModelArrayValue(item[RAML_V_SHAPES + '#fileType']);
     }
+  }
+
+  _computeModelArrayValue(model) {
+    const result = [];
+    if (!model || !model.length) {
+      return result;
+    }
+    model.forEach((item) => result.push(item['@value']));
+    return result;
   }
 
   _computeRawScalarValue(item) {
