@@ -394,7 +394,6 @@ class ApiViewModelTransformer extends ArcBehaviors.EventsTargetBehavior(Polymer.
       }
       let item = this._uiModelForRawObject(key, model[key][0]);
       if (item) {
-        // debugger;
         item = this._processAfterItemCreated(item, processOptions);
         result.push(item);
       }
@@ -1144,17 +1143,14 @@ class ApiViewModelTransformer extends ArcBehaviors.EventsTargetBehavior(Polymer.
     if (!defaults) {
       defaults = {};
     }
-    const modelDefaults = {
-      name: 'property',
-      schema: {
-        type: 'string',
-        isEnum: false,
-        isArray: false,
-        isBool: false,
-        inputType: 'text'
-      }
-    };
-    defaults = Object.assign(modelDefaults, defaults);
+    // defaults.name = defaults.name || 'property';
+    defaults.schema = defaults.schema || {};
+    defaults.schema.type = defaults.schema.type || 'string';
+    defaults.schema.isEnum = defaults.schema.isEnum || false;
+    defaults.schema.isArray = defaults.schema.isArray || false;
+    defaults.schema.isBool = defaults.schema.isBool || false;
+    defaults.schema.isFile = defaults.schema.type === 'file';
+    defaults.schema.inputType = defaults.schema.inputType === 'text';
     defaults.hasDescription = !!defaults.description;
     defaults.schema.inputFloatLabel = (defaults.schema.inputFloatLabel || defaults.schema.inputPlaceholder) || false;
     defaults.schema.inputType = this._computeModelInputType(defaults.schema.type, defaults.schema.items);
