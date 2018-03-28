@@ -682,9 +682,10 @@ class ApiViewModelTransformer extends ArcBehaviors.EventsTargetBehavior(Polymer.
     if (this._modelHasType(model, RAML_V_SHAPES + '#FileShape')) {
       return 'file';
     }
-    if (this._modelHasType(model, SHACL + '#ScalarShape')) {
+    if (this._modelHasType(model, RAML_V_SHAPES + '#ScalarShape')) {
       switch (model[SHACL + '#datatype'][0]['@id']) {
         case XML_SCHEMA + '#integer': return 'integer';
+        case RAML_V_SHAPES + '#number': return 'number';
         case XML_SCHEMA + '#string': return 'string';
         case XML_SCHEMA + '#boolean': return 'boolean';
         case XML_SCHEMA + '#date': return 'date';
