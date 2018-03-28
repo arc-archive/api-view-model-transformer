@@ -896,14 +896,8 @@ class ApiViewModelTransformer extends ArcBehaviors.EventsTargetBehavior(Polymer.
     if (!this._modelHasType(model, ARRAY_SHAPE)) {
       return;
     }
-    let inherits = model[RAML_V_SHAPES + '#inherits'];
-    if (!inherits || !inherits.length) {
-      console.warn('Expected #inherits declaration');
-      return;
-    }
-    inherits = inherits[0];
-    const items = inherits[RAML_V_SHAPES + '#items'];
-    if (!items || !items.length) {
+    const items = model[RAML_V_SHAPES + '#items'];
+    if (!items) {
       console.warn('Expected #items declaration');
       return;
     }
@@ -913,9 +907,7 @@ class ApiViewModelTransformer extends ArcBehaviors.EventsTargetBehavior(Polymer.
       return;
     }
     // TODO: add support for objects and unions.
-    return {
-      type: type
-    };
+    return type;
   }
   /**
    * Tests if current model part is actually a link to definition
