@@ -496,7 +496,7 @@ class ApiViewModelTransformer extends ArcBehaviors.EventsTargetBehavior(Polymer.
     }
 
     if (item.value && item.schema.isArray && typeof item.value === 'string') {
-      const _v = this.__parseArrayExample(item.value);
+      const _v = this.__parseArrayExample(item.value, processOptions);
       item.value = _v instanceof Array ? _v : [_v];
     }
 
