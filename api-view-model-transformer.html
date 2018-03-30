@@ -46,6 +46,8 @@ const DATA_VOC = 'http://raml.org/vocabularies/data';
  * - description {String} - The description of the property
  * - hasDescription {Boolean} - Flag describing if the property has a
  * description.
+ * - properties {Array<Object>} - If the model is a type of object it is a list
+ * of this model objects.
  * - schema {Object} - Property schma information
  * - schema.type {String} - Data type of the property
  * - schema.inputLabel {String} Label for the form control
@@ -68,6 +70,7 @@ const DATA_VOC = 'http://raml.org/vocabularies/data';
  * - schema.items {Object} - Lsit of items definitions
  * - schema.isBool {Boolean} - Flag describing boolean value for the property
  * - schema.isFile {Boolean} - Flag describing File value for the property
+ * - schema.isObject {Boolean} - Flag describing Object value for the property
  * - schema.inputPlaceholder {?String} - A placeholder value for the input.
  * - schema.inputFloatLabel {Boolean} - Only if placeholder is set. Instructs
  * input control to float a label.
@@ -361,15 +364,29 @@ class ApiViewModelTransformer extends ArcBehaviors.EventsTargetBehavior(Polymer.
     result.schema.enum = this._computeModelEnum(def);
     result.schema.isEnum = !!result.schema.enum;
     result.schema.isArray = result.schema.type === 'array';
+    result.schema.isObject = result.schema.type === 'object';
     result.schema.isBool = result.schema.type === 'boolean';
     result.schema.examples = this._computeModelExamples(def);
+    result.schema.hasExamples = !!(result.schema.examples && result.schema.examples.length);
     result.schema.inputType = this._computeModelInputType(result.schema.type, result.schema.items);
     result.schema.pattern = this._computeModelPattern(result.schema.type, result.schema.pattern);
+    result.hasExtendedDescs = this._computeHasExtendedDocumentation(result);
+    if (result.hasDescription) {
+      result.extendedDocs = this._computeExtendedDocumentation(result);
+    }
     if (result.schema.type === 'file') {
       result.schema.isFile = true;
       result.schema.fileTypes = this._computeModelArrayValue(def[RAML_V_SHAPES + '#fileType']);
     } else {
       result.schema.isFile = false;
+    }
+    if (result.schema.isObject) {
+      const props = [];
+      const items = def[SHACL + '#property'];
+      if (items) {
+        items.forEach((item) => props.push(this.uiModelForAmfItem(item)));
+      }
+      result.properties = props;
     }
     this._processAfterItemCreated(result, {});
     return result;
@@ -559,6 +576,7 @@ class ApiViewModelTransformer extends ArcBehaviors.EventsTargetBehavior(Polymer.
     result.isEnum = !!result.enum;
     result.isArray = result.type === 'array';
     result.isBool = result.type === 'boolean';
+    result.isObject = result.type === 'object';
     result.examples = this._computeModelExamples(def);
     result.items = result.isArray ? this._computeModelItems(def) : undefined;
     result.inputType = this._computeModelInputType(result.type, result.items);
@@ -681,6 +699,12 @@ class ApiViewModelTransformer extends ArcBehaviors.EventsTargetBehavior(Polymer.
     }
     if (this._modelHasType(model, RAML_V_SHAPES + '#FileShape')) {
       return 'file';
+    }
+    if (this._modelHasType(model, SHACL + '#PropertyShape')) {
+      return 'object';
+    }
+    if (this._modelHasType(model, SHACL + '#NodeShape')) {
+      return 'object';
     }
     if (this._modelHasType(model, RAML_V_SHAPES + '#ScalarShape')) {
       switch (model[SHACL + '#datatype'][0]['@id']) {
@@ -1155,6 +1179,151 @@ class ApiViewModelTransformer extends ArcBehaviors.EventsTargetBehavior(Polymer.
     return defaults;
   }
 
+  /**
+   * Computes if model item has documentation to display.
+   * This would be extended documentation by adding additional description
+   * properties that helps the user to input values into the editor.
+   *
+   * @param {Object} item Model item
+   * @return {Boolean} True if documentation can be rendered.
+   */
+  _computeHasExtendedDocumentation(item) {
+    if (item.hasDescription) {
+      return true;
+    }
+    if (!item.schema) {
+      return false;
+    }
+    const schema = item.schema;
+    if (schema.pattern) {
+      return true;
+    }
+    if (schema.examples && schema.examples.length) {
+      return true;
+    }
+    return false;
+  }
+  /**
+   * Computes documentation as a markdown to be placed in the `marked-element`
+   * @param {Object} item View model
+   */
+  _computeExtendedDocumentation(item) {
+    let docs = '';
+    if (item.description) {
+     docs += item.description;
+    }
+    if (!item.schema) {
+     return docs;
+    }
+    const schema = item.schema;
+    docs += '\n\n\n';
+    if (schema.pattern) {
+     docs += '- Pattern: `' + schema.pattern + '`\n';
+    }
+    if (schema.examples && schema.examples.length) {
+     schema.examples.forEach((item) => {
+       docs += '- Example';
+       if (item.hasName) {
+         docs += ' ' + item.name;
+       }
+       docs += ': `' + item.value + '`\n';
+     });
+    }
+    return docs;
+  }
+  /**
+   * Computes a JSON object to display from view model propertiers
+   * @param {Array<Object>} properties
+   * @return {String} JSON string value.
+   */
+  computeDisplayJson(properties) {
+    const result = this._computeDisplayJsonRecursive(properties);
+    return JSON.stringify(result, null, 2);
+  }
+  /**
+   * Computes an XML schema to display from view model propertiers
+   * @param {Array<Object>} properties
+   * @return {String} XML string value.
+   */
+  computeDisplayXml(properties) {
+    let result = '';
+    if (!properties || !properties.length) {
+      return result;
+    }
+    properties.forEach((item) => {
+      const schema = item.schema;
+      result += `<${item.name}>`;
+      let v = schema.defaultValue;
+      if (!v) {
+        switch (true) {
+          case schema.isEnum:
+            v = schema.enum && schema.enum[0];
+            break;
+          case schema.isArray:
+            v = schema.items;
+            break;
+          case schema.isBool:
+            v = 'true';
+            break;
+          case schema.isFile:
+            v = '';
+            break;
+          case schema.isObject:
+            v = this.computeDisplayXml(item.properties);
+            break;
+          default:
+            if (schema.hasExamples) {
+              v = schema.examples[0].value || schema.examples[0];
+            } else {
+              v = schema.type;
+            }
+            break;
+        }
+      }
+      result += v;
+      result += `</${item.name}>\n`;
+    });
+    return result;
+  }
+
+  _computeDisplayJsonRecursive(properties, result) {
+    result = result || {};
+    if (!properties || !properties.length) {
+      return result;
+    }
+    properties.forEach((item) => {
+      const schema = item.schema;
+      let v = schema.defaultValue;
+      if (!v) {
+        switch (true) {
+          case schema.isEnum:
+            v = schema.enum && schema.enum[0];
+            break;
+          case schema.isArray:
+            v = schema.items;
+            break;
+          case schema.isBool:
+            v = true;
+            break;
+          case schema.isFile:
+            v = '';
+            break;
+          case schema.isObject:
+            v = this._computeDisplayJsonRecursive(item.properties);
+            break;
+          default:
+            if (schema.hasExamples) {
+              v = schema.examples[0].value || schema.examples[0];
+            } else {
+              v = schema.type;
+            }
+            break;
+        }
+      }
+      result[item.name] = v || '';
+    });
+    return result;
+  }
   /**
    * Dispatched when the element is trying to resolve declaration link but
    * `amfDeclarations` is not set. It asks hosting application for the data for
