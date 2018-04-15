@@ -1,8 +1,6 @@
 <!-- <link rel="import" href="jsonld-import.html"> -->
 <link rel="import" href="../polymer/polymer-element.html">
 <link rel="import" href="../events-target-behavior/events-target-behavior.html">
-<link rel="import" href="jsonld-import.html">
-
 <script>
 (function() {
 'use strict';
@@ -113,11 +111,8 @@ const DATA_VOC = 'http://raml.org/vocabularies/data';
  * **Tranformation won't work properly if namespace name are altered by context
  * and `amfContext` property is not set.**
  *
- * @extends HTMLElement
  * @customElement
- * @group API Elements
- * @memberof API Elements
- * @element api-view-model-transformer
+ * @memberof ApiElements
  * @demo demo/index.html
  * @appliesMixin ArcBehaviors.EventsTargetBehavior
  */
@@ -154,27 +149,6 @@ class ApiViewModelTransformer extends ArcBehaviors.EventsTargetBehavior(Polymer.
        * computation.
        */
       manualModel: Boolean,
-      /**
-       * AMF json/ld contect to use to find keys in the model.
-       *
-       * ### Example
-       * ```javascript
-       * {
-       *  "doc": "http://raml.org/vocabularies/document#",
-       *  "shapes": "http://raml.org/vocabularies/shapes#",
-       *  "raml-http": "http://raml.org/vocabularies/http#"
-       *  }
-       * ```
-       * This context generate the following keys for the `amfModel`:
-       * - `doc:Document` as `http://raml.org/vocabularies/document#Document`
-       * - `shapes:NilShape` as `http://raml.org/vocabularies/shapes#NilShape`
-       * - `raml-http:Parameter` as `http://raml.org/vocabularies/http#Parameter`
-       *
-       * Context can be used to reduce model size by shortering namespace
-       * declaration. Setting `amfContext` allows this element to propertly
-       * read the schema.
-       */
-      amfContext: Object,
       /**
        * The declarations model for the AMF object. It is used when the
        * transformer attempt to transform link value.
@@ -214,20 +188,17 @@ class ApiViewModelTransformer extends ArcBehaviors.EventsTargetBehavior(Polymer.
     if (this.manualModel) {
       return;
     }
-    setTimeout(() => this.computeViewModel(amfModel, this.amfContext), 2);
+    this.computeViewModel(amfModel);
   }
-
   /**
    * Computes view model from AMF data model. This should not be called if
    * `manualModel` is not set. Use `amfModel` property instead.
    *
    * @param {?Array|Object} amfModel AMF type model. If not set it uses `amfModel`
    * property of the element.
-   * @param {?Object} amfContext JSON ld schema context. The same as
-   * `amfContext` property. Don't set the property on the element when using
-   * manual model computation. Instead call this function with context.
+   * @return {Promise} A promise resolved to generated model.
    */
-  computeViewModel(amfModel, amfContext) {
+  computeViewModel(amfModel) {
     this._setViewModel(undefined);
     if (!amfModel) {
       amfModel = this.amfModel;
@@ -235,19 +206,10 @@ class ApiViewModelTransformer extends ArcBehaviors.EventsTargetBehavior(Polymer.
     if (!amfModel) {
       return Promise.resolve();
     }
-    let promise;
-    if (!!amfContext) {
-      promise = this._expandSchema(amfModel, amfContext);
-    } else {
-      promise = Promise.resolve(amfModel);
+    if (amfModel instanceof Array) {
+      amfModel = Array.from(amfModel);
     }
-    return promise
-    .then((model) => {
-      if (model instanceof Array) {
-        model = Array.from(model);
-      }
-      return this._computeViewModelRecursive(model);
-    })
+    return this._computeViewModelRecursive(amfModel)
     .then((model) => {
       this._setViewModel(model);
       return model;
@@ -582,17 +544,6 @@ class ApiViewModelTransformer extends ArcBehaviors.EventsTargetBehavior(Polymer.
     result.inputType = this._computeModelInputType(result.type, result.items);
     result.pattern = this._computeModelPattern(result.type, result.pattern);
     return result;
-  }
-  /**
-   * Uses the json-ld library to expand context properties.
-   * @param {Object} compacted Compacted form of the schema.
-   * @return {Promise} Resolved promise to a restored object
-   */
-  _expandSchema(model, context) {
-    const data = model[0];
-    data['@context'] = context;
-    /* global jsonld */
-    return jsonld.expand(data);
   }
   /**
    * Computes list of examples from the Raw data model.
@@ -940,7 +891,7 @@ class ApiViewModelTransformer extends ArcBehaviors.EventsTargetBehavior(Polymer.
    * @param {Object} model Current model object.
    */
   _isLink(model) {
-    const key = RAML_V_DOC+ '#link-target';
+    const key = RAML_V_DOC + '#link-target';
     return key in model;
   }
   /**
@@ -953,7 +904,7 @@ class ApiViewModelTransformer extends ArcBehaviors.EventsTargetBehavior(Polymer.
    * @return {Object|undefined} Resolved declaration or undefined.
    */
   _importLink(model) {
-    const key = RAML_V_DOC+ '#link-target';
+    const key = RAML_V_DOC + '#link-target';
     const def = model[key][0]['@id'];
     if (this.amfDeclarations) {
       return this._searchDeclaration(def);
@@ -1169,9 +1120,12 @@ class ApiViewModelTransformer extends ArcBehaviors.EventsTargetBehavior(Polymer.
     defaults.schema.isFile = defaults.schema.type === 'file';
     defaults.schema.inputType = defaults.schema.inputType === 'text';
     defaults.hasDescription = !!defaults.description;
-    defaults.schema.inputFloatLabel = (defaults.schema.inputFloatLabel || defaults.schema.inputPlaceholder) || false;
-    defaults.schema.inputType = this._computeModelInputType(defaults.schema.type, defaults.schema.items);
-    defaults.schema.pattern = this._computeModelPattern(defaults.schema.type, defaults.schema.pattern);
+    defaults.schema.inputFloatLabel = (defaults.schema.inputFloatLabel ||
+      defaults.schema.inputPlaceholder) || false;
+    defaults.schema.inputType = this._computeModelInputType(defaults.schema.type,
+      defaults.schema.items);
+    defaults.schema.pattern = this._computeModelPattern(defaults.schema.type,
+      defaults.schema.pattern);
     if (!defaults.schema.inputLabel) {
       defaults.schema.inputLabel = defaults.name || 'Parameter value';
     }
@@ -1210,24 +1164,24 @@ class ApiViewModelTransformer extends ArcBehaviors.EventsTargetBehavior(Polymer.
   _computeExtendedDocumentation(item) {
     let docs = '';
     if (item.description) {
-     docs += item.description;
+      docs += item.description;
     }
     if (!item.schema) {
-     return docs;
+      return docs;
     }
     const schema = item.schema;
     docs += '\n\n\n';
     if (schema.pattern) {
-     docs += '- Pattern: `' + schema.pattern + '`\n';
+      docs += '- Pattern: `' + schema.pattern + '`\n';
     }
     if (schema.examples && schema.examples.length) {
-     schema.examples.forEach((item) => {
-       docs += '- Example';
-       if (item.hasName) {
-         docs += ' ' + item.name;
-       }
-       docs += ': `' + item.value + '`\n';
-     });
+      schema.examples.forEach((item) => {
+        docs += '- Example';
+        if (item.hasName) {
+          docs += ' ' + item.name;
+        }
+        docs += ': `' + item.value + '`\n';
+      });
     }
     return docs;
   }
