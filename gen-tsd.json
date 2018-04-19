@@ -1,0 +1,8 @@
+{
+  "excludeFiles": [
+    "tasks/*",
+    "models/*",
+    "test/*",
+    "index.html"
+  ]
+}
