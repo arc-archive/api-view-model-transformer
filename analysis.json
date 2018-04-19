@@ -2,7 +2,7 @@
   "schema_version": "1.0.0",
   "elements": [
     {
-      "description": "An element to transform AMF LD model into a form view model.\n\nNote, this element does not include polyfills for `Promise` and `Array.from`.\n\nThe model should be used to build a form view for request parameters\nlike header, query parameters, uri parameters or the body.\n\n### Data model\n- binding {String} - one of `path`, `query`, `header`\n- name {String} - property (form) name\n- required {Boolean} - is property required\n- value {any} - Value of the property\n- description {String} - The description of the property\n- hasDescription {Boolean} - Flag describing if the property has a\ndescription.\n- schema {Object} - Property schma information\n- schema.type {String} - Data type of the property\n- schema.inputLabel {String} Label for the form control\n- schema.inputType {String} - type attribute of the `input` element.\n- schema.pattern {String} - Regex pattern of the property\n- schema.minLength {Number} - String property minimum length\n- schema.maxLength {Number} - String property maximum length\n- schema.defaultValue {any} - Default value of the property\n- schema.examples {Array<Object>} - List of examples for the form property.\n- schema.multipleOf {Number} - For numeric values, a `step` attribute of\nthe `input` element.\nEach object may contain `name` (may be undefined) and must contain `value`\nproperty of the example.\n- schema.minimum {Number} - For numeric values, minimum value of the property\n- schema.maximum {Number} - For numeric values, maximum value of the property\n- schema.isEnum {Boolean} - Flag describing enumerable value\n- schema.enum {Array<any>} - Only if `schema.isEnum` is set. Values for enum\ninput.\n- schema.isArray {Boolean} - Flag describing array value for the property\n- schema.items {Object} - Lsit of items definitions\n- schema.isBool {Boolean} - Flag describing boolean value for the property\n- schema.inputPlaceholder {?String} - A placeholder value for the input.\n- schema.inputFloatLabel {Boolean} - Only if placeholder is set. Instructs\ninput control to float a label.\n- schema.isUnion {Boolean} - Flag describing union value\n- schema.anyOf {Array<Object>} - List of possible types of the union.\n\n## Example\n\n```html\n<api-view-model-transformer on-view-model-changed=\"_updateView\"></api-view-model-transformer>\n<script>\nconst amfModel = getAmfFromRamlOrOas();\nconst processor = document.querySelector('api-view-model-transformer');\nif (amfModel['@context']) {\n processor.amfContext = amfModel['@context'];\n}\nprocessor.amfModel = extractHeadersForMethod(amfModel);\nprocessor.addEventListener('view-model-changed', (e) => {\n console.log(e.detail.value);\n});\n< /script>\n```\n\nThis example uses `getAmfFromRamlOrOas()` function where you implement\nthe logic of getting AMF json/ld data. It can be stored in file or parsed\nusing AMF parsers. The `extractHeadersForMethod()` represents a logic to\nextract properties that you want to transform. It can be headers, query\nparameters or body type.\n\n## JSON ld context\n\nJSON schema may contain `@context` property. It can be used to reduce size\nof the schema by replacing namespace ids with defined in `@context` keywords.\nThis transformer does not consume whole AMF model, but only the portion that\nshould be transformed. Because of that the tranformer is missing context\nfor namespace resolving. Set `@context` value of the model to `amfContext`\nproperty so it can be expanded to the canonical form.\n**Tranformation won't work properly if namespace name are altered by context\nand `amfContext` property is not set.**",
+      "description": "An element to transform AMF LD model into a form view model.\n\nNote, this element does not include polyfills for `Promise` and `Array.from`.\n\nThe model should be used to build a form view for request parameters\nlike header, query parameters, uri parameters or the body.\n\n### Data model\n- binding {String} - one of `path`, `query`, `header`\n- name {String} - property (form) name\n- required {Boolean} - is property required\n- value {any} - Value of the property\n- description {String} - The description of the property\n- hasDescription {Boolean} - Flag describing if the property has a\ndescription.\n- properties {Array<Object>} - If the model is a type of object it is a list\nof this model objects.\n- schema {Object} - Property schma information\n- schema.type {String} - Data type of the property\n- schema.inputLabel {String} Label for the form control\n- schema.inputType {String} - type attribute of the `input` element.\n- schema.pattern {String} - Regex pattern of the property\n- schema.minLength {Number} - String property minimum length\n- schema.maxLength {Number} - String property maximum length\n- schema.defaultValue {any} - Default value of the property\n- schema.examples {Array<Object>} - List of examples for the form property.\n- schema.multipleOf {Number} - For numeric values, a `step` attribute of\nthe `input` element.\nEach object may contain `name` (may be undefined) and must contain `value`\nproperty of the example.\n- schema.minimum {Number} - For numeric values, minimum value of the property\n- schema.maximum {Number} - For numeric values, maximum value of the property\n- schema.isEnum {Boolean} - Flag describing enumerable value\n- schema.enum {Array<any>} - Only if `schema.isEnum` is set. Values for enum\ninput.\n- schema.isArray {Boolean} - Flag describing array value for the property\n- schema.items {Object} - Lsit of items definitions\n- schema.isBool {Boolean} - Flag describing boolean value for the property\n- schema.isFile {Boolean} - Flag describing File value for the property\n- schema.isObject {Boolean} - Flag describing Object value for the property\n- schema.inputPlaceholder {?String} - A placeholder value for the input.\n- schema.inputFloatLabel {Boolean} - Only if placeholder is set. Instructs\ninput control to float a label.\n- schema.isUnion {Boolean} - Flag describing union value\n- schema.anyOf {Array<Object>} - List of possible types of the union.\n- schema.enabled {Boolean} - Always `true`\n- schema.fileTypes {Array<String>} List of file types defined for a file\ntype.\n## Example\n\n```html\n<api-view-model-transformer on-view-model-changed=\"_updateView\"></api-view-model-transformer>\n<script>\nconst amfModel = getAmfFromRamlOrOas();\nconst processor = document.querySelector('api-view-model-transformer');\nprocessor.amfModel = amfModel;\nprocessor.shape = extractHeadersForMethod(amfModel);\nprocessor.addEventListener('view-model-changed', (e) => {\n console.log(e.detail.value);\n});\n< /script>\n```\n\nThis example uses `getAmfFromRamlOrOas()` function where you implement\nthe logic of getting AMF json/ld data. It can be stored in file or parsed\nusing AMF parsers. The `extractHeadersForMethod()` represents a logic to\nextract properties that you want to transform. It can be headers, query\nparameters or body type.\n\n## JSON ld context\n\nJSON schema may contain `@context` property. It can be used to reduce size\nof the schema by replacing namespace ids with defined in `@context` keywords.\nThis transformer does not consume whole AMF model, but only the portion that\nshould be transformed. Because of that the tranformer is missing context\nfor namespace resolving. Set `@context` value of the model to `amfContext`\nproperty so it can be expanded to the canonical form.\n**Tranformation won't work properly if namespace name are altered by context\nand `amfContext` property is not set.**",
       "summary": "",
       "path": "api-view-model-transformer.html",
       "properties": [
@@ -14,12 +14,12 @@
           "sourceRange": {
             "file": "bower_components/events-target-behavior/events-target-behavior.html",
             "start": {
-              "line": 63,
-              "column": 4
+              "line": 73,
+              "column": 8
             },
             "end": {
-              "line": 66,
-              "column": 5
+              "line": 76,
+              "column": 9
             }
           },
           "metadata": {
@@ -37,12 +37,12 @@
           "sourceRange": {
             "file": "bower_components/events-target-behavior/events-target-behavior.html",
             "start": {
-              "line": 68,
-              "column": 4
+              "line": 78,
+              "column": 8
             },
             "end": {
-              "line": 68,
-              "column": 28
+              "line": 78,
+              "column": 32
             }
           },
           "metadata": {
@@ -52,8 +52,8 @@
         },
         {
           "name": "amfModel",
-          "type": "Array",
-          "description": "AMF model extracted from RAML or OAS spec and transformed to\nJSON/LD schema.\nThis is an array of propertues for which view model is generated.\nIt accepts model for headers, query parameters, uri parameters and\nbody.\nIf `manualModel` is not set, assigning a value to this property will\ntrigger model computation. Otherwise call `computeViewModel()`\nfunction manually to generate the model.",
+          "type": "(Object | Array)",
+          "description": "Generated AMF json/ld model form the API spec.\nThe element assumes the object of the first array item to be a\ntype of `\"http://raml.org/vocabularies/document#Document`\non AMF vocabulary.\n\nIt is only used to resolve references.",
           "privacy": "public",
           "sourceRange": {
             "start": {
@@ -61,20 +61,18 @@
               "column": 6
             },
             "end": {
-              "line": 131,
-              "column": 7
+              "line": 128,
+              "column": 22
             }
           },
           "metadata": {
-            "polymer": {
-              "observer": "\"_amfModelChanged\""
-            }
+            "polymer": {}
           }
         },
         {
-          "name": "viewModel",
-          "type": "Array.<Object>",
-          "description": "Generated view model from the `amfModel`",
+          "name": "shape",
+          "type": "Array",
+          "description": "An array of propertues for which view model is to be generated.\nIt accepts model for headers, query parameters, uri parameters and\nbody.\nIf `manualModel` is not set, assigning a value to this property will\ntrigger model computation. Otherwise call `computeViewModel()`\nfunction manually to generate the model.",
           "privacy": "public",
           "sourceRange": {
             "start": {
@@ -82,7 +80,28 @@
               "column": 6
             },
             "end": {
-              "line": 141,
+              "line": 140,
+              "column": 7
+            }
+          },
+          "metadata": {
+            "polymer": {
+              "observer": "\"_shapeChanged\""
+            }
+          }
+        },
+        {
+          "name": "viewModel",
+          "type": "Array.<Object>",
+          "description": "Generated view model from the `shape`",
+          "privacy": "public",
+          "sourceRange": {
+            "start": {
+              "line": 146,
+              "column": 6
+            },
+            "end": {
+              "line": 150,
               "column": 7
             }
           },
@@ -96,15 +115,15 @@
         {
           "name": "manualModel",
           "type": "boolean",
-          "description": "If set, assigning a value to `amfModel` will not trigger view model\ncomputation.",
+          "description": "If set, assigning a value to `shape` will not trigger view model\ncomputation.",
           "privacy": "public",
           "sourceRange": {
             "start": {
-              "line": 146,
+              "line": 155,
               "column": 6
             },
             "end": {
-              "line": 146,
+              "line": 155,
               "column": 26
             }
           },
@@ -113,39 +132,41 @@
           }
         },
         {
-          "name": "amfContext",
-          "type": "Object",
-          "description": "AMF json/ld contect to use to find keys in the model.\n\n### Example\n```javascript\n{\n \"doc\": \"http://raml.org/vocabularies/document#\",\n \"shapes\": \"http://raml.org/vocabularies/shapes#\",\n \"raml-http\": \"http://raml.org/vocabularies/http#\"\n }\n```\nThis context generate the following keys for the `amfModel`:\n- `doc:Document` as `http://raml.org/vocabularies/document#Document`\n- `shapes:NilShape` as `http://raml.org/vocabularies/shapes#NilShape`\n- `raml-http:Parameter` as `http://raml.org/vocabularies/http#Parameter`\n\nContext can be used to reduce model size by shortering namespace\ndeclaration. Setting `amfContext` allows this element to propertly\nread the schema.",
-          "privacy": "public",
+          "name": "_references",
+          "type": "Array",
+          "description": "The declarations model computed from the AMF object. It is used when the\ntransformer attempt to transform link value.\n\nIf this property is not set then it dispatches `amf-resolve-link`\ncustom event.",
+          "privacy": "protected",
           "sourceRange": {
             "start": {
-              "line": 167,
+              "line": 163,
               "column": 6
             },
             "end": {
-              "line": 167,
-              "column": 24
+              "line": 166,
+              "column": 7
             }
           },
           "metadata": {
-            "polymer": {}
+            "polymer": {
+              "readOnly": true
+            }
           }
         }
       ],
       "methods": [
         {
-          "name": "attached",
+          "name": "connectedCallback",
           "description": "",
-          "privacy": "protected",
+          "privacy": "public",
           "sourceRange": {
             "file": "bower_components/events-target-behavior/events-target-behavior.html",
             "start": {
-              "line": 71,
-              "column": 2
+              "line": 81,
+              "column": 4
             },
             "end": {
-              "line": 73,
-              "column": 3
+              "line": 84,
+              "column": 6
             }
           },
           "metadata": {},
@@ -153,18 +174,18 @@
           "inheritedFrom": "ArcBehaviors.EventsTargetBehavior"
         },
         {
-          "name": "detached",
+          "name": "disconnectedCallback",
           "description": "",
-          "privacy": "protected",
+          "privacy": "public",
           "sourceRange": {
             "file": "bower_components/events-target-behavior/events-target-behavior.html",
             "start": {
-              "line": 75,
-              "column": 2
+              "line": 86,
+              "column": 5
             },
             "end": {
-              "line": 79,
-              "column": 3
+              "line": 91,
+              "column": 6
             }
           },
           "metadata": {},
@@ -178,12 +199,12 @@
           "sourceRange": {
             "file": "bower_components/events-target-behavior/events-target-behavior.html",
             "start": {
-              "line": 87,
-              "column": 2
+              "line": 99,
+              "column": 4
             },
             "end": {
-              "line": 93,
-              "column": 3
+              "line": 105,
+              "column": 5
             }
           },
           "metadata": {},
@@ -202,11 +223,11 @@
           "privacy": "protected",
           "sourceRange": {
             "start": {
-              "line": 176,
+              "line": 175,
               "column": 2
             },
             "end": {
-              "line": 178,
+              "line": 177,
               "column": 3
             }
           },
@@ -223,11 +244,11 @@
           "privacy": "protected",
           "sourceRange": {
             "start": {
-              "line": 180,
+              "line": 179,
               "column": 2
             },
             "end": {
-              "line": 182,
+              "line": 181,
               "column": 3
             }
           },
@@ -239,55 +260,54 @@
           ]
         },
         {
-          "name": "_amfModelChanged",
-          "description": "Called when either `amfModel` or `manualModel` propeties changed.\nIf `manualModel` is falsy then it calls `computeViewModel()` function.\n\nNote, this function won't be called when sub property of the model\nchange. For peformance rerasons it won't be supported.\n\nNote, `computeViewModel` is called asynchronusly so `amfContext`\nproperty can be set.",
+          "name": "_shapeChanged",
+          "description": "Called when either `shape` or `manualModel` propeties changed.\nIf `manualModel` is falsy then it calls `computeViewModel()` function.\n\nNote, this function won't be called when sub property of the model\nchange. For peformance rerasons it won't be supported.\n\nNote, `computeViewModel` is called asynchronusly so `amfContext`\nproperty can be set.",
           "privacy": "protected",
           "sourceRange": {
             "start": {
-              "line": 195,
+              "line": 194,
               "column": 2
             },
             "end": {
-              "line": 200,
+              "line": 199,
               "column": 3
             }
           },
           "metadata": {},
           "params": [
             {
-              "name": "amfModel",
+              "name": "shape",
               "type": "Array",
-              "description": "Current AMF model"
+              "description": "Model for shape"
             }
           ]
         },
         {
           "name": "computeViewModel",
-          "description": "Computes view model from AMF data model. This should not be called if\n`manualModel` is not set. Use `amfModel` property instead.",
+          "description": "Computes view model from AMF data model. This should not be called if\n`manualModel` is not set. Use `shape` property instead.",
           "privacy": "public",
           "sourceRange": {
             "start": {
-              "line": 212,
+              "line": 208,
               "column": 2
             },
             "end": {
-              "line": 227,
+              "line": 224,
               "column": 3
             }
           },
           "metadata": {},
           "params": [
             {
-              "name": "amfModel",
-              "type": "?Array",
-              "description": "AMF type model. If not set it uses `amfModel`\nproperty of the element."
-            },
-            {
-              "name": "amfContext",
-              "type": "?Object",
-              "description": "JSON ld schema context. The same as\n`amfContext` property. Don't set the property on the element when using\nmanual model computation. Instead call this function with context."
+              "name": "shape",
+              "type": "(?Array | Object)",
+              "description": "AMF type model. If not set it uses `shape`\nproperty of the element."
             }
-          ]
+          ],
+          "return": {
+            "type": "Promise",
+            "desc": "A promise resolved to generated model."
+          }
         },
         {
           "name": "_computeViewModelRecursive",
@@ -295,11 +315,11 @@
           "privacy": "protected",
           "sourceRange": {
             "start": {
-              "line": 239,
+              "line": 236,
               "column": 2
             },
             "end": {
-              "line": 253,
+              "line": 261,
               "column": 3
             }
           },
@@ -327,11 +347,11 @@
           "privacy": "public",
           "sourceRange": {
             "start": {
-              "line": 260,
+              "line": 268,
               "column": 2
             },
             "end": {
-              "line": 267,
+              "line": 275,
               "column": 3
             }
           },
@@ -354,11 +374,11 @@
           "privacy": "protected",
           "sourceRange": {
             "start": {
-              "line": 274,
+              "line": 282,
               "column": 2
             },
             "end": {
-              "line": 317,
+              "line": 300,
               "column": 3
             }
           },
@@ -381,11 +401,11 @@
           "privacy": "protected",
           "sourceRange": {
             "start": {
-              "line": 324,
+              "line": 307,
               "column": 2
             },
             "end": {
-              "line": 355,
+              "line": 362,
               "column": 3
             }
           },
@@ -403,16 +423,147 @@
           }
         },
         {
+          "name": "modelForRawObject",
+          "description": "Creates a view model for an object definition. Object definition can be\npart of trait or annotation properties description.",
+          "privacy": "public",
+          "sourceRange": {
+            "start": {
+              "line": 371,
+              "column": 2
+            },
+            "end": {
+              "line": 388,
+              "column": 3
+            }
+          },
+          "metadata": {},
+          "params": [
+            {
+              "name": "model",
+              "type": "Object",
+              "description": "Model to extract data from."
+            },
+            {
+              "name": "processOptions",
+              "type": "Object"
+            }
+          ],
+          "return": {
+            "type": "Array",
+            "desc": "View model for items."
+          }
+        },
+        {
+          "name": "_uiModelForRawObject",
+          "description": "Creates a view model from \"raw\" item (model before resolving).",
+          "privacy": "protected",
+          "sourceRange": {
+            "start": {
+              "line": 396,
+              "column": 2
+            },
+            "end": {
+              "line": 450,
+              "column": 3
+            }
+          },
+          "metadata": {},
+          "params": [
+            {
+              "name": "key",
+              "type": "String",
+              "description": "Key of the item in the model."
+            },
+            {
+              "name": "model",
+              "type": "String",
+              "description": "Item model"
+            }
+          ],
+          "return": {
+            "type": "Object",
+            "desc": "View model"
+          }
+        },
+        {
+          "name": "_processAfterItemCreated",
+          "description": "Sets up additional properties like `value` or placeholder from\nvalues read from the AMF model.",
+          "privacy": "protected",
+          "sourceRange": {
+            "start": {
+              "line": 459,
+              "column": 2
+            },
+            "end": {
+              "line": 497,
+              "column": 3
+            }
+          },
+          "metadata": {},
+          "params": [
+            {
+              "name": "item",
+              "type": "Object",
+              "description": "Computed UI model."
+            },
+            {
+              "name": "processOptions",
+              "type": "Object",
+              "description": "Model creation options"
+            }
+          ],
+          "return": {
+            "type": "Object"
+          }
+        },
+        {
+          "name": "_completeInputLabel",
+          "description": "Completes computation of input label.",
+          "privacy": "protected",
+          "sourceRange": {
+            "start": {
+              "line": 506,
+              "column": 2
+            },
+            "end": {
+              "line": 514,
+              "column": 3
+            }
+          },
+          "metadata": {},
+          "params": [
+            {
+              "name": "displayName",
+              "type": "?String",
+              "description": "Value of the `displayName` property"
+            },
+            {
+              "name": "name",
+              "type": "String",
+              "description": "Property name"
+            },
+            {
+              "name": "required",
+              "type": "Boolean",
+              "description": "Is item required"
+            }
+          ],
+          "return": {
+            "type": "String",
+            "desc": "Common input label construction."
+          }
+        },
+        {
           "name": "_computeParameterSchema",
           "description": "Computes schema property of the view model from AMF model.",
           "privacy": "protected",
           "sourceRange": {
             "start": {
-              "line": 367,
+              "line": 526,
               "column": 2
             },
             "end": {
-              "line": 406,
+              "line": 554,
               "column": 3
             }
           },
@@ -435,44 +586,41 @@
           }
         },
         {
-          "name": "_expandSchema",
-          "description": "Uses the json-ld library to expand context properties.",
+          "name": "_computeRawExamples",
+          "description": "Computes list of examples from the Raw data model.",
           "privacy": "protected",
           "sourceRange": {
             "start": {
-              "line": 412,
+              "line": 560,
               "column": 2
             },
             "end": {
-              "line": 427,
+              "line": 582,
               "column": 3
             }
           },
           "metadata": {},
           "params": [
             {
-              "name": "model"
-            },
-            {
-              "name": "context"
+              "name": "model",
+              "type": "Object"
             }
           ],
           "return": {
-            "type": "Promise",
-            "desc": "Resolved promise to a restored object"
+            "type": "(Array | undefined)"
           }
         },
         {
-          "name": "_modelHasType",
+          "name": "_hasType",
           "description": "Checks if a model has a type.",
           "privacy": "protected",
           "sourceRange": {
             "start": {
-              "line": 434,
+              "line": 589,
               "column": 2
             },
             "end": {
-              "line": 442,
+              "line": 597,
               "column": 3
             }
           },
@@ -500,11 +648,11 @@
           "privacy": "protected",
           "sourceRange": {
             "start": {
-              "line": 448,
+              "line": 603,
               "column": 2
             },
             "end": {
-              "line": 454,
+              "line": 609,
               "column": 3
             }
           },
@@ -527,11 +675,11 @@
           "privacy": "protected",
           "sourceRange": {
             "start": {
-              "line": 460,
+              "line": 615,
               "column": 2
             },
             "end": {
-              "line": 466,
+              "line": 621,
               "column": 3
             }
           },
@@ -554,11 +702,11 @@
           "privacy": "protected",
           "sourceRange": {
             "start": {
-              "line": 472,
+              "line": 627,
               "column": 2
             },
             "end": {
-              "line": 478,
+              "line": 633,
               "column": 3
             }
           },
@@ -581,11 +729,11 @@
           "privacy": "protected",
           "sourceRange": {
             "start": {
-              "line": 484,
+              "line": 639,
               "column": 2
             },
             "end": {
-              "line": 490,
+              "line": 645,
               "column": 3
             }
           },
@@ -608,18 +756,18 @@
           "privacy": "protected",
           "sourceRange": {
             "start": {
-              "line": 496,
+              "line": 651,
               "column": 2
             },
             "end": {
-              "line": 515,
+              "line": 700,
               "column": 3
             }
           },
           "metadata": {},
           "params": [
             {
-              "name": "model",
+              "name": "shape",
               "type": "Object",
               "description": "Property schema."
             }
@@ -630,16 +778,111 @@
           }
         },
         {
+          "name": "_computeRawModelValue",
+          "description": "Computes type of the raw model.",
+          "privacy": "protected",
+          "sourceRange": {
+            "start": {
+              "line": 707,
+              "column": 2
+            },
+            "end": {
+              "line": 721,
+              "column": 3
+            }
+          },
+          "metadata": {},
+          "params": [
+            {
+              "name": "model",
+              "type": "Array",
+              "description": "Property schema."
+            }
+          ],
+          "return": {
+            "type": "(String | undefined)",
+            "desc": "Type of the nproperty."
+          }
+        },
+        {
+          "name": "_computeModelArrayValue",
+          "description": "",
+          "privacy": "protected",
+          "sourceRange": {
+            "start": {
+              "line": 723,
+              "column": 2
+            },
+            "end": {
+              "line": 730,
+              "column": 3
+            }
+          },
+          "metadata": {},
+          "params": [
+            {
+              "name": "model"
+            }
+          ]
+        },
+        {
+          "name": "_computeRawScalarValue",
+          "description": "Computes scalar value that has proper type.",
+          "privacy": "protected",
+          "sourceRange": {
+            "start": {
+              "line": 736,
+              "column": 2
+            },
+            "end": {
+              "line": 757,
+              "column": 3
+            }
+          },
+          "metadata": {},
+          "params": [
+            {
+              "name": "item",
+              "type": "Object",
+              "description": "Shape to test for a value."
+            }
+          ],
+          "return": {
+            "type": "(String | Number | Boolean)"
+          }
+        },
+        {
+          "name": "_computeRawArrayValue",
+          "description": "",
+          "privacy": "protected",
+          "sourceRange": {
+            "start": {
+              "line": 759,
+              "column": 2
+            },
+            "end": {
+              "line": 772,
+              "column": 3
+            }
+          },
+          "metadata": {},
+          "params": [
+            {
+              "name": "item"
+            }
+          ]
+        },
+        {
           "name": "_computeInputLabel",
           "description": "Computes form input label value.",
           "privacy": "protected",
           "sourceRange": {
             "start": {
-              "line": 524,
+              "line": 781,
               "column": 2
             },
             "end": {
-              "line": 534,
+              "line": 787,
               "column": 3
             }
           },
@@ -672,18 +915,18 @@
           "privacy": "protected",
           "sourceRange": {
             "start": {
-              "line": 543,
+              "line": 796,
               "column": 2
             },
             "end": {
-              "line": 549,
+              "line": 799,
               "column": 3
             }
           },
           "metadata": {},
           "params": [
             {
-              "name": "def",
+              "name": "shape",
               "type": "Object",
               "description": "Property AMF definition"
             },
@@ -704,18 +947,18 @@
           "privacy": "protected",
           "sourceRange": {
             "start": {
-              "line": 558,
+              "line": 808,
               "column": 2
             },
             "end": {
-              "line": 564,
+              "line": 811,
               "column": 3
             }
           },
           "metadata": {},
           "params": [
             {
-              "name": "def",
+              "name": "shape",
               "type": "Object",
               "description": "Property AMF definition"
             },
@@ -731,16 +974,47 @@
           }
         },
         {
+          "name": "_computePropertyValue",
+          "description": "Computes value of model property.",
+          "privacy": "protected",
+          "sourceRange": {
+            "start": {
+              "line": 818,
+              "column": 2
+            },
+            "end": {
+              "line": 826,
+              "column": 3
+            }
+          },
+          "metadata": {},
+          "params": [
+            {
+              "name": "shape",
+              "type": "Object",
+              "description": "The model containing a value."
+            },
+            {
+              "name": "key",
+              "type": "String",
+              "description": "Full key to the object."
+            }
+          ],
+          "return": {
+            "type": "(String | undefined)"
+          }
+        },
+        {
           "name": "_computeModelEnum",
           "description": "Computes enum values for the view model.",
           "privacy": "protected",
           "sourceRange": {
             "start": {
-              "line": 570,
+              "line": 832,
               "column": 2
             },
             "end": {
-              "line": 578,
+              "line": 840,
               "column": 3
             }
           },
@@ -748,13 +1022,13 @@
           "params": [
             {
               "name": "def",
-              "type": "[type]",
-              "description": "[description]"
+              "type": "Object",
+              "description": "Model definition."
             }
           ],
           "return": {
-            "type": "[type]",
-            "desc": "[description]"
+            "type": "Array",
+            "desc": "List of values."
           }
         },
         {
@@ -763,11 +1037,11 @@
           "privacy": "protected",
           "sourceRange": {
             "start": {
-              "line": 585,
+              "line": 847,
               "column": 2
             },
             "end": {
-              "line": 599,
+              "line": 861,
               "column": 3
             }
           },
@@ -795,11 +1069,11 @@
           "privacy": "protected",
           "sourceRange": {
             "start": {
-              "line": 607,
+              "line": 869,
               "column": 2
             },
             "end": {
-              "line": 617,
+              "line": 879,
               "column": 3
             }
           },
@@ -826,11 +1100,11 @@
           "privacy": "protected",
           "sourceRange": {
             "start": {
-              "line": 625,
+              "line": 887,
               "column": 2
             },
             "end": {
-              "line": 646,
+              "line": 908,
               "column": 3
             }
           },
@@ -853,11 +1127,11 @@
           "privacy": "protected",
           "sourceRange": {
             "start": {
-              "line": 653,
+              "line": 915,
               "column": 2
             },
             "end": {
-              "line": 677,
+              "line": 931,
               "column": 3
             }
           },
@@ -875,25 +1149,134 @@
           }
         },
         {
-          "name": "_computePropetyShapeItems",
-          "description": "",
+          "name": "_isLink",
+          "description": "Tests if current model part is actually a link to definition",
           "privacy": "protected",
           "sourceRange": {
             "start": {
-              "line": 679,
+              "line": 937,
               "column": 2
             },
             "end": {
-              "line": 690,
+              "line": 940,
               "column": 3
             }
           },
           "metadata": {},
           "params": [
             {
-              "name": "model"
+              "name": "model",
+              "type": "Object",
+              "description": "Current model object."
             }
           ]
+        },
+        {
+          "name": "_computeReferences",
+          "description": "Comnputes list of references to be used to resolve links.",
+          "privacy": "protected",
+          "sourceRange": {
+            "start": {
+              "line": 947,
+              "column": 2
+            },
+            "end": {
+              "line": 956,
+              "column": 3
+            }
+          },
+          "metadata": {},
+          "params": [
+            {
+              "name": "record",
+              "type": "Object",
+              "description": "Change object for `amfModel`"
+            }
+          ],
+          "return": {
+            "type": "(Array | undefined)"
+          }
+        },
+        {
+          "name": "_importLink",
+          "description": "Attempty to resolve declaration of a link.\nIt tries tor use `_references` property if it's set. Otherwise\nit sends `amf-resolve-link` custom event to ask hosting application\nfor the data.",
+          "privacy": "protected",
+          "sourceRange": {
+            "start": {
+              "line": 966,
+              "column": 2
+            },
+            "end": {
+              "line": 973,
+              "column": 3
+            }
+          },
+          "metadata": {},
+          "params": [
+            {
+              "name": "model",
+              "type": "Object",
+              "description": "Model with `#link-target` property"
+            }
+          ],
+          "return": {
+            "type": "(Object | undefined)",
+            "desc": "Resolved declaration or undefined."
+          }
+        },
+        {
+          "name": "_searchDeclaration",
+          "description": "Searches `_references` property for an id.",
+          "privacy": "protected",
+          "sourceRange": {
+            "start": {
+              "line": 980,
+              "column": 2
+            },
+            "end": {
+              "line": 985,
+              "column": 3
+            }
+          },
+          "metadata": {},
+          "params": [
+            {
+              "name": "id",
+              "type": "String",
+              "description": "Declaration ID"
+            }
+          ],
+          "return": {
+            "type": "(Object | undefined)",
+            "desc": "Model declaration or undefined if not found."
+          }
+        },
+        {
+          "name": "_requestDeclaration",
+          "description": "Dispatches `amf-resolve-link` custom event to ask hosting application\nto resolve AMF model link.",
+          "privacy": "protected",
+          "sourceRange": {
+            "start": {
+              "line": 993,
+              "column": 2
+            },
+            "end": {
+              "line": 1004,
+              "column": 3
+            }
+          },
+          "metadata": {},
+          "params": [
+            {
+              "name": "id",
+              "type": "String",
+              "description": "Declaration ID"
+            }
+          ],
+          "return": {
+            "type": "(Object | undefined)",
+            "desc": "Model declaration or undefined if not found."
+          }
         },
         {
           "name": "_computeValueDelimiter",
@@ -901,11 +1284,11 @@
           "privacy": "protected",
           "sourceRange": {
             "start": {
-              "line": 692,
+              "line": 1006,
               "column": 2
             },
             "end": {
-              "line": 698,
+              "line": 1012,
               "column": 3
             }
           },
@@ -922,11 +1305,11 @@
           "privacy": "protected",
           "sourceRange": {
             "start": {
-              "line": 700,
+              "line": 1014,
               "column": 2
             },
             "end": {
-              "line": 705,
+              "line": 1019,
               "column": 3
             }
           },
@@ -943,11 +1326,11 @@
           "privacy": "protected",
           "sourceRange": {
             "start": {
-              "line": 715,
+              "line": 1029,
               "column": 2
             },
             "end": {
-              "line": 729,
+              "line": 1043,
               "column": 3
             }
           },
@@ -975,11 +1358,11 @@
           "privacy": "private",
           "sourceRange": {
             "start": {
-              "line": 740,
+              "line": 1054,
               "column": 2
             },
             "end": {
-              "line": 751,
+              "line": 1065,
               "column": 3
             }
           },
@@ -1005,11 +1388,11 @@
           "privacy": "protected",
           "sourceRange": {
             "start": {
-              "line": 763,
+              "line": 1077,
               "column": 2
             },
             "end": {
-              "line": 771,
+              "line": 1088,
               "column": 3
             }
           },
@@ -1037,11 +1420,11 @@
           "privacy": "private",
           "sourceRange": {
             "start": {
-              "line": 773,
+              "line": 1090,
               "column": 2
             },
             "end": {
-              "line": 784,
+              "line": 1101,
               "column": 3
             }
           },
@@ -1058,11 +1441,11 @@
           "privacy": "protected",
           "sourceRange": {
             "start": {
-              "line": 792,
+              "line": 1109,
               "column": 2
             },
             "end": {
-              "line": 807,
+              "line": 1124,
               "column": 3
             }
           },
@@ -1090,11 +1473,11 @@
           "privacy": "protected",
           "sourceRange": {
             "start": {
-              "line": 814,
+              "line": 1131,
               "column": 2
             },
             "end": {
-              "line": 828,
+              "line": 1145,
               "column": 3
             }
           },
@@ -1117,11 +1500,11 @@
           "privacy": "protected",
           "sourceRange": {
             "start": {
-              "line": 838,
+              "line": 1155,
               "column": 2
             },
             "end": {
-              "line": 845,
+              "line": 1162,
               "column": 3
             }
           },
@@ -1139,11 +1522,11 @@
           "privacy": "public",
           "sourceRange": {
             "start": {
-              "line": 853,
+              "line": 1170,
               "column": 2
             },
             "end": {
-              "line": 867,
+              "line": 1194,
               "column": 3
             }
           },
@@ -1159,15 +1542,136 @@
             "type": "Object",
             "desc": "Generated basic view model."
           }
+        },
+        {
+          "name": "_computeHasExtendedDocumentation",
+          "description": "Computes if model item has documentation to display.\nThis would be extended documentation by adding additional description\nproperties that helps the user to input values into the editor.",
+          "privacy": "protected",
+          "sourceRange": {
+            "start": {
+              "line": 1204,
+              "column": 2
+            },
+            "end": {
+              "line": 1219,
+              "column": 3
+            }
+          },
+          "metadata": {},
+          "params": [
+            {
+              "name": "item",
+              "type": "Object",
+              "description": "Model item"
+            }
+          ],
+          "return": {
+            "type": "Boolean",
+            "desc": "True if documentation can be rendered."
+          }
+        },
+        {
+          "name": "_computeExtendedDocumentation",
+          "description": "Computes documentation as a markdown to be placed in the `marked-element`",
+          "privacy": "protected",
+          "sourceRange": {
+            "start": {
+              "line": 1224,
+              "column": 2
+            },
+            "end": {
+              "line": 1247,
+              "column": 3
+            }
+          },
+          "metadata": {},
+          "params": [
+            {
+              "name": "item",
+              "type": "Object",
+              "description": "View model"
+            }
+          ]
+        },
+        {
+          "name": "computeDisplayJson",
+          "description": "Computes a JSON object to display from view model propertiers",
+          "privacy": "public",
+          "sourceRange": {
+            "start": {
+              "line": 1253,
+              "column": 2
+            },
+            "end": {
+              "line": 1256,
+              "column": 3
+            }
+          },
+          "metadata": {},
+          "params": [
+            {
+              "name": "properties",
+              "type": "Array.<Object>"
+            }
+          ],
+          "return": {
+            "type": "String",
+            "desc": "JSON string value."
+          }
+        },
+        {
+          "name": "computeDisplayXml",
+          "description": "Computes an XML schema to display from view model propertiers",
+          "privacy": "public",
+          "sourceRange": {
+            "start": {
+              "line": 1262,
+              "column": 2
+            },
+            "end": {
+              "line": 1301,
+              "column": 3
+            }
+          },
+          "metadata": {},
+          "params": [
+            {
+              "name": "properties",
+              "type": "Array.<Object>"
+            }
+          ],
+          "return": {
+            "type": "String",
+            "desc": "XML string value."
+          }
+        },
+        {
+          "name": "_computeDisplayJsonRecursive",
+          "description": "",
+          "privacy": "protected",
+          "sourceRange": {
+            "start": {
+              "line": 1303,
+              "column": 2
+            },
+            "end": {
+              "line": 1340,
+              "column": 3
+            }
+          },
+          "metadata": {},
+          "params": [
+            {
+              "name": "properties"
+            },
+            {
+              "name": "result"
+            }
+          ]
         }
       ],
       "staticMethods": [],
-      "demos": [
-        {
-          "url": "demo/index.html",
-          "description": ""
-        }
-      ],
+      "demos": [],
       "metadata": {},
       "sourceRange": {
         "start": {
@@ -1175,13 +1679,13 @@
           "column": 0
         },
         "end": {
-          "line": 868,
+          "line": 1353,
           "column": 1
         }
       },
       "privacy": "public",
       "superclass": "HTMLElement",
-      "name": "API Elements.ApiViewModelTransformer",
+      "name": "ApiElements.ApiViewModelTransformer",
       "attributes": [
         {
           "name": "events-target",
@@ -1189,12 +1693,12 @@
           "sourceRange": {
             "file": "bower_components/events-target-behavior/events-target-behavior.html",
             "start": {
-              "line": 63,
-              "column": 4
+              "line": 73,
+              "column": 8
             },
             "end": {
-              "line": 66,
-              "column": 5
+              "line": 76,
+              "column": 9
             }
           },
           "metadata": {},
@@ -1203,14 +1707,30 @@
         },
         {
           "name": "amf-model",
-          "description": "AMF model extracted from RAML or OAS spec and transformed to\nJSON/LD schema.\nThis is an array of propertues for which view model is generated.\nIt accepts model for headers, query parameters, uri parameters and\nbody.\nIf `manualModel` is not set, assigning a value to this property will\ntrigger model computation. Otherwise call `computeViewModel()`\nfunction manually to generate the model.",
+          "description": "Generated AMF json/ld model form the API spec.\nThe element assumes the object of the first array item to be a\ntype of `\"http://raml.org/vocabularies/document#Document`\non AMF vocabulary.\n\nIt is only used to resolve references.",
           "sourceRange": {
             "start": {
               "line": 128,
               "column": 6
             },
             "end": {
-              "line": 131,
+              "line": 128,
+              "column": 22
+            }
+          },
+          "metadata": {},
+          "type": "(Object | Array)"
+        },
+        {
+          "name": "shape",
+          "description": "An array of propertues for which view model is to be generated.\nIt accepts model for headers, query parameters, uri parameters and\nbody.\nIf `manualModel` is not set, assigning a value to this property will\ntrigger model computation. Otherwise call `computeViewModel()`\nfunction manually to generate the model.",
+          "sourceRange": {
+            "start": {
+              "line": 137,
+              "column": 6
+            },
+            "end": {
+              "line": 140,
               "column": 7
             }
           },
@@ -1219,14 +1739,14 @@
         },
         {
           "name": "view-model",
-          "description": "Generated view model from the `amfModel`",
+          "description": "Generated view model from the `shape`",
           "sourceRange": {
             "start": {
-              "line": 137,
+              "line": 146,
               "column": 6
             },
             "end": {
-              "line": 141,
+              "line": 150,
               "column": 7
             }
           },
@@ -1235,38 +1755,28 @@
         },
         {
           "name": "manual-model",
-          "description": "If set, assigning a value to `amfModel` will not trigger view model\ncomputation.",
+          "description": "If set, assigning a value to `shape` will not trigger view model\ncomputation.",
           "sourceRange": {
             "start": {
-              "line": 146,
+              "line": 155,
               "column": 6
             },
             "end": {
-              "line": 146,
+              "line": 155,
               "column": 26
             }
           },
           "metadata": {},
           "type": "boolean"
-        },
-        {
-          "name": "amf-context",
-          "description": "AMF json/ld contect to use to find keys in the model.\n\n### Example\n```javascript\n{\n \"doc\": \"http://raml.org/vocabularies/document#\",\n \"shapes\": \"http://raml.org/vocabularies/shapes#\",\n \"raml-http\": \"http://raml.org/vocabularies/http#\"\n }\n```\nThis context generate the following keys for the `amfModel`:\n- `doc:Document` as `http://raml.org/vocabularies/document#Document`\n- `shapes:NilShape` as `http://raml.org/vocabularies/shapes#NilShape`\n- `raml-http:Parameter` as `http://raml.org/vocabularies/http#Parameter`\n\nContext can be used to reduce model size by shortering namespace\ndeclaration. Setting `amfContext` allows this element to propertly\nread the schema.",
-          "sourceRange": {
-            "start": {
-              "line": 167,
-              "column": 6
-            },
-            "end": {
-              "line": 167,
-              "column": 24
-            }
-          },
-          "metadata": {},
-          "type": "Object"
         }
       ],
       "events": [
+        {
+          "type": "CustomEvent",
+          "name": "amf-resolve-link",
+          "description": "amf-resolve-link",
+          "metadata": {}
+        },
         {
           "type": "CustomEvent",
           "name": "view-model-changed",

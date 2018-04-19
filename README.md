@@ -1,21 +1,10 @@
-# \<api-view-model-tranformer\>
+# api-view-model-tranformer
 
+Transforms AMF headers, query/URI parameters or body definition
+into a view model recognized by API components.
 
+The model is used by request editors to render input controls depending on the schema.
 
-## Install the Polymer-CLI
+### API components
 
-First, make sure you have the [Polymer CLI](https://www.npmjs.com/package/polymer-cli) installed. Then run `polymer serve` to serve your element locally.
-
-## Viewing Your Element
-
-```
-$ polymer serve
-```
-
-## Running Tests
-
-```
-$ polymer test
-```
-
-Your application is already set up to be tested via [web-component-tester](https://github.com/Polymer/web-component-tester). Run `polymer test` to run your application's test suite locally.
+This components is a part of API components ecosystem: https://elements.advancedrestclient.com/
