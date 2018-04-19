@@ -1,0 +1,343 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1.0, user-scalable=yes">
+    <script src="../../webcomponentsjs/webcomponents-lite.js"></script>
+    <script src="../../web-component-tester/browser.js"></script>
+    <!-- Polyfills for IE11 <\3 -->
+    <link rel="import" href="../../arc-polyfills/arc-polyfills.html">
+    <link rel="import" href="../api-view-model-transformer.html">
+    <script src="amf-loader.js"></script>
+  </head>
+  <body>
+    <test-fixture id="Basic">
+      <template>
+        <api-view-model-transformer></api-view-model-transformer>
+      </template>
+    </test-fixture>
+    <script>
+    /* global AmfLoader */
+    suite('Model for headers', () => {
+      let amf;
+      suiteSetup(() => {
+        return AmfLoader.load()
+        .then((data) => {
+          amf = data;
+        });
+      });
+
+      suite('computeViewModel()', () => {
+        let model;
+        let element;
+        setup(() => {
+          element = fixture('Basic');
+          element.model = amf;
+          const endpoint = amf[0]['http://raml.org/vocabularies/document#encodes'][0]['http://raml.org/vocabularies/http#endpoint'][3];
+          const operation = endpoint['http://www.w3.org/ns/hydra/core#supportedOperation'][0];
+          const expects = operation['http://www.w3.org/ns/hydra/core#expects'][0];
+          model = expects['http://raml.org/vocabularies/http#header'];
+        });
+
+        test('Returns a promise', () => {
+          const result = element.computeViewModel(model);
+          assert.typeOf(result.then, 'function');
+        });
+
+        test('Resolves to an array', () => {
+          return element.computeViewModel(model)
+          .then((result) => {
+            assert.typeOf(result, 'array');
+          });
+        });
+
+        test('Has 2 items', () => {
+          return element.computeViewModel(model)
+          .then((result) => {
+            assert.lengthOf(result, 2);
+          });
+        });
+
+        test('Items #1 has all defined properties', () => {
+          return element.computeViewModel(model)
+          .then((result) => {
+            const header = result[0];
+            assert.equal(header.binding, 'header', 'Binding is set');
+            assert.notEqual(header.description.indexOf('The application id used'), -1, 'Description is set');
+            assert.isTrue(header.hasDescription, 'hasDescription is set');
+            assert.equal(header.name, 'x-client-id', 'Name is set');
+            assert.isTrue(header.required, 'Required is set');
+            assert.equal(header.value, '123456-acme.client.com', 'Default value is set');
+            assert.typeOf(header.schema, 'object', 'Schema is set');
+            const schema = header.schema;
+            assert.isUndefined(schema.defaultValue, 'defaultValue is undefined');
+            assert.isTrue(schema.enabled, 'Is enabled');
+            assert.isUndefined(schema.enum, 'enum is undefined');
+            assert.typeOf(schema.examples, 'array', 'Examples are set');
+            assert.lengthOf(schema.examples, 1, 'Examples has 1 item');
+            const example = schema.examples[0];
+            assert.isFalse(example.hasName, 'example.hasName is false');
+            assert.isUndefined(example.name, 'example.name is undefined');
+            assert.equal(example.value, '123456-acme.client.com', 'example.value is set');
+            assert.equal(schema.inputPlaceholder, 'Example: 123456-acme.client.com', 'inputPlaceholder is set');
+            // When placeholder is set
+            assert.isTrue(schema.inputFloatLabel, 'inputFloatLabel is true');
+            assert.equal(schema.inputLabel, 'x-client-id*', 'inputLabel is set and required');
+            assert.equal(schema.inputType, 'text', 'inputType is set');
+            assert.isFalse(schema.isArray, 'is not isArray');
+            assert.isFalse(schema.isBool, 'is not isBool');
+            assert.isFalse(schema.isEnum, 'is not isEnum');
+            assert.isFalse(schema.isObject, 'is not isObject');
+            assert.isUndefined(schema.items, 'items is undefined');
+            assert.isUndefined(schema.maxLength, 'maxLength is undefined');
+            assert.isUndefined(schema.maximum, 'maximum is undefined');
+            assert.isUndefined(schema.minLength, 'minLength is undefined');
+            assert.isUndefined(schema.minimum, 'minimum is undefined');
+            assert.isUndefined(schema.multipleOf, 'multipleOf is undefined');
+            assert.isUndefined(schema.pattern, 'pattern is undefined');
+            assert.equal(schema.type, 'string', 'type is set');
+          });
+        });
+
+        test('Items #2 has all defined properties', () => {
+          return element.computeViewModel(model)
+          .then((result) => {
+            const header = result[1];
+            assert.equal(header.binding, 'header', 'Binding is set');
+            assert.notEqual(header.description.indexOf('People'), -1, 'Description is set');
+            assert.isTrue(header.hasDescription, 'hasDescription is set');
+            assert.equal(header.name, 'x-people-op-id', 'Name is set');
+            assert.isTrue(header.required, 'Required is set');
+            assert.equal(header.value, '9719fa6f-c666-48e0-a191-290890760b30', 'Default value is set');
+            assert.typeOf(header.schema, 'object', 'Schema is set');
+            const schema = header.schema;
+            assert.isUndefined(schema.defaultValue, 'defaultValue is undefined');
+            assert.isTrue(schema.enabled, 'Is enabled');
+            assert.isUndefined(schema.enum, 'enum is undefined');
+            assert.typeOf(schema.examples, 'array', 'Examples are set');
+            assert.lengthOf(schema.examples, 1, 'Examples has 1 item');
+            const example = schema.examples[0];
+            assert.isFalse(example.hasName, 'example.hasName is false');
+            assert.isUndefined(example.name, 'example.name is undefined');
+            assert.equal(example.value, '9719fa6f-c666-48e0-a191-290890760b30', 'example.value is set');
+            assert.equal(schema.inputPlaceholder, 'Example: 9719fa6f-c666-48e0-a191-290890760b30', 'inputPlaceholder is set');
+            // When placeholder is set
+            assert.isTrue(schema.inputFloatLabel, 'inputFloatLabel is true');
+            assert.equal(schema.inputLabel, 'x-people-op-id*', 'inputLabel is set and required');
+            assert.equal(schema.inputType, 'text', 'inputType is set');
+            assert.isFalse(schema.isArray, 'is not isArray');
+            assert.isFalse(schema.isBool, 'is not isBool');
+            assert.isFalse(schema.isEnum, 'is not isEnum');
+            assert.isFalse(schema.isObject, 'is not isObject');
+            assert.isUndefined(schema.items, 'items is undefined');
+            assert.isUndefined(schema.maxLength, 'maxLength is undefined');
+            assert.isUndefined(schema.maximum, 'maximum is undefined');
+            assert.isUndefined(schema.minLength, 'minLength is undefined');
+            assert.isUndefined(schema.minimum, 'minimum is undefined');
+            assert.isUndefined(schema.multipleOf, 'multipleOf is undefined');
+            assert.equal(schema.pattern, '^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[4][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$', 'pattern is set');
+            assert.equal(schema.type, 'string', 'type is set');
+          });
+        });
+      });
+    });
+
+    suite('Path parameters model', () => {
+      let amf;
+      suiteSetup(() => {
+        return AmfLoader.load()
+        .then((data) => {
+          amf = data;
+        });
+      });
+
+      suite('computeViewModel()', () => {
+        let model;
+        let element;
+        setup(() => {
+          element = fixture('Basic');
+          element.model = amf;
+          const endpoint = amf[0]['http://raml.org/vocabularies/document#encodes'][0]['http://raml.org/vocabularies/http#endpoint'][0];
+          const operation = endpoint['http://www.w3.org/ns/hydra/core#supportedOperation'][0];
+          const expects = operation['http://www.w3.org/ns/hydra/core#expects'][0];
+          model = expects['http://raml.org/vocabularies/http#parameter'];
+        });
+
+        test('Resolves to an array', () => {
+          return element.computeViewModel(model)
+          .then((result) => {
+            assert.typeOf(result, 'array');
+          });
+        });
+
+        test('Has 3 items', () => {
+          return element.computeViewModel(model)
+          .then((result) => {
+            assert.lengthOf(result, 3);
+          });
+        });
+
+        test('Has computed data for #1', () => {
+          return element.computeViewModel(model)
+          .then((result) => {
+            const item = result[0];
+            assert.equal(item.binding, 'query', 'Binding is set');
+            assert.isUndefined(item.description, 'Description is not set');
+            assert.isFalse(item.hasDescription, 'hasDescription is set');
+            assert.equal(item.name, 'testRepeatable', 'Name is set');
+            assert.isTrue(item.required, 'Required is set');
+            assert.typeOf(item.value, 'array', 'Value is an array');
+
+            assert.typeOf(item.schema, 'object', 'Schema is set');
+            const schema = item.schema;
+            assert.isUndefined(schema.defaultValue, 'defaultValue is undefined');
+            assert.isTrue(schema.enabled, 'Is enabled');
+            assert.isUndefined(schema.enum, 'enum is undefined');
+            assert.typeOf(schema.examples, 'array', 'Examples are set');
+            assert.lengthOf(schema.examples, 1, 'Examples has 1 item');
+            const example = schema.examples[0];
+            assert.isFalse(example.hasName, 'example.hasName is false');
+            assert.isUndefined(example.name, 'example.name is undefined');
+            assert.equal(example.value, '[value1, value2]', 'example.value is set'); // <----- THIS IS WRONG!
+            assert.equal(schema.inputPlaceholder, 'Example: [value1, value2]', 'inputPlaceholder is set');
+            assert.isTrue(schema.inputFloatLabel, 'inputFloatLabel is true');
+            assert.equal(schema.inputLabel, 'testRepeatable*', 'inputLabel is set and required');
+            assert.equal(schema.inputType, 'text', 'inputType is set');
+            assert.isTrue(schema.isArray, 'isArray is true');
+            assert.isFalse(schema.isBool, 'is not isBool');
+            assert.isFalse(schema.isEnum, 'is not isEnum');
+            assert.isFalse(schema.isObject, 'is not isObject');
+            assert.equal(schema.items, 'string', 'items is set');
+            assert.isUndefined(schema.maxLength, 'maxLength is undefined');
+            assert.isUndefined(schema.maximum, 'maximum is undefined');
+            assert.isUndefined(schema.minLength, 'minLength is undefined');
+            assert.isUndefined(schema.minimum, 'minimum is undefined');
+            assert.isUndefined(schema.multipleOf, 'multipleOf is undefined');
+            assert.isUndefined(schema.pattern, 'pattern is undefined');
+            assert.equal(schema.type, 'array', 'type is set');
+          });
+        });
+
+        test('Has computed data for #2', () => {
+          return element.computeViewModel(model)
+          .then((result) => {
+            const item = result[1];
+            assert.equal(item.binding, 'query', 'Binding is set');
+            assert.isUndefined(item.description, 'Description is not set');
+            assert.isFalse(item.hasDescription, 'hasDescription is set');
+            assert.equal(item.name, 'numericRepeatable', 'Name is set');
+            assert.isTrue(item.required, 'Required is set');
+            assert.typeOf(item.value, 'array', 'Value is an array');
+            assert.deepEqual(item.value, [123, 456], 'Value is set');
+
+            assert.typeOf(item.schema, 'object', 'Schema is set');
+            const schema = item.schema;
+            assert.isUndefined(schema.defaultValue, 'defaultValue is undefined');
+            assert.isTrue(schema.enabled, 'Is enabled');
+            assert.isUndefined(schema.enum, 'enum is undefined');
+            assert.typeOf(schema.examples, 'array', 'Examples are set');
+            assert.lengthOf(schema.examples, 2, 'Examples has 2 items');
+
+            const example1 = schema.examples[0];
+            assert.isTrue(example1.hasName, 'example.hasName is true');
+            assert.equal(example1.name, 'Some-test-example', 'example.name is undefined');
+            assert.equal(example1.value, '[123, 456]', 'example.value is set'); // <----- THIS IS WRONG!
+
+            const example2 = schema.examples[1];
+            assert.isTrue(example2.hasName, 'example2.hasName is true');
+            assert.equal(example2.name, 'Other-example', 'example2.name is undefined');
+            assert.equal(example2.value, '[1011, 1213]', 'example2.value is set'); // <----- THIS IS WRONG!
+
+            assert.equal(schema.inputPlaceholder, 'Example: [123, 456]', 'inputPlaceholder is set'); // <----- THIS IS WRONG! is it?
+            assert.isTrue(schema.inputFloatLabel, 'inputFloatLabel is true');
+            assert.equal(schema.inputLabel, 'numericRepeatable*', 'inputLabel is set and required');
+            assert.equal(schema.inputType, 'number', 'inputType is set');
+            assert.isTrue(schema.isArray, 'isArray is true');
+            assert.isFalse(schema.isBool, 'is not isBool');
+            assert.isFalse(schema.isEnum, 'is not isEnum');
+            assert.isFalse(schema.isObject, 'is not isObject');
+            assert.equal(schema.items, 'integer', 'items is set');
+            assert.isUndefined(schema.maxLength, 'maxLength is undefined');
+            assert.isUndefined(schema.maximum, 'maximum is undefined');
+            assert.isUndefined(schema.minLength, 'minLength is undefined');
+            assert.isUndefined(schema.minimum, 'minimum is undefined');
+            assert.isUndefined(schema.multipleOf, 'multipleOf is undefined');
+            assert.isUndefined(schema.pattern, 'pattern is undefined');
+            assert.equal(schema.type, 'array', 'type is set');
+          });
+        });
+
+        test('Has computed data for #3', () => {
+          return element.computeViewModel(model)
+          .then((result) => {
+            const item = result[2];
+            assert.equal(item.binding, 'query', 'Binding is set');
+            assert.isUndefined(item.description, 'Description is not set');
+            assert.isFalse(item.hasDescription, 'hasDescription is set');
+            assert.equal(item.name, 'notRequiredRepeatable', 'Name is set');
+            assert.isFalse(item.required, 'Required is set');
+            assert.typeOf(item.value, 'array', 'Value is an array');
+            assert.deepEqual(item.value, [''], 'Value is set');
+
+            assert.typeOf(item.schema, 'object', 'Schema is set');
+            const schema = item.schema;
+            assert.isUndefined(schema.defaultValue, 'defaultValue is undefined');
+            assert.isTrue(schema.enabled, 'Is enabled');
+            assert.isUndefined(schema.enum, 'enum is undefined');
+            assert.isUndefined(schema.examples, 'array', 'Examples are undefined');
+
+            assert.isUndefined(schema.inputPlaceholder, 'inputPlaceholder is not set');
+            assert.isUndefined(schema.inputFloatLabel, 'inputFloatLabel is undefined');
+            assert.equal(schema.inputLabel, 'notRequiredRepeatable', 'inputLabel is set and not required');
+            assert.equal(schema.inputType, 'date', 'inputType is set');
+            assert.isTrue(schema.isArray, 'isArray is true');
+            assert.isFalse(schema.isBool, 'is not isBool');
+            assert.isFalse(schema.isEnum, 'is not isEnum');
+            assert.isFalse(schema.isObject, 'is not isObject');
+            assert.equal(schema.items, 'date', 'items is set');
+            assert.isUndefined(schema.maxLength, 'maxLength is undefined');
+            assert.isUndefined(schema.maximum, 'maximum is undefined');
+            assert.isUndefined(schema.minLength, 'minLength is undefined');
+            assert.isUndefined(schema.minimum, 'minimum is undefined');
+            assert.isUndefined(schema.multipleOf, 'multipleOf is undefined');
+            assert.isUndefined(schema.pattern, 'pattern is undefined');
+            assert.equal(schema.type, 'array', 'type is set');
+          });
+        });
+
+      });
+    });
+
+    // suite('"raw data" computation', () => {
+    //   let amf;
+    //   suiteSetup(() => {
+    //     return AmfLoader.load()
+    //     .then((data) => {
+    //       amf = data;
+    //     });
+    //   });
+    //
+    //   suite('computeViewModel()', () => {
+    //     let model;
+    //     let element;
+    //     setup(() => {
+    //       element = fixture('Basic');
+    //       element.model = amf;
+    //       const endpoint = amf[0]['http://raml.org/vocabularies/document#encodes'][0]['http://raml.org/vocabularies/http#endpoint'][0];
+    //       const operation = endpoint['http://www.w3.org/ns/hydra/core#supportedOperation'][0];
+    //       const expects = operation['http://www.w3.org/ns/hydra/core#expects'][0];
+    //       model = expects['http://raml.org/vocabularies/http#parameter'];
+    //     });
+    //
+    //     test('Has computed data', () => {
+    //       return element.computeViewModel(model)
+    //       .then((result) => {
+    //         debugger;
+    //       });
+    //     });
+    //
+    //   });
+    // });
+    </script>
+  </body>
+</html>

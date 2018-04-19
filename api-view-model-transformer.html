@@ -1,4 +1,3 @@
-<!-- <link rel="import" href="jsonld-import.html"> -->
 <link rel="import" href="../polymer/polymer-element.html">
 <link rel="import" href="../events-target-behavior/events-target-behavior.html">
 <script>
@@ -84,10 +83,8 @@ const DATA_VOC = 'http://raml.org/vocabularies/data';
  * <script>
  * const amfModel = getAmfFromRamlOrOas();
  * const processor = document.querySelector('api-view-model-transformer');
- * if (amfModel['@context']) {
- *  processor.amfContext = amfModel['@context'];
- * }
- * processor.amfModel = extractHeadersForMethod(amfModel);
+ * processor.amfModel = amfModel;
+ * processor.shape = extractHeadersForMethod(amfModel);
  * processor.addEventListener('view-model-changed', (e) => {
  *  console.log(e.detail.value);
  * });
@@ -121,21 +118,30 @@ class ApiViewModelTransformer extends ArcBehaviors.EventsTargetBehavior(Polymer.
   static get properties() {
     return {
       /**
-       * AMF model extracted from RAML or OAS spec and transformed to
-       * JSON/LD schema.
-       * This is an array of propertues for which view model is generated.
+       * Generated AMF json/ld model form the API spec.
+       * The element assumes the object of the first array item to be a
+       * type of `"http://raml.org/vocabularies/document#Document`
+       * on AMF vocabulary.
+       *
+       * It is only used to resolve references.
+       *
+       * @type {Object|Array}
+       */
+      amfModel: Object,
+      /**
+       * An array of propertues for which view model is to be generated.
        * It accepts model for headers, query parameters, uri parameters and
        * body.
        * If `manualModel` is not set, assigning a value to this property will
        * trigger model computation. Otherwise call `computeViewModel()`
        * function manually to generate the model.
        */
-      amfModel: {
+      shape: {
         type: Array,
-        observer: '_amfModelChanged'
+        observer: '_shapeChanged'
       },
       /**
-       * Generated view model from the `amfModel`
+       * Generated view model from the `shape`
        *
        * @type {Array<Object>}
        */
@@ -145,18 +151,21 @@ class ApiViewModelTransformer extends ArcBehaviors.EventsTargetBehavior(Polymer.
         readOnly: true
       },
       /**
-       * If set, assigning a value to `amfModel` will not trigger view model
+       * If set, assigning a value to `shape` will not trigger view model
        * computation.
        */
       manualModel: Boolean,
       /**
-       * The declarations model for the AMF object. It is used when the
+       * The declarations model computed from the AMF object. It is used when the
        * transformer attempt to transform link value.
        *
        * If this property is not set then it dispatches `amf-resolve-link`
        * custom event.
        */
-      amfDeclarations: Array
+      _references: {
+        type: Array,
+        computed: '_computeReferences(amfModel.*)'
+      }
     };
   }
 
@@ -173,7 +182,7 @@ class ApiViewModelTransformer extends ArcBehaviors.EventsTargetBehavior(Polymer.
     node.removeEventListener('api-property-model-build', this._buildPropertyHandler);
   }
   /**
-   * Called when either `amfModel` or `manualModel` propeties changed.
+   * Called when either `shape` or `manualModel` propeties changed.
    * If `manualModel` is falsy then it calls `computeViewModel()` function.
    *
    * Note, this function won't be called when sub property of the model
@@ -182,34 +191,34 @@ class ApiViewModelTransformer extends ArcBehaviors.EventsTargetBehavior(Polymer.
    * Note, `computeViewModel` is called asynchronusly so `amfContext`
    * property can be set.
    *
-   * @param {Array} amfModel Current AMF model
+   * @param {Array} shape Model for shape
    */
-  _amfModelChanged(amfModel) {
+  _shapeChanged(shape) {
     if (this.manualModel) {
       return;
     }
-    this.computeViewModel(amfModel);
+    this.computeViewModel(shape);
   }
   /**
    * Computes view model from AMF data model. This should not be called if
-   * `manualModel` is not set. Use `amfModel` property instead.
+   * `manualModel` is not set. Use `shape` property instead.
    *
-   * @param {?Array|Object} amfModel AMF type model. If not set it uses `amfModel`
+   * @param {?Array|Object} shape AMF type model. If not set it uses `shape`
    * property of the element.
    * @return {Promise} A promise resolved to generated model.
    */
-  computeViewModel(amfModel) {
+  computeViewModel(shape) {
     this._setViewModel(undefined);
-    if (!amfModel) {
-      amfModel = this.amfModel;
+    if (!shape) {
+      shape = this.shape;
     }
-    if (!amfModel) {
+    if (!shape) {
       return Promise.resolve();
     }
-    if (amfModel instanceof Array) {
-      amfModel = Array.from(amfModel);
+    if (shape instanceof Array) {
+      shape = Array.from(shape);
     }
-    return this._computeViewModelRecursive(amfModel)
+    return this._computeViewModelRecursive(shape)
     .then((model) => {
       this._setViewModel(model);
       return model;
@@ -246,7 +255,7 @@ class ApiViewModelTransformer extends ArcBehaviors.EventsTargetBehavior(Polymer.
       return Promise.resolve()
       .then(() => this._computeViewModelRecursive(items, result));
     }
-    if (this._modelHasType(items, DATA_VOC + '#Object')) {
+    if (this._hasType(items, DATA_VOC + '#Object')) {
       return this.modelForRawObject(items);
     } else {
       return Promise.resolve(result);
@@ -259,10 +268,10 @@ class ApiViewModelTransformer extends ArcBehaviors.EventsTargetBehavior(Polymer.
    * @return {Object} UI data model.
    */
   uiModelForAmfItem(amfItem) {
-    if (this._modelHasType(amfItem, RAML_V_HTTP + '#Parameter')) {
+    if (this._hasType(amfItem, RAML_V_HTTP + '#Parameter')) {
       return this._uiModelForParameter(amfItem);
     }
-    if (this._modelHasType(amfItem, SHACL + '#PropertyShape')) {
+    if (this._hasType(amfItem, SHACL + '#PropertyShape')) {
       return this._uiModelForPropertyShape(amfItem);
     }
   }
@@ -579,7 +588,7 @@ class ApiViewModelTransformer extends ArcBehaviors.EventsTargetBehavior(Polymer.
    * @param {String} type Type name
    * @return {Boolean} True if model has a type.
    */
-  _modelHasType(model, type) {
+  _hasType(model, type) {
     let types = model && model['@type'] || [];
     for (let i = 0; i < types.length; i++) {
       if (types[i] === type) {
@@ -638,35 +647,55 @@ class ApiViewModelTransformer extends ArcBehaviors.EventsTargetBehavior(Polymer.
   }
   /**
    * Computes type of the model. It's RAML data type property.
-   * @param {Object} model Property schema.
+   * @param {Object} shape Property schema.
    * @return {String} Type of the nproperty.
    */
-  _computeModelType(model) {
-    if (this._modelHasType(model, RAML_V_SHAPES + '#UnionShape')) {
+  _computeModelType(shape) {
+    if (!shape) {
+      return;
+    }
+    if (this._hasType(shape, RAML_V_SHAPES + '#UnionShape')) {
       return 'union';
     }
-    if (this._modelHasType(model, ARRAY_SHAPE)) {
+    if (this._hasType(shape, RAML_V_SHAPES + '#ArrayShape')) {
       return 'array';
     }
-    if (this._modelHasType(model, RAML_V_SHAPES + '#FileShape')) {
+    if (this._hasType(shape, 'http://www.w3.org/ns/shacl#NodeShape')) {
+      return 'object';
+    }
+    if (this._hasType(shape, SHACL + '#PropertyShape')) {
+      return 'object';
+    }
+    if (this._hasType(shape, RAML_V_SHAPES + '#FileShape')) {
       return 'file';
     }
-    if (this._modelHasType(model, SHACL + '#PropertyShape')) {
+    if (this._hasType(shape, RAML_V_SHAPES + '#NilShape')) {
+      return 'null';
+    }
+    if (this._hasType(shape, RAML_V_SHAPES + '#AnyShape')) {
+      return 'string';
+    }
+    if (this._hasType(shape, RAML_V_SHAPES + '#MatrixShape')) {
+      return 'array';
+    }
+    if (this._hasType(shape, RAML_V_SHAPES+ '#TupleShape')) {
       return 'object';
     }
-    if (this._modelHasType(model, SHACL + '#NodeShape')) {
-      return 'object';
-    }
-    if (this._modelHasType(model, RAML_V_SHAPES + '#ScalarShape')) {
-      switch (model[SHACL + '#datatype'][0]['@id']) {
-        case XML_SCHEMA + '#integer': return 'integer';
-        case RAML_V_SHAPES + '#number': return 'number';
+    if (this._hasType(shape, RAML_V_SHAPES + '#ScalarShape')) {
+      switch (shape[SHACL + '#datatype'][0]['@id']) {
         case XML_SCHEMA + '#string': return 'string';
-        case XML_SCHEMA + '#boolean': return 'boolean';
-        case XML_SCHEMA + '#date': return 'date';
-        case XML_SCHEMA + '#time': return 'time';
-        case XML_SCHEMA + '#dateTime': return 'dateTime';
+        case XML_SCHEMA + '#integer': return 'integer';
+        case XML_SCHEMA + '#long': return 'long';
         case XML_SCHEMA + '#float': return 'float';
+        case XML_SCHEMA + '#double': return 'double';
+        case RAML_V_SHAPES + '#number': return 'number';
+        case XML_SCHEMA + '#boolean': return 'boolean';
+        case XML_SCHEMA + '#dateTime': return 'dateTime';
+        case RAML_V_SHAPES + '#dateTimeOnly': return 'time';
+        case XML_SCHEMA + '#time': return 'time';
+        case XML_SCHEMA + '#date': return 'date';
+        case XML_SCHEMA + '#base64Binary': return 'string';
+        case RAML_V_SHAPES + '#password': return 'password';
       }
     }
     return 'string';
@@ -701,8 +730,13 @@ class ApiViewModelTransformer extends ArcBehaviors.EventsTargetBehavior(Polymer.
     model.forEach((item) => result.push(item['@value']));
     return result;
   }
-
+  /**
+   * Computes scalar value that has proper type.
+   * @param {Object} item Shape to test for a value.
+   * @return {String|Number|Boolean}
+   */
   _computeRawScalarValue(item) {
+    // http://raml.org/vocabularies/data#Scalar
     let value = item[DATA_VOC + '#value'];
     if (!value) {
       return;
@@ -712,7 +746,10 @@ class ApiViewModelTransformer extends ArcBehaviors.EventsTargetBehavior(Polymer.
     value = value['@value'];
     switch (type) {
       case XML_SCHEMA + '#number':
+      case XML_SCHEMA + '#long':
       case XML_SCHEMA + '#integer':
+      case XML_SCHEMA + '#float':
+      case XML_SCHEMA + '#double':
         return Number(value);
       case XML_SCHEMA + '#boolean':
         return value === 'false' ? false : true;
@@ -754,36 +791,45 @@ class ApiViewModelTransformer extends ArcBehaviors.EventsTargetBehavior(Polymer.
    * Computes the value of a property that namespace starts with
    * `http://www.w3.org/ns/shacl`.
    *
-   * @param {Object} def Property AMF definition
+   * @param {Object} shape Property AMF definition
    * @param {String} property Name of the schema.
    * @return {any|undefined} Value of the property or undefined if not set.
    */
-  _computeShaclProperty(def, property) {
-    const key = SHACL + '#' + property;
-    const val = def[key];
-    if (val) {
-      return val[0]['@value'];
-    }
+  _computeShaclProperty(shape, property) {
+    const key = SHACL + '#' + String(property);
+    return this._computePropertyValue(shape, key);
   }
   /**
    * Computes the value of a property that namespace starts with
    * `http://raml.org/vocabularies/shapes`.
    *
-   * @param {Object} def Property AMF definition
+   * @param {Object} shape Property AMF definition
    * @param {String} property Name of the schema.
    * @return {any|undefined} Value of the property or undefined if not set.
    */
-  _computeVocabularyShapeProperty(def, property) {
-    const key = RAML_V_SHAPES + '#' + property;
-    const val = def[key];
+  _computeVocabularyShapeProperty(shape, property) {
+    const key = RAML_V_SHAPES + '#' + String(property);
+    return this._computePropertyValue(shape, key);
+  }
+  /**
+   * Computes value of model property.
+   * @param {Object} shape The model containing a value.
+   * @param {String} key Full key to the object.
+   * @return {String|undefined}
+   */
+  _computePropertyValue(shape, key) {
+    if (!shape) {
+      return;
+    }
+    const val = shape[key];
     if (val) {
       return val[0]['@value'];
     }
   }
   /**
    * Computes enum values for the view model.
-   * @param {[type]} def [description]
-   * @return {[type]} [description]
+   * @param {Object} def Model definition.
+   * @return {Array} List of values.
    */
   _computeModelEnum(def) {
     const key = SHACL + '#in';
@@ -869,7 +915,7 @@ class ApiViewModelTransformer extends ArcBehaviors.EventsTargetBehavior(Polymer.
    * @return {Object} Array definition model
    */
   _computeModelItems(model) {
-    if (!this._modelHasType(model, ARRAY_SHAPE)) {
+    if (!this._hasType(model, ARRAY_SHAPE)) {
       return;
     }
     const items = model[RAML_V_SHAPES + '#items'];
@@ -895,8 +941,24 @@ class ApiViewModelTransformer extends ArcBehaviors.EventsTargetBehavior(Polymer.
     return key in model;
   }
   /**
+   * Comnputes list of references to be used to resolve links.
+   *
+   * @param {Object} record Change object for `amfModel`
+   * @return {Array|undefined}
+   */
+  _computeReferences(record) {
+    let model = record && record.base;
+    if (!model) {
+      return;
+    }
+    if (model instanceof Array) {
+      model = model[0];
+    }
+    return model['http://raml.org/vocabularies/document#references'];
+  }
+  /**
    * Attempty to resolve declaration of a link.
-   * It tries tor use `amfDeclarations` property if it's set. Otherwise
+   * It tries tor use `_references` property if it's set. Otherwise
    * it sends `amf-resolve-link` custom event to ask hosting application
    * for the data.
    *
@@ -906,22 +968,22 @@ class ApiViewModelTransformer extends ArcBehaviors.EventsTargetBehavior(Polymer.
   _importLink(model) {
     const key = RAML_V_DOC + '#link-target';
     const def = model[key][0]['@id'];
-    if (this.amfDeclarations) {
+    if (this._references) {
       return this._searchDeclaration(def);
     }
     return this._requestDeclaration(def);
   }
   /**
-   * Searches `amfDeclarations` property for an id.
+   * Searches `_references` property for an id.
    *
    * @param {String} id Declaration ID
    * @return {Object|undefined} Model declaration or undefined if not found.
    */
   _searchDeclaration(id) {
-    if (!this.amfDeclarations) {
+    if (!this._references) {
       return;
     }
-    return this.amfDeclarations.find((i) => i['@id'] === id);
+    return this._references.find((i) => i['@id'] === id);
   }
   /**
    * Dispatches `amf-resolve-link` custom event to ask hosting application
@@ -1280,7 +1342,7 @@ class ApiViewModelTransformer extends ArcBehaviors.EventsTargetBehavior(Polymer.
   }
   /**
    * Dispatched when the element is trying to resolve declaration link but
-   * `amfDeclarations` is not set. It asks hosting application for the data for
+   * `_references` is not set. It asks hosting application for the data for
    * the id.
    *
    * Handlers should cancel the event and set `result`property on event's

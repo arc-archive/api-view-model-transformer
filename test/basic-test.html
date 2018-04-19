@@ -1,52 +1,61 @@
 <!doctype html>
-<!--
-@license
-Copyright (c) 2015 The Polymer Project Authors. All rights reserved.
-This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
-The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
-The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
-Code distributed by Google as part of the polymer project is also
-subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
--->
 <html>
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1.0, user-scalable=yes">
-
     <script src="../../webcomponentsjs/webcomponents-lite.js"></script>
     <script src="../../web-component-tester/browser.js"></script>
+    <!-- Polyfills for IE11 <\3 -->
+    <link rel="import" href="../../arc-polyfills/arc-polyfills.html">
     <link rel="import" href="../api-view-model-transformer.html">
   </head>
   <body>
-
     <test-fixture id="basic">
       <template>
         <api-view-model-transformer></api-view-model-transformer>
       </template>
     </test-fixture>
-
+    <test-fixture id="Manual">
+      <template>
+        <api-view-model-transformer></api-view-model-transformer>
+      </template>
+    </test-fixture>
     <script>
-    /* global fixture, assert */
     suite('Basic tests', () => {
-
       let element;
-      setup(function() {
-        element = fixture('basic');
-      });
-
       test('manualModel is undefined by default', () => {
+        element = fixture('basic');
         assert.isUndefined(element.manualModel);
       });
 
-      test('Calls computeViewModel when amfModel change', (done) => {
-        element.amfModel = [];
-        element.computeViewModel = function() {
+      test('Calls computeViewModel() when shape changes', (done) => {
+        element = fixture('basic');
+        element.computeViewModel = () => {
           done();
         };
+        element.shape = [];
+      });
+
+      test('Does not call computeViewModel() when is manual', () => {
+        element = fixture('Manual');
+        let called = false;
+        element.computeViewModel = () => {
+          called = true;
+        };
+        assert.isFalse(called);
+      });
+
+      test('Computes _references', () => {
+        element = fixture('basic');
+        element.amfModel = [{
+          'http://raml.org/vocabularies/document#references': ['test']
+        }];
+        assert.typeOf(element._references, 'array');
+        assert.equal(element._references[0], 'test');
       });
     });
 
-    suite('_modelHasType()', () => {
+    suite('_hasType()', () => {
       let element;
       const model = {
         '@type': [
@@ -55,27 +64,27 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           'three'
         ]
       };
-      setup(function() {
+      setup(() => {
         element = fixture('basic');
       });
 
       test('Return false for undefined model', () => {
-        const result = element._modelHasType(undefined, '');
+        const result = element._hasType(undefined, '');
         assert.isFalse(result);
       });
 
       test('Return false for empty model', () => {
-        const result = element._modelHasType([], '');
+        const result = element._hasType([], '');
         assert.isFalse(result);
       });
 
       test('Return true for existing type', () => {
-        const result = element._modelHasType(model, 'two');
+        const result = element._hasType(model, 'two');
         assert.isTrue(result);
       });
 
       test('Return false for missing type', () => {
-        const result = element._modelHasType(model, 'some');
+        const result = element._hasType(model, 'some');
         assert.isFalse(result);
       });
     });
@@ -87,7 +96,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           '@value': 'test-value'
         }]
       };
-      suiteSetup(function() {
+      suiteSetup(() => {
         element = fixture('basic');
       });
 
@@ -109,7 +118,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           '@value': 'test-value'
         }]
       };
-      suiteSetup(function() {
+      suiteSetup(() => {
         element = fixture('basic');
       });
 
@@ -131,7 +140,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           '@value': 'test-value'
         }]
       };
-      suiteSetup(function() {
+      suiteSetup(() => {
         element = fixture('basic');
       });
 
@@ -153,7 +162,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           '@value': 'test-value'
         }]
       };
-      suiteSetup(function() {
+      suiteSetup(() => {
         element = fixture('basic');
       });
 
@@ -170,14 +179,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
     suite('_computeModelType()', () => {
       let element;
-      const union = 'http://raml.org/vocabularies/shapes#UnionShape';
-      const array = 'http://raml.org/vocabularies/shapes#ArrayShape';
-      const scalar = 'http://www.w3.org/ns/shacl#ScalarShape';
-      const xmlschema = 'http://www.w3.org/2001/XMLSchema';
-      const scalarModel = {
-        '@type': [scalar],
-      };
-      suiteSetup(function() {
+
+      suiteSetup(() => {
         element = fixture('basic');
       });
 
@@ -186,87 +189,113 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         assert.equal(result, 'string');
       });
 
-      test('Returns union type', () => {
+      test('Computes UnionShape', () => {
+        const type = 'http://raml.org/vocabularies/shapes#UnionShape';
         const result = element._computeModelType({
-          '@type': [union]
+          '@type': [type]
         });
         assert.equal(result, 'union');
       });
 
-      test('Returns array type', () => {
+      test('Computes ArrayShape', () => {
+        const type = 'http://raml.org/vocabularies/shapes#ArrayShape';
         const result = element._computeModelType({
-          '@type': [array]
+          '@type': [type]
         });
         assert.equal(result, 'array');
       });
 
-      test('Returns integer type', () => {
-        const model = Object.assign({}, scalarModel);
-        model['http://www.w3.org/ns/shacl#datatype'] = [{
-          '@id': xmlschema + '#integer'
-        }];
-        const result = element._computeModelType(model);
-        assert.equal(result, 'integer');
+      test('Computes NodeShape', () => {
+        const type = 'http://www.w3.org/ns/shacl#NodeShape';
+        const result = element._computeModelType({
+          '@type': [type]
+        });
+        assert.equal(result, 'object');
       });
 
-      test('Returns string type', () => {
-        const model = Object.assign({}, scalarModel);
-        model['http://www.w3.org/ns/shacl#datatype'] = [{
-          '@id': xmlschema + '#string'
-        }];
-        const result = element._computeModelType(model);
+      test('Computes FileShape', () => {
+        const type = 'http://raml.org/vocabularies/shapes#FileShape';
+        const result = element._computeModelType({
+          '@type': [type]
+        });
+        assert.equal(result, 'file');
+      });
+
+      test('Computes NilShape', () => {
+        const type = 'http://raml.org/vocabularies/shapes#NilShape';
+        const result = element._computeModelType({
+          '@type': [type]
+        });
+        assert.equal(result, 'null');
+      });
+
+      test('Computes AnyShape', () => {
+        const type = 'http://raml.org/vocabularies/shapes#AnyShape';
+        const result = element._computeModelType({
+          '@type': [type]
+        });
         assert.equal(result, 'string');
       });
 
-      test('Returns boolean type', () => {
-        const model = Object.assign({}, scalarModel);
-        model['http://www.w3.org/ns/shacl#datatype'] = [{
-          '@id': xmlschema + '#boolean'
-        }];
-        const result = element._computeModelType(model);
-        assert.equal(result, 'boolean');
+      test('Computes MatrixShape', () => {
+        const type = 'http://raml.org/vocabularies/shapes#MatrixShape';
+        const result = element._computeModelType({
+          '@type': [type]
+        });
+        assert.equal(result, 'array');
       });
 
-      test('Returns date type', () => {
-        const model = Object.assign({}, scalarModel);
-        model['http://www.w3.org/ns/shacl#datatype'] = [{
-          '@id': xmlschema + '#date'
-        }];
-        const result = element._computeModelType(model);
-        assert.equal(result, 'date');
-      });
-
-      test('Returns time type', () => {
-        const model = Object.assign({}, scalarModel);
-        model['http://www.w3.org/ns/shacl#datatype'] = [{
-          '@id': xmlschema + '#time'
-        }];
-        const result = element._computeModelType(model);
-        assert.equal(result, 'time');
-      });
-
-      test('Returns dateTime type', () => {
-        const model = Object.assign({}, scalarModel);
-        model['http://www.w3.org/ns/shacl#datatype'] = [{
-          '@id': xmlschema + '#dateTime'
-        }];
-        const result = element._computeModelType(model);
-        assert.equal(result, 'dateTime');
-      });
-
-      test('Returns float type', () => {
-        const model = Object.assign({}, scalarModel);
-        model['http://www.w3.org/ns/shacl#datatype'] = [{
-          '@id': xmlschema + '#float'
-        }];
-        const result = element._computeModelType(model);
-        assert.equal(result, 'float');
+      test('Computes TupleShape', () => {
+        const type = 'http://raml.org/vocabularies/shapes#TupleShape';
+        const result = element._computeModelType({
+          '@type': [type]
+        });
+        assert.equal(result, 'object');
       });
     });
 
-    suite('_computeInputLabel()', function() {
+    suite('_computeModelType() - ScalarShape', () => {
       let element;
-      suiteSetup(function() {
+      let shape = {
+        '@type': ['http://raml.org/vocabularies/shapes#ScalarShape'],
+        'http://www.w3.org/ns/shacl#datatype': [{
+          '@id': ''
+        }]
+      };
+      suiteSetup(() => {
+        element = fixture('basic');
+      });
+      function setType(type) {
+        shape['http://www.w3.org/ns/shacl#datatype'][0]['@id'] = type;
+      }
+      [
+        ['http://raml.org/vocabularies/shapes#number', 'number'],
+        ['http://www.w3.org/2001/XMLSchema#integer', 'integer'],
+        ['http://www.w3.org/2001/XMLSchema#string', 'string'],
+        ['http://www.w3.org/2001/XMLSchema#boolean', 'boolean'],
+        ['http://www.w3.org/2001/XMLSchema#date', 'date'],
+        ['http://www.w3.org/2001/XMLSchema#time', 'time'],
+        ['http://www.w3.org/2001/XMLSchema#dateTime', 'dateTime'],
+        ['http://raml.org/vocabularies/shapes#dateTimeOnly', 'time'],
+        ['http://www.w3.org/2001/XMLSchema#float', 'float'],
+        ['http://www.w3.org/2001/XMLSchema#long', 'long'],
+        ['http://www.w3.org/2001/XMLSchema#double', 'double'],
+        ['http://www.w3.org/2001/XMLSchema#base64Binary', 'string'],
+        ['http://raml.org/vocabularies/shapes#password', 'password'],
+        ['UNKNOWN', 'string']
+      ].forEach((item) => {
+        test('Computes ' + item[0], () => {
+          setType(item[0]);
+          const result = element._computeModelType(shape);
+          assert.equal(result, item[1]);
+        });
+      });
+    });
+
+
+    suite('_computeInputLabel()', () => {
+      let element;
+      suiteSetup(() => {
         element = fixture('basic');
       });
 
@@ -297,9 +326,133 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
       test('Uses default value', () => {
         const result = element._computeInputLabel({}, false, undefined);
-        assert.equal(result, 'Value');
+        assert.equal(result, 'Input value');
       });
     });
+
+    suite('_computeShaclProperty()', () => {
+      const key = 'http://www.w3.org/ns/shacl#';
+
+      let element;
+      suiteSetup(() => {
+        element = fixture('basic');
+      });
+
+      test('returns undefined for missing model', () => {
+        const result = element._computeShaclProperty();
+        assert.isUndefined(result);
+      });
+
+      test('returns undefined for missing property', () => {
+        const result = element._computeShaclProperty({}, 'test');
+        assert.isUndefined(result);
+      });
+
+      test('returns value of the property', () => {
+        const shape = {};
+        shape[key + 'test-key'] = [{'@value': 'test-value'}];
+        const result = element._computeShaclProperty(shape, 'test-key');
+        assert.equal(result, 'test-value');
+      });
+    });
+
+    suite('_computeVocabularyShapeProperty()', () => {
+      const key = 'http://raml.org/vocabularies/shapes#';
+
+      let element;
+      suiteSetup(() => {
+        element = fixture('basic');
+      });
+
+      test('returns undefined for missing model', () => {
+        const result = element._computeVocabularyShapeProperty();
+        assert.isUndefined(result);
+      });
+
+      test('returns undefined for missing property', () => {
+        const result = element._computeVocabularyShapeProperty({}, 'test');
+        assert.isUndefined(result);
+      });
+
+      test('returns value of the property', () => {
+        const shape = {};
+        shape[key + 'test-key'] = [{'@value': 'test-value'}];
+        const result = element._computeVocabularyShapeProperty(shape, 'test-key');
+        assert.equal(result, 'test-value');
+      });
+    });
+
+    suite('_computePropertyValue()', () => {
+      let element;
+      suiteSetup(() => {
+        element = fixture('basic');
+      });
+
+      test('returns undefined for missing model', () => {
+        const result = element._computePropertyValue();
+        assert.isUndefined(result);
+      });
+
+      test('returns undefined for missing property', () => {
+        const result = element._computePropertyValue({}, 'test');
+        assert.isUndefined(result);
+      });
+
+      test('returns undefined for missing key', () => {
+        const result = element._computePropertyValue({});
+        assert.isUndefined(result);
+      });
+
+      test('returns value of the property', () => {
+        const shape = {
+          'test-key': [{'@value': 'test-value'}]
+        };
+        const result = element._computePropertyValue(shape, 'test-key');
+        assert.equal(result, 'test-value');
+      });
+    });
+
+    suite('_computeModelEnum()', () => {
+      let element;
+      let model;
+      suiteSetup(() => {
+        element = fixture('basic');
+        model = {
+          'http://www.w3.org/ns/shacl#in': [{
+            'http://www.w3.org/1999/02/22-rdf-syntax-ns#first': [{
+              '@value': 'test1'
+            }],
+            'http://www.w3.org/1999/02/22-rdf-syntax-ns#rest': [{
+              'http://www.w3.org/1999/02/22-rdf-syntax-ns#first': [{
+                '@value': 'test2'
+              }],
+              'http://www.w3.org/1999/02/22-rdf-syntax-ns#rest': [{
+                'http://www.w3.org/1999/02/22-rdf-syntax-ns#first': [{
+                  '@value': 'test3'
+                }]
+              }]
+            }]
+          }]
+        };
+      });
+
+      test('Returns array', () => {
+        const result = element._computeModelEnum(model);
+        assert.typeOf(result, 'array');
+      });
+
+      test('Array has all items from model', () => {
+        // debugger;
+        const result = element._computeModelEnum(model);
+        assert.lengthOf(result, 3);
+      });
+
+      test('Items are in order', () => {
+        const result = element._computeModelEnum(model);
+        assert.deepEqual(result, ['test1', 'test2', 'test3']);
+      });
+    });
+
     </script>
 
   </body>
