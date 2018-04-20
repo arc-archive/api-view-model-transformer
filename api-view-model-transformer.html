@@ -1247,6 +1247,56 @@ class ApiViewModelTransformer extends ArcBehaviors.EventsTargetBehavior(Polymer.
     return docs;
   }
   /**
+   * Creates an example body from a body property of AMF.
+   * This object must be of a type of `http://raml.org/vocabularies/http#Payload`.
+   *
+   * @param {Object} body AMF body object
+   * @return {String|undefined} An example body value if possible to compute.
+   * It returns undefined if passed value if not a payload type. It may be empty
+   * string.
+   */
+  bodyToExample(body) {
+    if (!this._hasType(body, 'http://raml.org/vocabularies/http#Payload')) {
+      return;
+    }
+    // First lets stry an example
+    const schema = body[RAML_V_HTTP + '#schema'];
+    if (!schema) {
+      // there's nothing we can compute here
+      return '';
+    }
+    const examples = this._computeModelExamples(schema[0]);
+    if (examples && examples.length) {
+      return examples[0].value;
+    }
+    const ct = this._getSchemaSafeValue(body, 'http://raml.org/vocabularies/http#mediaType');
+    switch (ct) {
+      case 'application/json':
+        return this.computeAmfDisplayJson(schema[0]['http://www.w3.org/ns/shacl#property']);
+      case 'application/xml':
+        return this._getSchemaSafeValue(schema[0]['http://www.w3.org/ns/shacl#raw']) || '';
+      default:
+        return '';
+    }
+  }
+  /**
+   * Computes an example JSON display value from AMF model
+   * @param {Array} properties List of AMF Prooperty models
+   * @return {String} Example
+   */
+  computeAmfDisplayJson(properties) {
+    if (!properties || !properties.length) {
+      return '';
+    }
+    const result = {};
+    properties.forEach((item) => {
+      const model = this.uiModelForAmfItem(item);
+      result[model.name] = model.value || model.schema.type || '';
+    });
+    return JSON.stringify(result, null, 2);
+  }
+
+  /**
    * Computes a JSON object to display from view model propertiers
    * @param {Array<Object>} properties
    * @return {String} JSON string value.
