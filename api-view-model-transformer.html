@@ -474,8 +474,9 @@ class ApiViewModelTransformer extends ArcBehaviors.EventsTargetBehavior(Polymer.
         this._exampleAsValue(item.schema.defaultValue, processOptions);
     }
     if (typeof item.value === 'undefined' && item.required) {
-      if (item.schema.examples) {
-        item.value = this._exampleAsValue(item.schema.examples[0].value, processOptions);
+      const examples = item.schema.examples;
+      if (examples && examples.length) {
+        item.value = this._exampleAsValue(examples[0].value, processOptions);
       }
       if (typeof item.value === 'undefined' && item.schema.isEnum) {
         item.value = this._exampleAsValue(item.schema.enum[0], processOptions);
