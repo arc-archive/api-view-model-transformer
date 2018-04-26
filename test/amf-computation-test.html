@@ -51,14 +51,14 @@
           });
         });
 
-        test('Has 2 items', () => {
+        test('Has 3 items', () => {
           return element.computeViewModel(model)
           .then((result) => {
-            assert.lengthOf(result, 2);
+            assert.lengthOf(result, 3);
           });
         });
 
-        test('Items #1 has all defined properties', () => {
+        test('Item #1 has all defined properties', () => {
           return element.computeViewModel(model)
           .then((result) => {
             const header = result[0];
@@ -99,7 +99,7 @@
           });
         });
 
-        test('Items #2 has all defined properties', () => {
+        test('Item #2 has all defined properties', () => {
           return element.computeViewModel(model)
           .then((result) => {
             const header = result[1];
@@ -136,6 +136,42 @@
             assert.isUndefined(schema.minimum, 'minimum is undefined');
             assert.isUndefined(schema.multipleOf, 'multipleOf is undefined');
             assert.equal(schema.pattern, '^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[4][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$', 'pattern is set');
+            assert.equal(schema.type, 'string', 'type is set');
+          });
+        });
+
+        test('Item #3 has all defined properties', () => {
+          return element.computeViewModel(model)
+          .then((result) => {
+            const header = result[2];
+            assert.equal(header.binding, 'header', 'Binding is set');
+            assert.isUndefined(header.description, 'Description is undefined');
+            assert.isFalse(header.hasDescription, 'hasDescription is set');
+            assert.equal(header.name, 'x-enum', 'Name is set');
+            assert.isTrue(header.required, 'Required is set');
+            assert.equal(header.value, 'a', 'value is set');
+            assert.typeOf(header.schema, 'object', 'Schema is set');
+            const schema = header.schema;
+            assert.isUndefined(schema.defaultValue, 'defaultValue is undefined');
+            assert.isTrue(schema.enabled, 'Is enabled');
+            assert.typeOf(schema.enum, 'array', 'enum is set');
+            assert.lengthOf(schema.enum, 3, 'enum has 3 items');
+            assert.deepEqual(schema.enum, ['a', 'b', 'c'], 'enum has model values');
+            assert.isUndefined(schema.examples, 'Examples are set');
+            assert.isUndefined(schema.inputFloatLabel, 'inputFloatLabel is undefined');
+            assert.equal(schema.inputLabel, 'x-enum*', 'inputLabel is set and required');
+            assert.equal(schema.inputType, 'text', 'inputType is set');
+            assert.isFalse(schema.isArray, 'is not isArray');
+            assert.isFalse(schema.isBool, 'is not isBool');
+            assert.isTrue(schema.isEnum, 'isEnum eq true');
+            assert.isFalse(schema.isObject, 'is not isObject');
+            assert.isUndefined(schema.items, 'items is undefined');
+            assert.isUndefined(schema.maxLength, 'maxLength is undefined');
+            assert.isUndefined(schema.maximum, 'maximum is undefined');
+            assert.isUndefined(schema.minLength, 'minLength is undefined');
+            assert.isUndefined(schema.minimum, 'minimum is undefined');
+            assert.isUndefined(schema.multipleOf, 'multipleOf is undefined');
+            assert.isUndefined(schema.pattern, 'pattern is set');
             assert.equal(schema.type, 'string', 'type is set');
           });
         });

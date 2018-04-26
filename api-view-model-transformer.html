@@ -1,5 +1,7 @@
 <link rel="import" href="../polymer/polymer-element.html">
 <link rel="import" href="../events-target-behavior/events-target-behavior.html">
+<link rel="import" href="../amf-helper-mixin/amf-helper-mixin.html">
+
 <script>
 (function() {
 'use strict';
@@ -111,8 +113,9 @@ const DATA_VOC = 'http://raml.org/vocabularies/data';
  * @customElement
  * @memberof ApiElements
  * @appliesMixin ArcBehaviors.EventsTargetBehavior
+ * @appliesMixin ApiElements.AmfHelperMixin
  */
-class ApiViewModelTransformer extends ArcBehaviors.EventsTargetBehavior(Polymer.Element) {
+class ApiViewModelTransformer extends ApiElements.AmfHelperMixin(ArcBehaviors.EventsTargetBehavior(Polymer.Element)) {
   static get is() { return 'api-view-model-transformer'; }
   static get properties() {
     return {
@@ -163,7 +166,7 @@ class ApiViewModelTransformer extends ArcBehaviors.EventsTargetBehavior(Polymer.
        */
       _references: {
         type: Array,
-        computed: '_computeReferences(amfModel.*)'
+        computed: '_computeReferences(amfModel)'
       }
     };
   }
@@ -346,7 +349,7 @@ class ApiViewModelTransformer extends ArcBehaviors.EventsTargetBehavior(Polymer.
     }
     if (result.schema.type === 'file') {
       result.schema.isFile = true;
-      result.schema.fileTypes = this._computeModelArrayValue(def[RAML_V_SHAPES + '#fileType']);
+      result.schema.fileTypes = this._getValueArray(def, RAML_V_SHAPES + '#fileType');
     } else {
       result.schema.isFile = false;
     }
@@ -583,31 +586,13 @@ class ApiViewModelTransformer extends ArcBehaviors.EventsTargetBehavior(Polymer.
     return result;
   }
   /**
-   * Checks if a model has a type.
-   * @param {Object} model Model to test
-   * @param {String} type Type name
-   * @return {Boolean} True if model has a type.
-   */
-  _hasType(model, type) {
-    let types = model && model['@type'] || [];
-    for (let i = 0; i < types.length; i++) {
-      if (types[i] === type) {
-        return true;
-      }
-    }
-    return false;
-  }
-  /**
    * Computes value of the `binding` property of the UI model.
    * @param {Object} model AMF item model
    * @return {String|undefined} Binding property or undefined if not found.
    */
   _computeBinding(model) {
     const key = RAML_V_HTTP + '#binding';
-    if (!model[key]) {
-      return;
-    }
-    return model[key][0]['@value'];
+    return this._getValue(model, key);
   }
   /**
    * Computes fomm (parameter) name from AMF model.
@@ -616,22 +601,7 @@ class ApiViewModelTransformer extends ArcBehaviors.EventsTargetBehavior(Polymer.
    */
   _computeFormName(model) {
     const key = SCHEMA + 'name';
-    if (!model[key]) {
-      return;
-    }
-    return model[key][0]['@value'];
-  }
-  /**
-   * Computes description from AMF model.
-   * @param {Object} model AMF item model
-   * @return {String|undefined} Description property or undefined if not found.
-   */
-  _computeDescription(model) {
-    const key = SCHEMA + 'description';
-    if (!model[key]) {
-      return;
-    }
-    return model[key][0]['@value'];
+    return this._getValue(model, key);
   }
   /**
    * Computes rwquired property from AMF model.
@@ -640,10 +610,7 @@ class ApiViewModelTransformer extends ArcBehaviors.EventsTargetBehavior(Polymer.
    */
   _computeRequired(model) {
     const key = HYDRA_CORE + '#required';
-    if (!model[key]) {
-      return;
-    }
-    return model[key][0]['@value'];
+    return this._getValue(model, key);
   }
   /**
    * Computes type of the model. It's RAML data type property.
@@ -718,17 +685,8 @@ class ApiViewModelTransformer extends ArcBehaviors.EventsTargetBehavior(Polymer.
       case DATA_VOC + '#Array':
         return this._computeRawArrayValue(item);
       case RAML_V_SHAPES + '#FileShape':
-        return this._computeModelArrayValue(item[RAML_V_SHAPES + '#fileType']);
+        return this._getValueArray(item, RAML_V_SHAPES + '#fileType');
     }
-  }
-
-  _computeModelArrayValue(model) {
-    const result = [];
-    if (!model || !model.length) {
-      return result;
-    }
-    model.forEach((item) => result.push(item['@value']));
-    return result;
   }
   /**
    * Computes scalar value that has proper type.
@@ -781,10 +739,7 @@ class ApiViewModelTransformer extends ArcBehaviors.EventsTargetBehavior(Polymer.
    * @return {String} Input display name.
    */
   _computeInputLabel(def, required, name) {
-    let result = def[SCHEMA + 'name'];
-    if (result) {
-      result = result[0]['@value'];
-    }
+    let result = this._getValue(def, SCHEMA + 'name');
     return this._completeInputLabel(result, name, required);
   }
   /**
@@ -797,7 +752,7 @@ class ApiViewModelTransformer extends ArcBehaviors.EventsTargetBehavior(Polymer.
    */
   _computeShaclProperty(shape, property) {
     const key = SHACL + '#' + String(property);
-    return this._computePropertyValue(shape, key);
+    return this._getValue(shape, key);
   }
   /**
    * Computes the value of a property that namespace starts with
@@ -809,22 +764,7 @@ class ApiViewModelTransformer extends ArcBehaviors.EventsTargetBehavior(Polymer.
    */
   _computeVocabularyShapeProperty(shape, property) {
     const key = RAML_V_SHAPES + '#' + String(property);
-    return this._computePropertyValue(shape, key);
-  }
-  /**
-   * Computes value of model property.
-   * @param {Object} shape The model containing a value.
-   * @param {String} key Full key to the object.
-   * @return {String|undefined}
-   */
-  _computePropertyValue(shape, key) {
-    if (!shape) {
-      return;
-    }
-    const val = shape[key];
-    if (val) {
-      return val[0]['@value'];
-    }
+    return this._getValue(shape, key);
   }
   /**
    * Computes enum values for the view model.
@@ -833,51 +773,22 @@ class ApiViewModelTransformer extends ArcBehaviors.EventsTargetBehavior(Polymer.
    */
   _computeModelEnum(def) {
     const key = SHACL + '#in';
-    const val = def[key];
-    if (!val) {
+    let model = def[key];
+    if (!model) {
       return;
-    }
-    const result = [];
-    return this._computeEnumIterator(val, result);
-  }
-  /**
-   * Computesa value for the `enum` property in the view model.
-   * @param {Array} model Current model item for `shacl#in` namespace
-   * @param {Array} result Collected values.
-   * @return {Array} Final result.
-   */
-  _computeEnumIterator(model, result) {
-    if (!model || !model.length) {
-      return result;
     }
     model = model[0];
-    const firstItem = this._getSchemaSafeValue(model, RDF + '#first');
-    if (firstItem) {
-      result.push(firstItem);
-    }
-    const val = model[RDF + '#rest'];
-    if (!val) {
-      return result;
-    }
-    return this._computeEnumIterator(val, result);
-  }
-  /**
-   * Gets a value (`@value`) for a property without exceptions.
-   *
-   * @param {Object} model Model for the value.
-   * @param {String} key Model key holding the value
-   * @return {any|undefined}
-   */
-  _getSchemaSafeValue(model, key) {
-    let root = model[key];
-    if (!root) {
-      return;
-    }
-    root = root[0];
-    if (!root) {
-      return;
-    }
-    return root['@value'];
+    const result = [];
+    Object.keys(model).forEach((key) => {
+      if (key.indexOf('http://www.w3.org/2000/01/rdf-schema#') === -1) {
+        return;
+      }
+      const value = this._getValue(model, key);
+      if (value) {
+        result.push(value);
+      }
+    });
+    return result;
   }
   /**
    * Computes list of examples for the Property model.
@@ -895,8 +806,8 @@ class ApiViewModelTransformer extends ArcBehaviors.EventsTargetBehavior(Polymer.
     const result = [];
     for (let i = 0, len = def.length; i < len; i++) {
       const item = def[i];
-      const name = this._getSchemaSafeValue(item, SCHEMA + 'name');
-      const value = this._getSchemaSafeValue(item, RAML_V_DOC + '#value');
+      const name = this._getValue(item, SCHEMA + 'name');
+      const value = this._getExampleValue(item);
       if (!name && !value) {
         continue;
       }
@@ -939,22 +850,6 @@ class ApiViewModelTransformer extends ArcBehaviors.EventsTargetBehavior(Polymer.
   _isLink(model) {
     const key = RAML_V_DOC + '#link-target';
     return key in model;
-  }
-  /**
-   * Comnputes list of references to be used to resolve links.
-   *
-   * @param {Object} record Change object for `amfModel`
-   * @return {Array|undefined}
-   */
-  _computeReferences(record) {
-    let model = record && record.base;
-    if (!model) {
-      return;
-    }
-    if (model instanceof Array) {
-      model = model[0];
-    }
-    return model['http://raml.org/vocabularies/document#references'];
   }
   /**
    * Attempty to resolve declaration of a link.
@@ -1270,12 +1165,12 @@ class ApiViewModelTransformer extends ArcBehaviors.EventsTargetBehavior(Polymer.
     if (examples && examples.length) {
       return examples[0].value;
     }
-    const ct = this._getSchemaSafeValue(body, 'http://raml.org/vocabularies/http#mediaType');
+    const ct = this._getValue(body, 'http://raml.org/vocabularies/http#mediaType');
     switch (ct) {
       case 'application/json':
         return this.computeAmfDisplayJson(schema[0]['http://www.w3.org/ns/shacl#property']);
       case 'application/xml':
-        return this._getSchemaSafeValue(schema[0]['http://www.w3.org/ns/shacl#raw']) || '';
+        return this._getValue(schema[0]['http://www.w3.org/ns/shacl#raw']) || '';
       default:
         return '';
     }

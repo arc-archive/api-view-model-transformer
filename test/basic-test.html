@@ -382,36 +382,6 @@
       });
     });
 
-    suite('_computePropertyValue()', () => {
-      let element;
-      suiteSetup(() => {
-        element = fixture('basic');
-      });
-
-      test('returns undefined for missing model', () => {
-        const result = element._computePropertyValue();
-        assert.isUndefined(result);
-      });
-
-      test('returns undefined for missing property', () => {
-        const result = element._computePropertyValue({}, 'test');
-        assert.isUndefined(result);
-      });
-
-      test('returns undefined for missing key', () => {
-        const result = element._computePropertyValue({});
-        assert.isUndefined(result);
-      });
-
-      test('returns value of the property', () => {
-        const shape = {
-          'test-key': [{'@value': 'test-value'}]
-        };
-        const result = element._computePropertyValue(shape, 'test-key');
-        assert.equal(result, 'test-value');
-      });
-    });
-
     suite('_computeModelEnum()', () => {
       let element;
       let model;
@@ -442,7 +412,6 @@
       });
 
       test('Array has all items from model', () => {
-        // debugger;
         const result = element._computeModelEnum(model);
         assert.lengthOf(result, 3);
       });
