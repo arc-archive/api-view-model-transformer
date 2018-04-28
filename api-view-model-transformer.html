@@ -5,6 +5,69 @@
 <script>
 (function() {
 'use strict';
+const GLOBAL_PATH_PARAMS = [];
+const GLOBAL_QUERY_PARAMS = [];
+const GLOBAL_OTHER_PARAMS = [];
+/**
+ * Generates a common key from data model item.
+ *
+ * @param {Object} data AMF type object model.
+ * @return {String} Generated key to search for the item.
+ */
+function getKey(data) {
+  let key = data.name + '-' + data.schema.type;
+  if (data.schema.isEnum) {
+    key += '-enum';
+  }
+  if (data.required) {
+    key += '-required';
+  }
+  return key;
+}
+/**
+ * Searches for a model value in cache store.
+ *
+ * @param {Object} data AMF model item.
+ * @return {Object|undefined} Model item or undefined if not found.
+ */
+function getGlobalValue(data) {
+  let store;
+  switch (data.binding) {
+    case 'query': store = GLOBAL_QUERY_PARAMS; break;
+    case 'path': store = GLOBAL_PATH_PARAMS; break;
+    default: store = GLOBAL_OTHER_PARAMS; break;
+  }
+  if (!store.length) {
+    return;
+  }
+  const key = getKey(data);
+  for (let i = 0, len = store.length; i < len; i++) {
+    if (store[i].key === key) {
+      return store[i].value;
+    }
+  }
+}
+/**
+ * Appends a value item to the global params.
+ *
+ * @param {Object} data Model item to be added to the list.
+ */
+function appendGlobalValue(data) {
+  const item = getGlobalValue(data);
+  if (item) {
+    return;
+  }
+  const key = getKey(data);
+  const model = {
+    key: key,
+    value: data
+  };
+  switch (data.binding) {
+    case 'query': GLOBAL_QUERY_PARAMS.push(model); break;
+    case 'path': GLOBAL_PATH_PARAMS.push(model); break;
+    default: GLOBAL_OTHER_PARAMS.push(model); break;
+  }
+}
 /**
  * @license
  * Copyright 2016 The Advanced REST client authors <arc@mulesoft.com>
@@ -286,20 +349,54 @@ class ApiViewModelTransformer extends ApiElements.AmfHelperMixin(ArcBehaviors.Ev
   _uiModelForParameter(amfItem) {
     const result = {};
     result.binding = this._computeBinding(amfItem);
-    const valueDelimiter = this._computeValueDelimiter(result.binding);
-    const decodeValues = this._computeDecodeValues(result.binding);
     result.name = this._computeFormName(amfItem);
+    result.required = this._computeRequired(amfItem);
+    result.schema = {};
+    const key = RAML_V_HTTP + '#schema';
+    if (amfItem[key]) {
+      const def = amfItem[key][0];
+      result.schema.type = this._computeModelType(def);
+      result.schema.isEnum = this._hasProperty(def, SHACL + '#in');
+      // Now check if there's cached model for this property
+      // So far now it took only required steps to compute cache key of the
+      // property.
+      const cachedModel = getGlobalValue(result);
+      if (cachedModel) {
+        // Safe to return it.
+        return cachedModel;
+      }
+      result.schema.enabled = true;
+      result.schema.inputLabel = this._computeInputLabel(def, result.required, result.name);
+      result.schema.pattern = this._computeShaclProperty(def, 'pattern');
+      result.schema.minLength = this._computeShaclProperty(def, 'minLength');
+      result.schema.maxLength = this._computeShaclProperty(def, 'maxLength');
+      result.schema.defaultValue = this._computeShaclProperty(def, 'defaultValue');
+      result.schema.multipleOf = this._computeVocabularyShapeProperty(def, 'multipleOf');
+      result.schema.minimum = this._computeShaclProperty(def, 'minInclusive');
+      result.schema.maximum = this._computeShaclProperty(def, 'maxInclusive');
+      result.schema.enum = result.schema.isEnum ? this._computeModelEnum(def) : undefined;
+      result.schema.isArray = result.type === 'array';
+      result.schema.isBool = result.type === 'boolean';
+      result.schema.isObject = result.type === 'object';
+      result.schema.examples = this._computeModelExamples(def);
+      result.schema.items = result.isArray ? this._computeModelItems(def) : undefined;
+      result.schema.inputType = this._computeModelInputType(result.type, result.items);
+      result.schema.pattern = this._computeModelPattern(result.type, result.pattern);
+    }
     result.description = this._computeDescription(amfItem);
     result.hasDescription = !!result.description;
-    result.required = this._computeRequired(amfItem);
+
+    const valueDelimiter = this._computeValueDelimiter(result.binding);
+    const decodeValues = this._computeDecodeValues(result.binding);
     const processOptions = {
       name: result.name,
       required: result.required,
       valueDelimiter: valueDelimiter,
       decodeValues: decodeValues
     };
-    result.schema = this._computeParameterSchema(amfItem, processOptions);
     this._processAfterItemCreated(result, processOptions);
+    // store cache
+    appendGlobalValue(result);
     return result;
   }
   /**
@@ -317,15 +414,22 @@ class ApiViewModelTransformer extends ApiElements.AmfHelperMixin(ArcBehaviors.Ev
       return result;
     }
     def = def[0];
-    result.description = this._computeDescription(def);
-    result.hasDescription = !!result.description;
     result.required = this._computeRequired(def);
-    result.schema = {};
     if (result.required === undefined) {
       result.required = false;
     }
+    result.schema = {};
     result.schema.enabled = true;
     result.schema.type = this._computeModelType(def);
+    result.schema.isEnum = this._hasProperty(def, SHACL + '#in');
+    // Now check if there's cached model for this property
+    // So far now it took only required steps to compute cache key of the
+    // property.
+    const cachedModel = getGlobalValue(result);
+    if (cachedModel) {
+      // Safe to return it.
+      return cachedModel;
+    }
     result.schema.inputLabel = this._computeInputLabel(def, result.required, result.name);
     result.schema.pattern = this._computeShaclProperty(def, 'pattern');
     result.schema.minLength = this._computeShaclProperty(def, 'minLength');
@@ -344,6 +448,8 @@ class ApiViewModelTransformer extends ApiElements.AmfHelperMixin(ArcBehaviors.Ev
     result.schema.inputType = this._computeModelInputType(result.schema.type, result.schema.items);
     result.schema.pattern = this._computeModelPattern(result.schema.type, result.schema.pattern);
     result.hasExtendedDescs = this._computeHasExtendedDocumentation(result);
+    result.description = this._computeDescription(def);
+    result.hasDescription = !!result.description;
     if (result.hasDescription) {
       result.extendedDocs = this._computeExtendedDocumentation(result);
     }
@@ -362,6 +468,8 @@ class ApiViewModelTransformer extends ApiElements.AmfHelperMixin(ArcBehaviors.Ev
       result.properties = props;
     }
     this._processAfterItemCreated(result, {});
+    // Store cache
+    appendGlobalValue(result);
     return result;
   }
   /**
@@ -517,46 +625,47 @@ class ApiViewModelTransformer extends ApiElements.AmfHelperMixin(ArcBehaviors.Ev
     }
     return displayName;
   }
-  /**
-   * Computes schema property of the view model from AMF model.
-   *
-   * @param {Object} model AFM json/ld model.
-   * @param {Object} opts Options for model generation.
-   * - required {Boolean} true if item is required.
-   * - name {String} Property name
-   * - valueDelimite {String}
-   * - decodeValues {Boolean}
-   * @return {Object} Schema part of the view model
-   */
-  _computeParameterSchema(model, opts) {
-    opts = opts || {};
-    const result = {};
-    const key = RAML_V_HTTP + '#schema';
-    if (!model[key]) {
-      return;
-    }
-    const def = model[key][0];
-    result.enabled = true;
-    result.type = this._computeModelType(def);
-    result.inputLabel = this._computeInputLabel(def, opts.required, opts.name);
-    result.pattern = this._computeShaclProperty(def, 'pattern');
-    result.minLength = this._computeShaclProperty(def, 'minLength');
-    result.maxLength = this._computeShaclProperty(def, 'maxLength');
-    result.defaultValue = this._computeShaclProperty(def, 'defaultValue');
-    result.multipleOf = this._computeVocabularyShapeProperty(def, 'multipleOf');
-    result.minimum = this._computeShaclProperty(def, 'minInclusive');
-    result.maximum = this._computeShaclProperty(def, 'maxInclusive');
-    result.enum = this._computeModelEnum(def);
-    result.isEnum = !!result.enum;
-    result.isArray = result.type === 'array';
-    result.isBool = result.type === 'boolean';
-    result.isObject = result.type === 'object';
-    result.examples = this._computeModelExamples(def);
-    result.items = result.isArray ? this._computeModelItems(def) : undefined;
-    result.inputType = this._computeModelInputType(result.type, result.items);
-    result.pattern = this._computeModelPattern(result.type, result.pattern);
-    return result;
-  }
+  // /**
+  //  * Computes schema property of the view model from AMF model.
+  //  *
+  //  * @param {Object} model AFM json/ld model.
+  //  * @param {Object} opts Options for model generation.
+  //  * - required {Boolean} true if item is required.
+  //  * - name {String} Property name
+  //  * - valueDelimite {String}
+  //  * - decodeValues {Boolean}
+  //  * @return {Object} Schema part of the view model
+  //  */
+  // _computeParameterSchema(model, opts) {
+  //   opts = opts || {};
+  //   const result = {};
+  //   const key = RAML_V_HTTP + '#schema';
+  //   if (!model[key]) {
+  //     return;
+  //   }
+  //   const def = model[key][0];
+  //   result.type = this._computeModelType(def);
+  //
+  //   result.enabled = true;
+  //   result.inputLabel = this._computeInputLabel(def, opts.required, opts.name);
+  //   result.pattern = this._computeShaclProperty(def, 'pattern');
+  //   result.minLength = this._computeShaclProperty(def, 'minLength');
+  //   result.maxLength = this._computeShaclProperty(def, 'maxLength');
+  //   result.defaultValue = this._computeShaclProperty(def, 'defaultValue');
+  //   result.multipleOf = this._computeVocabularyShapeProperty(def, 'multipleOf');
+  //   result.minimum = this._computeShaclProperty(def, 'minInclusive');
+  //   result.maximum = this._computeShaclProperty(def, 'maxInclusive');
+  //   result.enum = this._computeModelEnum(def);
+  //   result.isEnum = !!result.enum;
+  //   result.isArray = result.type === 'array';
+  //   result.isBool = result.type === 'boolean';
+  //   result.isObject = result.type === 'object';
+  //   result.examples = this._computeModelExamples(def);
+  //   result.items = result.isArray ? this._computeModelItems(def) : undefined;
+  //   result.inputType = this._computeModelInputType(result.type, result.items);
+  //   result.pattern = this._computeModelPattern(result.type, result.pattern);
+  //   return result;
+  // }
   /**
    * Computes list of examples from the Raw data model.
    * @param {Object} model
