@@ -10,6 +10,7 @@
 
 /// <reference path="../polymer/types/polymer-element.d.ts" />
 /// <reference path="../events-target-behavior/events-target-behavior.d.ts" />
+/// <reference path="../amf-helper-mixin/amf-helper-mixin.d.ts" />
 
 declare namespace ApiElements {
 
@@ -96,7 +97,8 @@ declare namespace ApiElements {
    */
   class ApiViewModelTransformer extends
     ArcBehaviors.EventsTargetBehavior(
-    Polymer.Element) {
+    ApiElements.AmfHelperMixin(
+    Polymer.Element)) {
 
     /**
      * Generated AMF json/ld model form the API spec.
@@ -242,31 +244,9 @@ declare namespace ApiElements {
     _completeInputLabel(displayName: String|null, name: String|null, required: Boolean|null): String|null;
 
     /**
-     * Computes schema property of the view model from AMF model.
-     *
-     * @param model AFM json/ld model.
-     * @param opts Options for model generation.
-     * - required {Boolean} true if item is required.
-     * - name {String} Property name
-     * - valueDelimite {String}
-     * - decodeValues {Boolean}
-     * @returns Schema part of the view model
-     */
-    _computeParameterSchema(model: object|null, opts: object|null): object|null;
-
-    /**
      * Computes list of examples from the Raw data model.
      */
     _computeRawExamples(model: object|null): any[]|null|undefined;
-
-    /**
-     * Checks if a model has a type.
-     *
-     * @param model Model to test
-     * @param type Type name
-     * @returns True if model has a type.
-     */
-    _hasType(model: object|null, type: String|null): Boolean|null;
 
     /**
      * Computes value of the `binding` property of the UI model.
@@ -283,14 +263,6 @@ declare namespace ApiElements {
      * @returns Name property or undefined if not found.
      */
     _computeFormName(model: object|null): String|null|undefined;
-
-    /**
-     * Computes description from AMF model.
-     *
-     * @param model AMF item model
-     * @returns Description property or undefined if not found.
-     */
-    _computeDescription(model: object|null): String|null|undefined;
 
     /**
      * Computes rwquired property from AMF model.
@@ -315,7 +287,6 @@ declare namespace ApiElements {
      * @returns Type of the nproperty.
      */
     _computeRawModelValue(model: any[]|null): String|null|undefined;
-    _computeModelArrayValue(model: any): any;
 
     /**
      * Computes scalar value that has proper type.
@@ -356,37 +327,12 @@ declare namespace ApiElements {
     _computeVocabularyShapeProperty(shape: object|null, property: String|null): any|null|undefined;
 
     /**
-     * Computes value of model property.
-     *
-     * @param shape The model containing a value.
-     * @param key Full key to the object.
-     */
-    _computePropertyValue(shape: object|null, key: String|null): String|null|undefined;
-
-    /**
      * Computes enum values for the view model.
      *
      * @param def Model definition.
      * @returns List of values.
      */
     _computeModelEnum(def: object|null): any[]|null;
-
-    /**
-     * Computesa value for the `enum` property in the view model.
-     *
-     * @param model Current model item for `shacl#in` namespace
-     * @param result Collected values.
-     * @returns Final result.
-     */
-    _computeEnumIterator(model: any[]|null, result: any[]|null): any[]|null;
-
-    /**
-     * Gets a value (`@value`) for a property without exceptions.
-     *
-     * @param model Model for the value.
-     * @param key Model key holding the value
-     */
-    _getSchemaSafeValue(model: object|null, key: String|null): any|null|undefined;
 
     /**
      * Computes list of examples for the Property model.
@@ -411,13 +357,6 @@ declare namespace ApiElements {
      * @param model Current model object.
      */
     _isLink(model: object|null): any;
-
-    /**
-     * Comnputes list of references to be used to resolve links.
-     *
-     * @param record Change object for `amfModel`
-     */
-    _computeReferences(record: object|null): any[]|null|undefined;
 
     /**
      * Attempty to resolve declaration of a link.
@@ -524,6 +463,25 @@ declare namespace ApiElements {
      * @param item View model
      */
     _computeExtendedDocumentation(item: object|null): any;
+
+    /**
+     * Creates an example body from a body property of AMF.
+     * This object must be of a type of `http://raml.org/vocabularies/http#Payload`.
+     *
+     * @param body AMF body object
+     * @returns An example body value if possible to compute.
+     * It returns undefined if passed value if not a payload type. It may be empty
+     * string.
+     */
+    bodyToExample(body: object|null): String|null|undefined;
+
+    /**
+     * Computes an example JSON display value from AMF model
+     *
+     * @param properties List of AMF Prooperty models
+     * @returns Example
+     */
+    computeAmfDisplayJson(properties: any[]|null): String|null;
 
     /**
      * Computes a JSON object to display from view model propertiers
