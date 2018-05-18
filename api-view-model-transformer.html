@@ -375,13 +375,13 @@ class ApiViewModelTransformer extends ApiElements.AmfHelperMixin(ArcBehaviors.Ev
       result.schema.minimum = this._computeShaclProperty(def, 'minInclusive');
       result.schema.maximum = this._computeShaclProperty(def, 'maxInclusive');
       result.schema.enum = result.schema.isEnum ? this._computeModelEnum(def) : undefined;
-      result.schema.isArray = result.type === 'array';
-      result.schema.isBool = result.type === 'boolean';
-      result.schema.isObject = result.type === 'object';
+      result.schema.isArray = result.schema.type === 'array';
+      result.schema.isBool = result.schema.type === 'boolean';
+      result.schema.isObject = result.schema.type === 'object';
       result.schema.examples = this._computeModelExamples(def);
-      result.schema.items = result.isArray ? this._computeModelItems(def) : undefined;
-      result.schema.inputType = this._computeModelInputType(result.type, result.items);
-      result.schema.pattern = this._computeModelPattern(result.type, result.pattern);
+      result.schema.items = result.schema.isArray ? this._computeModelItems(def) : undefined;
+      result.schema.inputType = this._computeModelInputType(result.schema.type, result.schema.items);
+      result.schema.pattern = this._computeModelPattern(result.schema.type, result.schema.pattern);
     }
     result.description = this._computeDescription(amfItem);
     result.hasDescription = !!result.description;
@@ -574,7 +574,7 @@ class ApiViewModelTransformer extends ApiElements.AmfHelperMixin(ArcBehaviors.Ev
         this._exampleAsValue(item.schema.examples[0].value, processOptions);
     }
     if (!item.schema.inputPlaceholder) {
-      item.schema.inputPlaceholder = this._computeTypePlaceholder(item.type);
+      item.schema.inputPlaceholder = this._computeTypePlaceholder(item.schema.type);
     }
     if (item.schema.inputPlaceholder) {
       item.schema.inputFloatLabel = true;
@@ -625,47 +625,6 @@ class ApiViewModelTransformer extends ApiElements.AmfHelperMixin(ArcBehaviors.Ev
     }
     return displayName;
   }
-  // /**
-  //  * Computes schema property of the view model from AMF model.
-  //  *
-  //  * @param {Object} model AFM json/ld model.
-  //  * @param {Object} opts Options for model generation.
-  //  * - required {Boolean} true if item is required.
-  //  * - name {String} Property name
-  //  * - valueDelimite {String}
-  //  * - decodeValues {Boolean}
-  //  * @return {Object} Schema part of the view model
-  //  */
-  // _computeParameterSchema(model, opts) {
-  //   opts = opts || {};
-  //   const result = {};
-  //   const key = RAML_V_HTTP + '#schema';
-  //   if (!model[key]) {
-  //     return;
-  //   }
-  //   const def = model[key][0];
-  //   result.type = this._computeModelType(def);
-  //
-  //   result.enabled = true;
-  //   result.inputLabel = this._computeInputLabel(def, opts.required, opts.name);
-  //   result.pattern = this._computeShaclProperty(def, 'pattern');
-  //   result.minLength = this._computeShaclProperty(def, 'minLength');
-  //   result.maxLength = this._computeShaclProperty(def, 'maxLength');
-  //   result.defaultValue = this._computeShaclProperty(def, 'defaultValue');
-  //   result.multipleOf = this._computeVocabularyShapeProperty(def, 'multipleOf');
-  //   result.minimum = this._computeShaclProperty(def, 'minInclusive');
-  //   result.maximum = this._computeShaclProperty(def, 'maxInclusive');
-  //   result.enum = this._computeModelEnum(def);
-  //   result.isEnum = !!result.enum;
-  //   result.isArray = result.type === 'array';
-  //   result.isBool = result.type === 'boolean';
-  //   result.isObject = result.type === 'object';
-  //   result.examples = this._computeModelExamples(def);
-  //   result.items = result.isArray ? this._computeModelItems(def) : undefined;
-  //   result.inputType = this._computeModelInputType(result.type, result.items);
-  //   result.pattern = this._computeModelPattern(result.type, result.pattern);
-  //   return result;
-  // }
   /**
    * Computes list of examples from the Raw data model.
    * @param {Object} model
@@ -1086,9 +1045,9 @@ class ApiViewModelTransformer extends ApiElements.AmfHelperMixin(ArcBehaviors.Ev
         return this.__computeInputType(items);
       }
       if (!items) {
-        return 'string';
+        return 'text';
       }
-      return this.__computeInputType(items.type);
+      return this.__computeInputType(items.schema ? items.schema.type : items.type);
     }
     return this.__computeInputType(type);
   }
