@@ -5,6 +5,7 @@ amf.plugins.document.WebApi.register();
 amf.plugins.document.Vocabularies.register();
 amf.plugins.features.AMFValidation.register();
 
+
 const files = new Map();
 files.set('demo-api/demo-api.raml', 'RAML 1.0');
 /**
