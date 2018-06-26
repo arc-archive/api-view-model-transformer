@@ -33,10 +33,10 @@
         setup(() => {
           element = fixture('Basic');
           element.model = amf;
-          const endpoint = amf[0]['http://raml.org/vocabularies/document#encodes'][0]['http://raml.org/vocabularies/http#endpoint'][3];
+          const endpoint = amf[0]['http://a.ml/vocabularies/document#encodes'][0]['http://a.ml/vocabularies/http#endpoint'][3];
           const operation = endpoint['http://www.w3.org/ns/hydra/core#supportedOperation'][0];
           const expects = operation['http://www.w3.org/ns/hydra/core#expects'][0];
-          model = expects['http://raml.org/vocabularies/http#header'];
+          model = expects['http://a.ml/vocabularies/http#header'];
         });
 
         test('Returns a promise', () => {
@@ -193,10 +193,10 @@
         setup(() => {
           element = fixture('Basic');
           element.model = amf;
-          const endpoint = amf[0]['http://raml.org/vocabularies/document#encodes'][0]['http://raml.org/vocabularies/http#endpoint'][0];
+          const endpoint = amf[0]['http://a.ml/vocabularies/document#encodes'][0]['http://a.ml/vocabularies/http#endpoint'][0];
           const operation = endpoint['http://www.w3.org/ns/hydra/core#supportedOperation'][0];
           const expects = operation['http://www.w3.org/ns/hydra/core#expects'][0];
-          model = expects['http://raml.org/vocabularies/http#parameter'];
+          model = expects['http://a.ml/vocabularies/http#parameter'];
         });
 
         test('Resolves to an array', () => {
@@ -359,10 +359,10 @@
     //     setup(() => {
     //       element = fixture('Basic');
     //       element.model = amf;
-    //       const endpoint = amf[0]['http://raml.org/vocabularies/document#encodes'][0]['http://raml.org/vocabularies/http#endpoint'][0];
+    //       const endpoint = amf[0]['http://a.ml/vocabularies/document#encodes'][0]['http://a.ml/vocabularies/http#endpoint'][0];
     //       const operation = endpoint['http://www.w3.org/ns/hydra/core#supportedOperation'][0];
     //       const expects = operation['http://www.w3.org/ns/hydra/core#expects'][0];
-    //       model = expects['http://raml.org/vocabularies/http#parameter'];
+    //       model = expects['http://a.ml/vocabularies/http#parameter'];
     //     });
     //
     //     test('Has computed data', () => {
