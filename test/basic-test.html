@@ -48,7 +48,7 @@
       test('Computes _references', () => {
         element = fixture('basic');
         element.amfModel = [{
-          'http://raml.org/vocabularies/document#references': ['test']
+          'http://a.ml/vocabularies/document#references': ['test']
         }];
         assert.typeOf(element._references, 'array');
         assert.equal(element._references[0], 'test');
@@ -92,7 +92,7 @@
     suite('_computeBinding()', () => {
       let element;
       const model = {
-        'http://raml.org/vocabularies/http#binding': [{
+        'http://a.ml/vocabularies/http#binding': [{
           '@value': 'test-value'
         }]
       };
@@ -190,7 +190,7 @@
       });
 
       test('Computes UnionShape', () => {
-        const type = 'http://raml.org/vocabularies/shapes#UnionShape';
+        const type = 'http://a.ml/vocabularies/shapes#UnionShape';
         const result = element._computeModelType({
           '@type': [type]
         });
@@ -198,7 +198,7 @@
       });
 
       test('Computes ArrayShape', () => {
-        const type = 'http://raml.org/vocabularies/shapes#ArrayShape';
+        const type = 'http://a.ml/vocabularies/shapes#ArrayShape';
         const result = element._computeModelType({
           '@type': [type]
         });
@@ -214,7 +214,7 @@
       });
 
       test('Computes FileShape', () => {
-        const type = 'http://raml.org/vocabularies/shapes#FileShape';
+        const type = 'http://a.ml/vocabularies/shapes#FileShape';
         const result = element._computeModelType({
           '@type': [type]
         });
@@ -222,7 +222,7 @@
       });
 
       test('Computes NilShape', () => {
-        const type = 'http://raml.org/vocabularies/shapes#NilShape';
+        const type = 'http://a.ml/vocabularies/shapes#NilShape';
         const result = element._computeModelType({
           '@type': [type]
         });
@@ -230,7 +230,7 @@
       });
 
       test('Computes AnyShape', () => {
-        const type = 'http://raml.org/vocabularies/shapes#AnyShape';
+        const type = 'http://a.ml/vocabularies/shapes#AnyShape';
         const result = element._computeModelType({
           '@type': [type]
         });
@@ -238,7 +238,7 @@
       });
 
       test('Computes MatrixShape', () => {
-        const type = 'http://raml.org/vocabularies/shapes#MatrixShape';
+        const type = 'http://a.ml/vocabularies/shapes#MatrixShape';
         const result = element._computeModelType({
           '@type': [type]
         });
@@ -246,7 +246,7 @@
       });
 
       test('Computes TupleShape', () => {
-        const type = 'http://raml.org/vocabularies/shapes#TupleShape';
+        const type = 'http://a.ml/vocabularies/shapes#TupleShape';
         const result = element._computeModelType({
           '@type': [type]
         });
@@ -257,7 +257,7 @@
     suite('_computeModelType() - ScalarShape', () => {
       let element;
       let shape = {
-        '@type': ['http://raml.org/vocabularies/shapes#ScalarShape'],
+        '@type': ['http://a.ml/vocabularies/shapes#ScalarShape'],
         'http://www.w3.org/ns/shacl#datatype': [{
           '@id': ''
         }]
@@ -269,19 +269,19 @@
         shape['http://www.w3.org/ns/shacl#datatype'][0]['@id'] = type;
       }
       [
-        ['http://raml.org/vocabularies/shapes#number', 'number'],
+        ['http://a.ml/vocabularies/shapes#number', 'number'],
         ['http://www.w3.org/2001/XMLSchema#integer', 'integer'],
         ['http://www.w3.org/2001/XMLSchema#string', 'string'],
         ['http://www.w3.org/2001/XMLSchema#boolean', 'boolean'],
         ['http://www.w3.org/2001/XMLSchema#date', 'date'],
         ['http://www.w3.org/2001/XMLSchema#time', 'time'],
         ['http://www.w3.org/2001/XMLSchema#dateTime', 'dateTime'],
-        ['http://raml.org/vocabularies/shapes#dateTimeOnly', 'time'],
+        ['http://a.ml/vocabularies/shapes#dateTimeOnly', 'time'],
         ['http://www.w3.org/2001/XMLSchema#float', 'float'],
         ['http://www.w3.org/2001/XMLSchema#long', 'long'],
         ['http://www.w3.org/2001/XMLSchema#double', 'double'],
         ['http://www.w3.org/2001/XMLSchema#base64Binary', 'string'],
-        ['http://raml.org/vocabularies/shapes#password', 'password'],
+        ['http://a.ml/vocabularies/shapes#password', 'password'],
         ['UNKNOWN', 'string']
       ].forEach((item) => {
         test('Computes ' + item[0], () => {
@@ -357,7 +357,7 @@
     });
 
     suite('_computeVocabularyShapeProperty()', () => {
-      const key = 'http://raml.org/vocabularies/shapes#';
+      const key = 'http://a.ml/vocabularies/shapes#';
 
       let element;
       suiteSetup(() => {

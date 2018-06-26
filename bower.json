@@ -10,7 +10,7 @@
   "dependencies": {
     "polymer": "Polymer/polymer#^2.0.0",
     "events-target-behavior": "advanced-rest-client/events-target-behavior#^2.0.0",
-    "amf-helper-mixin": "advanced-rest-client/amf-helper-mixin#^2.0.0"
+    "amf-helper-mixin": "advanced-rest-client/amf-helper-mixin#^2.0.1"
   },
   "devDependencies": {
     "iron-component-page": "PolymerElements/iron-component-page#^3.0.1",

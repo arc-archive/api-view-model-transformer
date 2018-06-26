@@ -82,16 +82,7 @@ function appendGlobalValue(data) {
  * the License.
  */
 const NUMBER_INPUT_TYPES = ['number', 'integer', 'float'];
-const RAML_V_HTTP = 'http://raml.org/vocabularies/http';
-const RAML_V_SHAPES = 'http://raml.org/vocabularies/shapes';
-const RAML_V_DOC = 'http://raml.org/vocabularies/document';
-const HYDRA_CORE = 'http://www.w3.org/ns/hydra/core';
-const SCHEMA = 'http://schema.org/';
-const SHACL = 'http://www.w3.org/ns/shacl';
 const RDF = 'http://www.w3.org/1999/02/22-rdf-syntax-ns';
-const ARRAY_SHAPE = RAML_V_SHAPES + '#ArrayShape';
-const XML_SCHEMA = 'http://www.w3.org/2001/XMLSchema';
-const DATA_VOC = 'http://raml.org/vocabularies/data';
 /**
  * An element to transform AMF LD model into a form view model.
  *
@@ -320,7 +311,7 @@ class ApiViewModelTransformer extends ApiElements.AmfHelperMixin(ArcBehaviors.Ev
       return Promise.resolve()
       .then(() => this._computeViewModelRecursive(items, result));
     }
-    if (this._hasType(items, DATA_VOC + '#Object')) {
+    if (this._hasType(items, this.ns.raml.vocabularies.data + 'Object')) {
       return this.modelForRawObject(items);
     } else {
       return Promise.resolve(result);
@@ -333,10 +324,10 @@ class ApiViewModelTransformer extends ApiElements.AmfHelperMixin(ArcBehaviors.Ev
    * @return {Object} UI data model.
    */
   uiModelForAmfItem(amfItem) {
-    if (this._hasType(amfItem, RAML_V_HTTP + '#Parameter')) {
+    if (this._hasType(amfItem, this.ns.raml.vocabularies.http + 'Parameter')) {
       return this._uiModelForParameter(amfItem);
     }
-    if (this._hasType(amfItem, SHACL + '#PropertyShape')) {
+    if (this._hasType(amfItem, this.ns.w3.shacl.name + 'PropertyShape')) {
       return this._uiModelForPropertyShape(amfItem);
     }
   }
@@ -352,11 +343,11 @@ class ApiViewModelTransformer extends ApiElements.AmfHelperMixin(ArcBehaviors.Ev
     result.name = this._computeFormName(amfItem);
     result.required = this._computeRequired(amfItem);
     result.schema = {};
-    const key = RAML_V_HTTP + '#schema';
+    const key = this.ns.raml.vocabularies.http + 'schema';
     if (amfItem[key]) {
       const def = amfItem[key][0];
       result.schema.type = this._computeModelType(def);
-      result.schema.isEnum = this._hasProperty(def, SHACL + '#in');
+      result.schema.isEnum = this._hasProperty(def, this.ns.w3.shacl.in);
       // Now check if there's cached model for this property
       // So far now it took only required steps to compute cache key of the
       // property.
@@ -409,7 +400,7 @@ class ApiViewModelTransformer extends ApiElements.AmfHelperMixin(ArcBehaviors.Ev
     const result = {};
     result.binding = 'type';
     result.name = this._computeShaclProperty(amfItem, 'name');
-    let def = amfItem[RAML_V_SHAPES + '#range'];
+    let def = amfItem[this.ns.raml.vocabularies.shapes + 'range'];
     if (!def) {
       return result;
     }
@@ -421,7 +412,7 @@ class ApiViewModelTransformer extends ApiElements.AmfHelperMixin(ArcBehaviors.Ev
     result.schema = {};
     result.schema.enabled = true;
     result.schema.type = this._computeModelType(def);
-    result.schema.isEnum = this._hasProperty(def, SHACL + '#in');
+    result.schema.isEnum = this._hasProperty(def, this.this.ns.w3.shacl.in);
     // Now check if there's cached model for this property
     // So far now it took only required steps to compute cache key of the
     // property.
@@ -455,13 +446,13 @@ class ApiViewModelTransformer extends ApiElements.AmfHelperMixin(ArcBehaviors.Ev
     }
     if (result.schema.type === 'file') {
       result.schema.isFile = true;
-      result.schema.fileTypes = this._getValueArray(def, RAML_V_SHAPES + '#fileType');
+      result.schema.fileTypes = this._getValueArray(def, this.ns.raml.vocabularies.shapes + 'fileType');
     } else {
       result.schema.isFile = false;
     }
     if (result.schema.isObject) {
       const props = [];
-      const items = def[SHACL + '#property'];
+      const items = def[ns.w3.shacl.name + 'property'];
       if (items) {
         items.forEach((item) => props.push(this.uiModelForAmfItem(item)));
       }
@@ -487,7 +478,7 @@ class ApiViewModelTransformer extends ApiElements.AmfHelperMixin(ArcBehaviors.Ev
     const result = [];
     const keys = Object.keys(model);
     keys.forEach((key) => {
-      if (key.indexOf(DATA_VOC) === -1) {
+      if (key.indexOf(this.ns.raml.vocabularies.data) === -1) {
         return;
       }
       let item = this._uiModelForRawObject(key, model[key][0]);
@@ -510,7 +501,7 @@ class ApiViewModelTransformer extends ApiElements.AmfHelperMixin(ArcBehaviors.Ev
     const result = {};
     result.binding = 'type';
     result.name = name;
-    let type = this._computeRawModelValue(model[DATA_VOC + '#type']);
+    let type = this._computeRawModelValue(model[this.ns.raml.vocabularies.data + 'type']);
     if (!type) {
       type = 'string';
     }
@@ -520,22 +511,22 @@ class ApiViewModelTransformer extends ApiElements.AmfHelperMixin(ArcBehaviors.Ev
       items = type.substr(0, bracetIndex);
       type = 'array';
     }
-    result.description = this._computeRawModelValue(model[DATA_VOC + '#description']);
+    result.description = this._computeRawModelValue(model[this.ns.raml.vocabularies.data + 'description']);
     result.hasDescription = !!result.description;
-    result.required = this._computeRawModelValue(model[DATA_VOC + '#required']);
+    result.required = this._computeRawModelValue(model[this.ns.raml.vocabularies.data + 'required']);
     result.schema = {};
     result.schema.enabled = true;
     result.schema.type = type || 'string';
-    const displayName = this._computeRawModelValue(model[DATA_VOC + '#displayName']);
+    const displayName = this._computeRawModelValue(model[this.ns.raml.vocabularies.data + 'displayName']);
     result.schema.inputLabel = this._completeInputLabel(displayName, name, result.required);
-    result.schema.minLength = this._computeRawModelValue(model[DATA_VOC + 'minLength']);
-    result.schema.maxLength = this._computeRawModelValue(model[DATA_VOC + 'maxLength']);
-    result.schema.defaultValue = this._computeRawModelValue(model[DATA_VOC + 'default']);
-    result.schema.multipleOf = this._computeRawModelValue(model[DATA_VOC + 'multipleOf']);
-    result.schema.minimum = this._computeRawModelValue(model[DATA_VOC + 'minimum']);
-    result.schema.maximum = this._computeRawModelValue(model[DATA_VOC + 'maximum']);
-    result.schema.enum = this._computeRawModelValue(model[DATA_VOC + 'enum']);
-    let pattern = this._computeRawModelValue(model[DATA_VOC + '#pattern']);
+    result.schema.minLength = this._computeRawModelValue(model[this.ns.raml.vocabularies.data + 'minLength']);
+    result.schema.maxLength = this._computeRawModelValue(model[this.ns.raml.vocabularies.data + 'maxLength']);
+    result.schema.defaultValue = this._computeRawModelValue(model[this.ns.raml.vocabularies.data + 'default']);
+    result.schema.multipleOf = this._computeRawModelValue(model[this.ns.raml.vocabularies.data + 'multipleOf']);
+    result.schema.minimum = this._computeRawModelValue(model[this.ns.raml.vocabularies.data + 'minimum']);
+    result.schema.maximum = this._computeRawModelValue(model[this.ns.raml.vocabularies.data + 'maximum']);
+    result.schema.enum = this._computeRawModelValue(model[this.ns.raml.vocabularies.data + 'enum']);
+    let pattern = this._computeRawModelValue(model[this.ns.raml.vocabularies.data + 'pattern']);
     if (pattern instanceof Array) {
       pattern = '[' + pattern[0] + ']';
     }
@@ -545,15 +536,15 @@ class ApiViewModelTransformer extends ApiElements.AmfHelperMixin(ArcBehaviors.Ev
     result.schema.isBool = result.schema.type === 'boolean';
     // result.schema.examples = this._computeModelExamples(def);
     if (result.schema.isArray) {
-      result.schema.items = items ? items : this._computeRawModelValue(model[DATA_VOC + '#items']);
+      result.schema.items = items ? items : this._computeRawModelValue(model[this.ns.raml.vocabularies.data + 'items']);
     }
     result.schema.inputType = this._computeModelInputType(result.schema.type, result.schema.items);
     result.schema.pattern = this._computeModelPattern(result.schema.type, result.schema.pattern);
-    const example = this._computeRawModelValue(model[DATA_VOC + '#example']);
+    const example = this._computeRawModelValue(model[this.ns.raml.vocabularies.data + 'example']);
     if (example) {
       result.schema.examples = [example];
     }
-    const examples = this._computeRawExamples(model[DATA_VOC + '#examples']);
+    const examples = this._computeRawExamples(model[this.ns.raml.vocabularies.data + 'examples']);
     if (examples) {
       const existing = result.schema.examples || [];
       result.schema.examples = existing.concat(examples);
@@ -638,7 +629,7 @@ class ApiViewModelTransformer extends ApiElements.AmfHelperMixin(ArcBehaviors.Ev
     model = model[0];
     const keys = Object.keys(model);
     keys.forEach((key) => {
-      if (key.indexOf(DATA_VOC) === -1) {
+      if (key.indexOf(this.ns.raml.vocabularies.data) === -1) {
         return;
       }
       const name = key.split('#')[1];
@@ -659,7 +650,7 @@ class ApiViewModelTransformer extends ApiElements.AmfHelperMixin(ArcBehaviors.Ev
    * @return {String|undefined} Binding property or undefined if not found.
    */
   _computeBinding(model) {
-    const key = RAML_V_HTTP + '#binding';
+    const key = this.ns.raml.vocabularies.http + 'binding';
     return this._getValue(model, key);
   }
   /**
@@ -668,7 +659,7 @@ class ApiViewModelTransformer extends ApiElements.AmfHelperMixin(ArcBehaviors.Ev
    * @return {String|undefined} Name property or undefined if not found.
    */
   _computeFormName(model) {
-    const key = SCHEMA + 'name';
+    const key = this.ns.schema.schemaName;
     return this._getValue(model, key);
   }
   /**
@@ -677,7 +668,7 @@ class ApiViewModelTransformer extends ApiElements.AmfHelperMixin(ArcBehaviors.Ev
    * @return {Boolean} True if the property is required.
    */
   _computeRequired(model) {
-    const key = HYDRA_CORE + '#required';
+    const key = this.ns.w3.hydra.core + 'required';
     return this._getValue(model, key);
   }
   /**
@@ -689,48 +680,52 @@ class ApiViewModelTransformer extends ApiElements.AmfHelperMixin(ArcBehaviors.Ev
     if (!shape) {
       return;
     }
-    if (this._hasType(shape, RAML_V_SHAPES + '#UnionShape')) {
+    const sh = this.ns.raml.vocabularies.shapes;
+    const sa = this.ns.w3.shacl.name;
+    if (this._hasType(shape, sh + 'UnionShape')) {
       return 'union';
     }
-    if (this._hasType(shape, RAML_V_SHAPES + '#ArrayShape')) {
+    if (this._hasType(shape, sh + 'ArrayShape')) {
       return 'array';
     }
-    if (this._hasType(shape, 'http://www.w3.org/ns/shacl#NodeShape')) {
+    if (this._hasType(shape, sa + 'NodeShape')) {
       return 'object';
     }
-    if (this._hasType(shape, SHACL + '#PropertyShape')) {
+    if (this._hasType(shape, sa + 'PropertyShape')) {
       return 'object';
     }
-    if (this._hasType(shape, RAML_V_SHAPES + '#FileShape')) {
+    if (this._hasType(shape, sh + 'FileShape')) {
       return 'file';
     }
-    if (this._hasType(shape, RAML_V_SHAPES + '#NilShape')) {
+    if (this._hasType(shape, sh + 'NilShape')) {
       return 'null';
     }
-    if (this._hasType(shape, RAML_V_SHAPES + '#AnyShape')) {
+    if (this._hasType(shape, sh + 'AnyShape')) {
       return 'string';
     }
-    if (this._hasType(shape, RAML_V_SHAPES + '#MatrixShape')) {
+    if (this._hasType(shape, sh + 'MatrixShape')) {
       return 'array';
     }
-    if (this._hasType(shape, RAML_V_SHAPES+ '#TupleShape')) {
+    if (this._hasType(shape, sh + 'TupleShape')) {
       return 'object';
     }
-    if (this._hasType(shape, RAML_V_SHAPES + '#ScalarShape')) {
-      switch (shape[SHACL + '#datatype'][0]['@id']) {
-        case XML_SCHEMA + '#string': return 'string';
-        case XML_SCHEMA + '#integer': return 'integer';
-        case XML_SCHEMA + '#long': return 'long';
-        case XML_SCHEMA + '#float': return 'float';
-        case XML_SCHEMA + '#double': return 'double';
-        case RAML_V_SHAPES + '#number': return 'number';
-        case XML_SCHEMA + '#boolean': return 'boolean';
-        case XML_SCHEMA + '#dateTime': return 'dateTime';
-        case RAML_V_SHAPES + '#dateTimeOnly': return 'time';
-        case XML_SCHEMA + '#time': return 'time';
-        case XML_SCHEMA + '#date': return 'date';
-        case XML_SCHEMA + '#base64Binary': return 'string';
-        case RAML_V_SHAPES + '#password': return 'password';
+    if (this._hasType(shape, sh + 'ScalarShape')) {
+      const sh = this.ns.w3.xmlSchema;
+      const vs = this.ns.raml.vocabularies.shapes;
+      switch (shape[sa + 'datatype'][0]['@id']) {
+        case sh + 'string': return 'string';
+        case sh + 'integer': return 'integer';
+        case sh + 'long': return 'long';
+        case sh + 'float': return 'float';
+        case sh + 'double': return 'double';
+        case vs + 'number': return 'number';
+        case sh + 'boolean': return 'boolean';
+        case sh + 'dateTime': return 'dateTime';
+        case vs + 'dateTimeOnly': return 'time';
+        case sh + 'time': return 'time';
+        case sh + 'date': return 'date';
+        case sh + 'base64Binary': return 'string';
+        case vs + 'password': return 'password';
       }
     }
     return 'string';
@@ -748,12 +743,12 @@ class ApiViewModelTransformer extends ApiElements.AmfHelperMixin(ArcBehaviors.Ev
     const item = model[0];
     const dataType = item['@type'][0];
     switch (dataType) {
-      case DATA_VOC + '#Scalar':
+      case this.ns.raml.vocabularies.data + 'Scalar':
         return this._computeRawScalarValue(item);
-      case DATA_VOC + '#Array':
+      case this.ns.raml.vocabularies.data + 'Array':
         return this._computeRawArrayValue(item);
-      case RAML_V_SHAPES + '#FileShape':
-        return this._getValueArray(item, RAML_V_SHAPES + '#fileType');
+      case this.ns.raml.vocabularies.shapes + 'FileShape':
+        return this._getValueArray(item, this.ns.raml.vocabularies.shapes + 'fileType');
     }
   }
   /**
@@ -762,22 +757,22 @@ class ApiViewModelTransformer extends ApiElements.AmfHelperMixin(ArcBehaviors.Ev
    * @return {String|Number|Boolean}
    */
   _computeRawScalarValue(item) {
-    // http://raml.org/vocabularies/data#Scalar
-    let value = item[DATA_VOC + '#value'];
+    let value = item[this.ns.raml.vocabularies.data + 'value'];
     if (!value) {
       return;
     }
     value = value[0];
     const type = value['@type'];
     value = value['@value'];
+    const s = this.ns.w3.xmlSchema;
     switch (type) {
-      case XML_SCHEMA + '#number':
-      case XML_SCHEMA + '#long':
-      case XML_SCHEMA + '#integer':
-      case XML_SCHEMA + '#float':
-      case XML_SCHEMA + '#double':
+      case s + 'number':
+      case s + 'long':
+      case s + 'integer':
+      case s + 'float':
+      case s + 'double':
         return Number(value);
-      case XML_SCHEMA + '#boolean':
+      case s + 'boolean':
         return value === 'false' ? false : true;
       default:
         return value;
@@ -807,7 +802,7 @@ class ApiViewModelTransformer extends ApiElements.AmfHelperMixin(ArcBehaviors.Ev
    * @return {String} Input display name.
    */
   _computeInputLabel(def, required, name) {
-    let result = this._getValue(def, SCHEMA + 'name');
+    let result = this._getValue(def, this.ns.schema.schemaName);
     return this._completeInputLabel(result, name, required);
   }
   /**
@@ -819,7 +814,7 @@ class ApiViewModelTransformer extends ApiElements.AmfHelperMixin(ArcBehaviors.Ev
    * @return {any|undefined} Value of the property or undefined if not set.
    */
   _computeShaclProperty(shape, property) {
-    const key = SHACL + '#' + String(property);
+    const key = this.ns.w3.shacl.name + String(property);
     return this._getValue(shape, key);
   }
   /**
@@ -831,7 +826,7 @@ class ApiViewModelTransformer extends ApiElements.AmfHelperMixin(ArcBehaviors.Ev
    * @return {any|undefined} Value of the property or undefined if not set.
    */
   _computeVocabularyShapeProperty(shape, property) {
-    const key = RAML_V_SHAPES + '#' + String(property);
+    const key = this.ns.raml.vocabularies.shapes  + String(property);
     return this._getValue(shape, key);
   }
   /**
@@ -840,7 +835,7 @@ class ApiViewModelTransformer extends ApiElements.AmfHelperMixin(ArcBehaviors.Ev
    * @return {Array} List of values.
    */
   _computeModelEnum(def) {
-    const key = SHACL + '#in';
+    const key = this.ns.w3.shacl.in;
     let model = def[key];
     if (!model) {
       return;
@@ -866,7 +861,7 @@ class ApiViewModelTransformer extends ApiElements.AmfHelperMixin(ArcBehaviors.Ev
    * defined.
    */
   _computeModelExamples(model) {
-    const key = RAML_V_DOC + '#examples';
+    const key = this.ns.raml.vocabularies.document + 'examples';
     const def = model[key];
     if (!def) {
       return;
@@ -874,7 +869,7 @@ class ApiViewModelTransformer extends ApiElements.AmfHelperMixin(ArcBehaviors.Ev
     const result = [];
     for (let i = 0, len = def.length; i < len; i++) {
       const item = def[i];
-      const name = this._getValue(item, SCHEMA + 'name');
+      const name = this._getValue(item, this.ns.schema.schemaName);
       const value = this._getExampleValue(item);
       if (!name && !value) {
         continue;
@@ -894,10 +889,10 @@ class ApiViewModelTransformer extends ApiElements.AmfHelperMixin(ArcBehaviors.Ev
    * @return {Object} Array definition model
    */
   _computeModelItems(model) {
-    if (!this._hasType(model, ARRAY_SHAPE)) {
+    if (!this._hasType(model, this.ns.raml.vocabularies.shapes + 'ArrayShape')) {
       return;
     }
-    const items = model[RAML_V_SHAPES + '#items'];
+    const items = model[this.ns.raml.vocabularies.shapes + 'items'];
     if (!items) {
       console.warn('Expected #items declaration');
       return;
@@ -916,7 +911,7 @@ class ApiViewModelTransformer extends ApiElements.AmfHelperMixin(ArcBehaviors.Ev
    * @param {Object} model Current model object.
    */
   _isLink(model) {
-    const key = RAML_V_DOC + '#link-target';
+    const key = this.ns.raml.vocabularies.document + 'link-target';
     return key in model;
   }
   /**
@@ -929,7 +924,7 @@ class ApiViewModelTransformer extends ApiElements.AmfHelperMixin(ArcBehaviors.Ev
    * @return {Object|undefined} Resolved declaration or undefined.
    */
   _importLink(model) {
-    const key = RAML_V_DOC + '#link-target';
+    const key = this.ns.raml.vocabularies.document + 'link-target';
     const def = model[key][0]['@id'];
     if (this._references) {
       return this._searchDeclaration(def);
@@ -1220,11 +1215,11 @@ class ApiViewModelTransformer extends ApiElements.AmfHelperMixin(ArcBehaviors.Ev
    * string.
    */
   bodyToExample(body) {
-    if (!this._hasType(body, 'http://raml.org/vocabularies/http#Payload')) {
+    if (!this._hasType(body, this.ns.raml.vocabularies.http + '#Payload')) {
       return;
     }
     // First lets stry an example
-    const schema = body[RAML_V_HTTP + '#schema'];
+    const schema = body[this.ns.raml.vocabularies.http + 'schema'];
     if (!schema) {
       // there's nothing we can compute here
       return '';
@@ -1233,12 +1228,12 @@ class ApiViewModelTransformer extends ApiElements.AmfHelperMixin(ArcBehaviors.Ev
     if (examples && examples.length) {
       return examples[0].value;
     }
-    const ct = this._getValue(body, 'http://raml.org/vocabularies/http#mediaType');
+    const ct = this._getValue(body, this.ns.raml.vocabularies.http + 'mediaType');
     switch (ct) {
       case 'application/json':
-        return this.computeAmfDisplayJson(schema[0]['http://www.w3.org/ns/shacl#property']);
+        return this.computeAmfDisplayJson(schema[0][ns.w3.shacl.name + 'property']);
       case 'application/xml':
-        return this._getValue(schema[0]['http://www.w3.org/ns/shacl#raw']) || '';
+        return this._getValue(schema[0][ns.w3.shacl.name + 'raw']) || '';
       default:
         return '';
     }
