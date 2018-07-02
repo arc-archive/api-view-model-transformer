@@ -243,6 +243,19 @@ class ApiViewModelTransformer extends ApiElements.AmfHelperMixin(ArcBehaviors.Ev
     node.removeEventListener('api-property-model-build', this._buildPropertyHandler);
   }
   /**
+   * Clears cache for computed models.
+   * All computed models are kept in in-memory cache to another call for computation
+   * of the same model will result with reference to already computed value.
+   * This function clears all cached objects.
+   *
+   * Note, the memory won't be freed for objects that are in use.
+   */
+  clearCache() {
+    GLOBAL_PATH_PARAMS.splice(0, GLOBAL_PATH_PARAMS.length);
+    GLOBAL_QUERY_PARAMS.splice(0, GLOBAL_QUERY_PARAMS.length);
+    GLOBAL_OTHER_PARAMS.splice(0, GLOBAL_OTHER_PARAMS.length);
+  }
+  /**
    * Called when either `shape` or `manualModel` propeties changed.
    * If `manualModel` is falsy then it calls `computeViewModel()` function.
    *

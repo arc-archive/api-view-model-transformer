@@ -149,6 +149,16 @@ declare namespace ApiElements {
     _detachListeners(node: any): void;
 
     /**
+     * Clears cache for computed models.
+     * All computed models are kept in in-memory cache to another call for computation
+     * of the same model will result with reference to already computed value.
+     * This function clears all cached objects.
+     *
+     * Note, the memory won't be freed for objects that are in use.
+     */
+    clearCache(): void;
+
+    /**
      * Called when either `shape` or `manualModel` propeties changed.
      * If `manualModel` is falsy then it calls `computeViewModel()` function.
      *
