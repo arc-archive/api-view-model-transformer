@@ -221,7 +221,12 @@ class ApiViewModelTransformer extends ApiElements.AmfHelperMixin(ArcBehaviors.Ev
       _references: {
         type: Array,
         computed: '_computeReferences(amfModel)'
-      }
+      },
+      /**
+       * Makes the model to always have `hasDescription` to false and
+       * clears and documentation from ther model.
+       */
+      noDocs: Boolean
     };
   }
 
@@ -374,8 +379,12 @@ class ApiViewModelTransformer extends ApiElements.AmfHelperMixin(ArcBehaviors.Ev
       result.schema.inputType = this._computeModelInputType(result.schema.type, result.schema.items);
       result.schema.pattern = this._computeModelPattern(result.schema.type, result.schema.pattern);
     }
-    result.description = this._computeDescription(amfItem);
-    result.hasDescription = !!result.description;
+    if (this.noDocs) {
+      result.hasDescription = false;
+    } else {
+      result.description = this._computeDescription(amfItem);
+      result.hasDescription = !!result.description;
+    }
 
     const valueDelimiter = this._computeValueDelimiter(result.binding);
     const decodeValues = this._computeDecodeValues(result.binding);
@@ -439,8 +448,13 @@ class ApiViewModelTransformer extends ApiElements.AmfHelperMixin(ArcBehaviors.Ev
     result.schema.inputType = this._computeModelInputType(result.schema.type, result.schema.items);
     result.schema.pattern = this._computeModelPattern(result.schema.type, result.schema.pattern);
     result.hasExtendedDescs = this._computeHasExtendedDocumentation(result);
-    result.description = this._computeDescription(def);
-    result.hasDescription = !!result.description;
+
+    if (this.noDocs) {
+      result.hasDescription = false;
+    } else {
+      result.description = this._computeDescription(def);
+      result.hasDescription = !!result.description;
+    }
     if (result.hasDescription) {
       result.extendedDocs = this._computeExtendedDocumentation(result);
     }
@@ -511,8 +525,14 @@ class ApiViewModelTransformer extends ApiElements.AmfHelperMixin(ArcBehaviors.Ev
       items = type.substr(0, bracetIndex);
       type = 'array';
     }
-    result.description = this._computeRawModelValue(model[this.ns.raml.vocabularies.data + 'description']);
-    result.hasDescription = !!result.description;
+
+    if (this.noDocs) {
+      result.hasDescription = false;
+    } else {
+      result.description = this._computeRawModelValue(model[this.ns.raml.vocabularies.data + 'description']);
+      result.hasDescription = !!result.description;
+    }
+
     result.required = this._computeRawModelValue(model[this.ns.raml.vocabularies.data + 'required']);
     result.schema = {};
     result.schema.enabled = true;

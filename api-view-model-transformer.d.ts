@@ -139,6 +139,12 @@ declare namespace ApiElements {
      * custom event.
      */
     readonly _references: any[]|null|undefined;
+
+    /**
+     * Makes the model to always have `hasDescription` to false and
+     * clears and documentation from ther model.
+     */
+    noDocs: boolean|null|undefined;
     _attachListeners(node: any): void;
     _detachListeners(node: any): void;
 
