@@ -139,8 +139,24 @@ declare namespace ApiElements {
      * custom event.
      */
     readonly _references: any[]|null|undefined;
+
+    /**
+     * Makes the model to always have `hasDescription` to false and
+     * clears and documentation from ther model.
+     */
+    noDocs: boolean|null|undefined;
     _attachListeners(node: any): void;
     _detachListeners(node: any): void;
+
+    /**
+     * Clears cache for computed models.
+     * All computed models are kept in in-memory cache to another call for computation
+     * of the same model will result with reference to already computed value.
+     * This function clears all cached objects.
+     *
+     * Note, the memory won't be freed for objects that are in use.
+     */
+    clearCache(): void;
 
     /**
      * Called when either `shape` or `manualModel` propeties changed.

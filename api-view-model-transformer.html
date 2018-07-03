@@ -221,7 +221,12 @@ class ApiViewModelTransformer extends ApiElements.AmfHelperMixin(ArcBehaviors.Ev
       _references: {
         type: Array,
         computed: '_computeReferences(amfModel)'
-      }
+      },
+      /**
+       * Makes the model to always have `hasDescription` to false and
+       * clears and documentation from ther model.
+       */
+      noDocs: Boolean
     };
   }
 
@@ -236,6 +241,19 @@ class ApiViewModelTransformer extends ApiElements.AmfHelperMixin(ArcBehaviors.Ev
 
   _detachListeners(node) {
     node.removeEventListener('api-property-model-build', this._buildPropertyHandler);
+  }
+  /**
+   * Clears cache for computed models.
+   * All computed models are kept in in-memory cache to another call for computation
+   * of the same model will result with reference to already computed value.
+   * This function clears all cached objects.
+   *
+   * Note, the memory won't be freed for objects that are in use.
+   */
+  clearCache() {
+    GLOBAL_PATH_PARAMS.splice(0, GLOBAL_PATH_PARAMS.length);
+    GLOBAL_QUERY_PARAMS.splice(0, GLOBAL_QUERY_PARAMS.length);
+    GLOBAL_OTHER_PARAMS.splice(0, GLOBAL_OTHER_PARAMS.length);
   }
   /**
    * Called when either `shape` or `manualModel` propeties changed.
@@ -374,8 +392,12 @@ class ApiViewModelTransformer extends ApiElements.AmfHelperMixin(ArcBehaviors.Ev
       result.schema.inputType = this._computeModelInputType(result.schema.type, result.schema.items);
       result.schema.pattern = this._computeModelPattern(result.schema.type, result.schema.pattern);
     }
-    result.description = this._computeDescription(amfItem);
-    result.hasDescription = !!result.description;
+    if (this.noDocs) {
+      result.hasDescription = false;
+    } else {
+      result.description = this._computeDescription(amfItem);
+      result.hasDescription = !!result.description;
+    }
 
     const valueDelimiter = this._computeValueDelimiter(result.binding);
     const decodeValues = this._computeDecodeValues(result.binding);
@@ -439,8 +461,13 @@ class ApiViewModelTransformer extends ApiElements.AmfHelperMixin(ArcBehaviors.Ev
     result.schema.inputType = this._computeModelInputType(result.schema.type, result.schema.items);
     result.schema.pattern = this._computeModelPattern(result.schema.type, result.schema.pattern);
     result.hasExtendedDescs = this._computeHasExtendedDocumentation(result);
-    result.description = this._computeDescription(def);
-    result.hasDescription = !!result.description;
+
+    if (this.noDocs) {
+      result.hasDescription = false;
+    } else {
+      result.description = this._computeDescription(def);
+      result.hasDescription = !!result.description;
+    }
     if (result.hasDescription) {
       result.extendedDocs = this._computeExtendedDocumentation(result);
     }
@@ -511,8 +538,14 @@ class ApiViewModelTransformer extends ApiElements.AmfHelperMixin(ArcBehaviors.Ev
       items = type.substr(0, bracetIndex);
       type = 'array';
     }
-    result.description = this._computeRawModelValue(model[this.ns.raml.vocabularies.data + 'description']);
-    result.hasDescription = !!result.description;
+
+    if (this.noDocs) {
+      result.hasDescription = false;
+    } else {
+      result.description = this._computeRawModelValue(model[this.ns.raml.vocabularies.data + 'description']);
+      result.hasDescription = !!result.description;
+    }
+
     result.required = this._computeRawModelValue(model[this.ns.raml.vocabularies.data + 'required']);
     result.schema = {};
     result.schema.enabled = true;

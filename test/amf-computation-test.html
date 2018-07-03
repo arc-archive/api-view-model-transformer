@@ -16,6 +16,12 @@
         <api-view-model-transformer></api-view-model-transformer>
       </template>
     </test-fixture>
+
+    <test-fixture id="NoDocs">
+      <template>
+        <api-view-model-transformer no-docs></api-view-model-transformer>
+      </template>
+    </test-fixture>
     <script>
     /* global AmfLoader */
     suite('Model for headers', () => {
@@ -33,10 +39,11 @@
         setup(() => {
           element = fixture('Basic');
           element.model = amf;
-          const endpoint = amf[0]['http://a.ml/vocabularies/document#encodes'][0]['http://a.ml/vocabularies/http#endpoint'][3];
-          const operation = endpoint['http://www.w3.org/ns/hydra/core#supportedOperation'][0];
-          const expects = operation['http://www.w3.org/ns/hydra/core#expects'][0];
-          model = expects['http://a.ml/vocabularies/http#header'];
+          const ns = ApiElements.Amf.ns;
+          const endpoint = amf[0][ns.raml.vocabularies.document + 'encodes'][0][ns.raml.vocabularies.http + 'endpoint'][3];
+          const operation = endpoint[ns.w3.hydra.core + 'supportedOperation'][0];
+          const expects = operation[ns.w3.hydra.core + 'expects'][0];
+          model = expects[ns.raml.vocabularies.http + 'header'];
         });
 
         test('Returns a promise', () => {
@@ -193,10 +200,11 @@
         setup(() => {
           element = fixture('Basic');
           element.model = amf;
-          const endpoint = amf[0]['http://a.ml/vocabularies/document#encodes'][0]['http://a.ml/vocabularies/http#endpoint'][0];
-          const operation = endpoint['http://www.w3.org/ns/hydra/core#supportedOperation'][0];
-          const expects = operation['http://www.w3.org/ns/hydra/core#expects'][0];
-          model = expects['http://a.ml/vocabularies/http#parameter'];
+          const ns = ApiElements.Amf.ns;
+          const endpoint = amf[0][ns.raml.vocabularies.document + 'encodes'][0][ns.raml.vocabularies.http + 'endpoint'][0];
+          const operation = endpoint[ns.w3.hydra.core + 'supportedOperation'][0];
+          const expects = operation[ns.w3.hydra.core + 'expects'][0];
+          model = expects[ns.raml.vocabularies.http + 'parameter'];
         });
 
         test('Resolves to an array', () => {
@@ -340,7 +348,48 @@
             assert.equal(schema.type, 'array', 'type is set');
           });
         });
+      });
+    });
 
+    suite('No documentation model', () => {
+      let amf;
+      suiteSetup(() => {
+        return AmfLoader.load()
+        .then((data) => {
+          amf = data;
+        });
+      });
+
+      suite('computeViewModel()', () => {
+        let model;
+        let element;
+        setup(() => {
+          element = fixture('NoDocs');
+          element.model = amf;
+          const ns = ApiElements.Amf.ns;
+          const endpoint = amf[0][ns.raml.vocabularies.document + 'encodes'][0][ns.raml.vocabularies.http + 'endpoint'][0];
+          const operation = endpoint[ns.w3.hydra.core + 'supportedOperation'][0];
+          const expects = operation[ns.w3.hydra.core + 'expects'][0];
+          model = expects[ns.raml.vocabularies.http + 'parameter'];
+        });
+
+        test('hasDescription is always false', () => {
+          return element.computeViewModel(model)
+          .then((result) => {
+            assert.isFalse(result[0].hasDescription);
+            assert.isFalse(result[1].hasDescription);
+            assert.isFalse(result[2].hasDescription);
+          });
+        });
+
+        test('description is always underfined', () => {
+          return element.computeViewModel(model)
+          .then((result) => {
+            assert.isUndefined(result[0].description);
+            assert.isUndefined(result[1].description);
+            assert.isUndefined(result[2].description);
+          });
+        });
       });
     });
 
@@ -359,10 +408,10 @@
     //     setup(() => {
     //       element = fixture('Basic');
     //       element.model = amf;
-    //       const endpoint = amf[0]['http://a.ml/vocabularies/document#encodes'][0]['http://a.ml/vocabularies/http#endpoint'][0];
-    //       const operation = endpoint['http://www.w3.org/ns/hydra/core#supportedOperation'][0];
-    //       const expects = operation['http://www.w3.org/ns/hydra/core#expects'][0];
-    //       model = expects['http://a.ml/vocabularies/http#parameter'];
+    //       const endpoint = amf[0][ns.raml.vocabularies.document + 'encodes'][0][ns.raml.vocabularies.http + 'endpoint'][0];
+    //       const operation = endpoint[ns.w3.hydra.core + 'supportedOperation'][0];
+    //       const expects = operation[ns.w3.hydra.core + 'expects'][0];
+    //       model = expects[ns.raml.vocabularies.http + 'parameter'];
     //     });
     //
     //     test('Has computed data', () => {
