@@ -356,6 +356,7 @@ class ApiViewModelTransformer extends ApiElements.AmfHelperMixin(ArcBehaviors.Ev
    * @return {Object} UI data model.
    */
   _uiModelForParameter(amfItem) {
+    amfItem = this._resolve(amfItem);
     const result = {};
     result.binding = this._computeBinding(amfItem);
     result.name = this._computeFormName(amfItem);
@@ -363,7 +364,7 @@ class ApiViewModelTransformer extends ApiElements.AmfHelperMixin(ArcBehaviors.Ev
     result.schema = {};
     const key = this.ns.raml.vocabularies.http + 'schema';
     if (amfItem[key]) {
-      const def = amfItem[key][0];
+      const def = this._resolve(amfItem[key][0]);
       result.schema.type = this._computeModelType(def);
       result.schema.isEnum = this._hasProperty(def, this.ns.w3.shacl.in);
       // Now check if there's cached model for this property
@@ -419,6 +420,7 @@ class ApiViewModelTransformer extends ApiElements.AmfHelperMixin(ArcBehaviors.Ev
    * @return {Object} UI data model.
    */
   _uiModelForPropertyShape(amfItem) {
+    amfItem = this._resolve(amfItem);
     const result = {};
     result.binding = 'type';
     result.name = this._computeShaclProperty(amfItem, 'name');
@@ -426,7 +428,7 @@ class ApiViewModelTransformer extends ApiElements.AmfHelperMixin(ArcBehaviors.Ev
     if (!def) {
       return result;
     }
-    def = def[0];
+    def = this._resolve(def[0]);
     result.required = this._computeRequired(def);
     if (result.required === undefined) {
       result.required = false;

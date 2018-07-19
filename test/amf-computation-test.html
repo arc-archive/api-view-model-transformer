@@ -38,7 +38,7 @@
         let element;
         setup(() => {
           element = fixture('Basic');
-          element.model = amf;
+          element.amfModel = amf;
           const ns = ApiElements.Amf.ns;
           const endpoint = amf[0][ns.raml.vocabularies.document + 'encodes'][0][ns.raml.vocabularies.http + 'endpoint'][3];
           const operation = endpoint[ns.w3.hydra.core + 'supportedOperation'][0];
@@ -199,7 +199,7 @@
         let element;
         setup(() => {
           element = fixture('Basic');
-          element.model = amf;
+          element.amfModel = amf;
           const ns = ApiElements.Amf.ns;
           const endpoint = amf[0][ns.raml.vocabularies.document + 'encodes'][0][ns.raml.vocabularies.http + 'endpoint'][0];
           const operation = endpoint[ns.w3.hydra.core + 'supportedOperation'][0];
@@ -365,7 +365,7 @@
         let element;
         setup(() => {
           element = fixture('NoDocs');
-          element.model = amf;
+          element.amfModel = amf;
           const ns = ApiElements.Amf.ns;
           const endpoint = amf[0][ns.raml.vocabularies.document + 'encodes'][0][ns.raml.vocabularies.http + 'endpoint'][0];
           const operation = endpoint[ns.w3.hydra.core + 'supportedOperation'][0];
@@ -407,7 +407,7 @@
     //     let element;
     //     setup(() => {
     //       element = fixture('Basic');
-    //       element.model = amf;
+    //       element.amfModel = amf;
     //       const endpoint = amf[0][ns.raml.vocabularies.document + 'encodes'][0][ns.raml.vocabularies.http + 'endpoint'][0];
     //       const operation = endpoint[ns.w3.hydra.core + 'supportedOperation'][0];
     //       const expects = operation[ns.w3.hydra.core + 'expects'][0];
