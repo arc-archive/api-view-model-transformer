@@ -169,8 +169,9 @@ const RDF = 'http://www.w3.org/1999/02/22-rdf-syntax-ns';
  * @appliesMixin ArcBehaviors.EventsTargetBehavior
  * @appliesMixin ApiElements.AmfHelperMixin
  */
-class ApiViewModelTransformer extends ApiElements.AmfHelperMixin(ArcBehaviors.EventsTargetBehavior(Polymer.Element)) {
-  static get is() { return 'api-view-model-transformer'; }
+class ApiViewModelTransformer extends ApiElements.AmfHelperMixin(
+  ArcBehaviors.EventsTargetBehavior(Polymer.Element)) {
+  static get is() {return 'api-view-model-transformer';}
   static get properties() {
     return {
       /**
@@ -390,7 +391,8 @@ class ApiViewModelTransformer extends ApiElements.AmfHelperMixin(ArcBehaviors.Ev
       result.schema.isObject = result.schema.type === 'object';
       result.schema.examples = this._computeModelExamples(def);
       result.schema.items = result.schema.isArray ? this._computeModelItems(def) : undefined;
-      result.schema.inputType = this._computeModelInputType(result.schema.type, result.schema.items);
+      result.schema.inputType =
+        this._computeModelInputType(result.schema.type, result.schema.items);
       result.schema.pattern = this._computeModelPattern(result.schema.type, result.schema.pattern);
     }
     if (this.noDocs) {
@@ -475,7 +477,8 @@ class ApiViewModelTransformer extends ApiElements.AmfHelperMixin(ArcBehaviors.Ev
     }
     if (result.schema.type === 'file') {
       result.schema.isFile = true;
-      result.schema.fileTypes = this._getValueArray(def, this.ns.raml.vocabularies.shapes + 'fileType');
+      result.schema.fileTypes = this._getValueArray(def,
+        this.ns.raml.vocabularies.shapes + 'fileType');
     } else {
       result.schema.isFile = false;
     }
@@ -544,22 +547,31 @@ class ApiViewModelTransformer extends ApiElements.AmfHelperMixin(ArcBehaviors.Ev
     if (this.noDocs) {
       result.hasDescription = false;
     } else {
-      result.description = this._computeRawModelValue(model[this.ns.raml.vocabularies.data + 'description']);
+      result.description = this._computeRawModelValue(
+        model[this.ns.raml.vocabularies.data + 'description']);
       result.hasDescription = !!result.description;
     }
 
-    result.required = this._computeRawModelValue(model[this.ns.raml.vocabularies.data + 'required']);
+    result.required = this._computeRawModelValue(
+      model[this.ns.raml.vocabularies.data + 'required']);
     result.schema = {};
     result.schema.enabled = true;
     result.schema.type = type || 'string';
-    const displayName = this._computeRawModelValue(model[this.ns.raml.vocabularies.data + 'displayName']);
+    const displayName = this._computeRawModelValue(
+      model[this.ns.raml.vocabularies.data + 'displayName']);
     result.schema.inputLabel = this._completeInputLabel(displayName, name, result.required);
-    result.schema.minLength = this._computeRawModelValue(model[this.ns.raml.vocabularies.data + 'minLength']);
-    result.schema.maxLength = this._computeRawModelValue(model[this.ns.raml.vocabularies.data + 'maxLength']);
-    result.schema.defaultValue = this._computeRawModelValue(model[this.ns.raml.vocabularies.data + 'default']);
-    result.schema.multipleOf = this._computeRawModelValue(model[this.ns.raml.vocabularies.data + 'multipleOf']);
-    result.schema.minimum = this._computeRawModelValue(model[this.ns.raml.vocabularies.data + 'minimum']);
-    result.schema.maximum = this._computeRawModelValue(model[this.ns.raml.vocabularies.data + 'maximum']);
+    result.schema.minLength = this._computeRawModelValue(
+      model[this.ns.raml.vocabularies.data + 'minLength']);
+    result.schema.maxLength = this._computeRawModelValue(
+      model[this.ns.raml.vocabularies.data + 'maxLength']);
+    result.schema.defaultValue = this._computeRawModelValue(
+      model[this.ns.raml.vocabularies.data + 'default']);
+    result.schema.multipleOf = this._computeRawModelValue(
+      model[this.ns.raml.vocabularies.data + 'multipleOf']);
+    result.schema.minimum = this._computeRawModelValue(
+      model[this.ns.raml.vocabularies.data + 'minimum']);
+    result.schema.maximum = this._computeRawModelValue(
+      model[this.ns.raml.vocabularies.data + 'maximum']);
     result.schema.enum = this._computeRawModelValue(model[this.ns.raml.vocabularies.data + 'enum']);
     let pattern = this._computeRawModelValue(model[this.ns.raml.vocabularies.data + 'pattern']);
     if (pattern instanceof Array) {
@@ -571,7 +583,8 @@ class ApiViewModelTransformer extends ApiElements.AmfHelperMixin(ArcBehaviors.Ev
     result.schema.isBool = result.schema.type === 'boolean';
     // result.schema.examples = this._computeModelExamples(def);
     if (result.schema.isArray) {
-      result.schema.items = items ? items : this._computeRawModelValue(model[this.ns.raml.vocabularies.data + 'items']);
+      result.schema.items = items ? items : this._computeRawModelValue(
+        model[this.ns.raml.vocabularies.data + 'items']);
     }
     result.schema.inputType = this._computeModelInputType(result.schema.type, result.schema.items);
     result.schema.pattern = this._computeModelPattern(result.schema.type, result.schema.pattern);
@@ -947,6 +960,7 @@ class ApiViewModelTransformer extends ApiElements.AmfHelperMixin(ArcBehaviors.Ev
    * Tests if current model part is actually a link to definition
    *
    * @param {Object} model Current model object.
+   * @return {Boolean}
    */
   _isLink(model) {
     const key = this.ns.raml.vocabularies.document + 'link-target';
@@ -1043,7 +1057,7 @@ class ApiViewModelTransformer extends ApiElements.AmfHelperMixin(ArcBehaviors.Ev
    * Parses example in an array type.
    *
    * @param {String} example An array example
-   * @param {Object} opts Options:
+   * @param {Object} processOptions Options:
    * - name {String} Processed property name
    * - valueDelimiter {?String} either `:` for headers or `=` for query params
    * - decodeValues {Boolean} True to url decode value.
@@ -1092,9 +1106,9 @@ class ApiViewModelTransformer extends ApiElements.AmfHelperMixin(ArcBehaviors.Ev
       return 'boolean';
     } else if (type === 'date-only' || type === 'date') {
       return 'date';
-    } /*else if (type === 'time-only' || type === 'time') {
+    } /* else if (type === 'time-only' || type === 'time') {
       return 'time';
-    }*/
+    } */
     return 'text';
   }
   /**
@@ -1218,6 +1232,7 @@ class ApiViewModelTransformer extends ApiElements.AmfHelperMixin(ArcBehaviors.Ev
   /**
    * Computes documentation as a markdown to be placed in the `marked-element`
    * @param {Object} item View model
+   * @return {String} Generated documentation
    */
   _computeExtendedDocumentation(item) {
     let docs = '';
