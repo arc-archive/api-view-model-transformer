@@ -956,64 +956,6 @@ class ApiViewModelTransformer extends ApiElements.AmfHelperMixin(
     // TODO: add support for objects and unions.
     return type;
   }
-  /**
-   * Tests if current model part is actually a link to definition
-   *
-   * @param {Object} model Current model object.
-   * @return {Boolean}
-   */
-  _isLink(model) {
-    const key = this.ns.raml.vocabularies.document + 'link-target';
-    return key in model;
-  }
-  /**
-   * Attempty to resolve declaration of a link.
-   * It tries tor use `_references` property if it's set. Otherwise
-   * it sends `amf-resolve-link` custom event to ask hosting application
-   * for the data.
-   *
-   * @param {Object} model Model with `#link-target` property
-   * @return {Object|undefined} Resolved declaration or undefined.
-   */
-  _importLink(model) {
-    const key = this.ns.raml.vocabularies.document + 'link-target';
-    const def = model[key][0]['@id'];
-    if (this._references) {
-      return this._searchDeclaration(def);
-    }
-    return this._requestDeclaration(def);
-  }
-  /**
-   * Searches `_references` property for an id.
-   *
-   * @param {String} id Declaration ID
-   * @return {Object|undefined} Model declaration or undefined if not found.
-   */
-  _searchDeclaration(id) {
-    if (!this._references) {
-      return;
-    }
-    return this._references.find((i) => i['@id'] === id);
-  }
-  /**
-   * Dispatches `amf-resolve-link` custom event to ask hosting application
-   * to resolve AMF model link.
-   *
-   * @param {String} id Declaration ID
-   * @return {Object|undefined} Model declaration or undefined if not found.
-   */
-  _requestDeclaration(id) {
-    const ev = new CustomEvent('amf-resolve-link', {
-      detail: {
-        id: id
-      },
-      cancelable: true,
-      bubbles: true,
-      composed: true
-    });
-    this.dispatchEvent(ev);
-    return ev.detail.result;
-  }
 
   _computeValueDelimiter(binding) {
     switch (binding) {
@@ -1401,18 +1343,6 @@ class ApiViewModelTransformer extends ApiElements.AmfHelperMixin(
     });
     return result;
   }
-  /**
-   * Dispatched when the element is trying to resolve declaration link but
-   * `_references` is not set. It asks hosting application for the data for
-   * the id.
-   *
-   * Handlers should cancel the event and set `result`property on event's
-   * `detail` object with the declaration.
-   *
-   * @event amf-resolve-link
-   * @param {String} id Declaration ID
-   * @param {Object} result A placeholder for comupation result
-   */
 }
 window.customElements.define(ApiViewModelTransformer.is, ApiViewModelTransformer);
 })();
