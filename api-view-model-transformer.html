@@ -861,7 +861,7 @@ class ApiViewModelTransformer extends ApiElements.AmfHelperMixin(ArcBehaviors.Ev
    * @return {any|undefined} Value of the property or undefined if not set.
    */
   _computeVocabularyShapeProperty(shape, property) {
-    const key = this.ns.raml.vocabularies.shapes  + String(property);
+    const key = this.ns.raml.vocabularies.shapes + String(property);
     return this._getValue(shape, key);
   }
   /**
@@ -870,6 +870,7 @@ class ApiViewModelTransformer extends ApiElements.AmfHelperMixin(ArcBehaviors.Ev
    * @return {Array} List of values.
    */
   _computeModelEnum(def) {
+    def = this._resolve(def);
     const key = this.ns.w3.shacl.in;
     let model = def[key];
     if (!model) {
@@ -896,6 +897,7 @@ class ApiViewModelTransformer extends ApiElements.AmfHelperMixin(ArcBehaviors.Ev
    * defined.
    */
   _computeModelExamples(model) {
+    model = this._resolve(model);
     const key = this.ns.raml.vocabularies.document + 'examples';
     const def = model[key];
     if (!def) {
@@ -927,6 +929,7 @@ class ApiViewModelTransformer extends ApiElements.AmfHelperMixin(ArcBehaviors.Ev
     if (!this._hasType(model, this.ns.raml.vocabularies.shapes + 'ArrayShape')) {
       return;
     }
+    model = this._resolve(model);
     const items = model[this.ns.raml.vocabularies.shapes + 'items'];
     if (!items) {
       console.warn('Expected #items declaration');
