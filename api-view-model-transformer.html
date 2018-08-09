@@ -169,8 +169,9 @@ const RDF = 'http://www.w3.org/1999/02/22-rdf-syntax-ns';
  * @appliesMixin ArcBehaviors.EventsTargetBehavior
  * @appliesMixin ApiElements.AmfHelperMixin
  */
-class ApiViewModelTransformer extends ApiElements.AmfHelperMixin(ArcBehaviors.EventsTargetBehavior(Polymer.Element)) {
-  static get is() { return 'api-view-model-transformer'; }
+class ApiViewModelTransformer extends ApiElements.AmfHelperMixin(
+  ArcBehaviors.EventsTargetBehavior(Polymer.Element)) {
+  static get is() {return 'api-view-model-transformer';}
   static get properties() {
     return {
       /**
@@ -356,6 +357,7 @@ class ApiViewModelTransformer extends ApiElements.AmfHelperMixin(ArcBehaviors.Ev
    * @return {Object} UI data model.
    */
   _uiModelForParameter(amfItem) {
+    amfItem = this._resolve(amfItem);
     const result = {};
     result.binding = this._computeBinding(amfItem);
     result.name = this._computeFormName(amfItem);
@@ -363,7 +365,7 @@ class ApiViewModelTransformer extends ApiElements.AmfHelperMixin(ArcBehaviors.Ev
     result.schema = {};
     const key = this.ns.raml.vocabularies.http + 'schema';
     if (amfItem[key]) {
-      const def = amfItem[key][0];
+      const def = this._resolve(amfItem[key][0]);
       result.schema.type = this._computeModelType(def);
       result.schema.isEnum = this._hasProperty(def, this.ns.w3.shacl.in);
       // Now check if there's cached model for this property
@@ -389,7 +391,8 @@ class ApiViewModelTransformer extends ApiElements.AmfHelperMixin(ArcBehaviors.Ev
       result.schema.isObject = result.schema.type === 'object';
       result.schema.examples = this._computeModelExamples(def);
       result.schema.items = result.schema.isArray ? this._computeModelItems(def) : undefined;
-      result.schema.inputType = this._computeModelInputType(result.schema.type, result.schema.items);
+      result.schema.inputType =
+        this._computeModelInputType(result.schema.type, result.schema.items);
       result.schema.pattern = this._computeModelPattern(result.schema.type, result.schema.pattern);
     }
     if (this.noDocs) {
@@ -419,6 +422,7 @@ class ApiViewModelTransformer extends ApiElements.AmfHelperMixin(ArcBehaviors.Ev
    * @return {Object} UI data model.
    */
   _uiModelForPropertyShape(amfItem) {
+    amfItem = this._resolve(amfItem);
     const result = {};
     result.binding = 'type';
     result.name = this._computeShaclProperty(amfItem, 'name');
@@ -426,7 +430,7 @@ class ApiViewModelTransformer extends ApiElements.AmfHelperMixin(ArcBehaviors.Ev
     if (!def) {
       return result;
     }
-    def = def[0];
+    def = this._resolve(def[0]);
     result.required = this._computeRequired(def);
     if (result.required === undefined) {
       result.required = false;
@@ -473,7 +477,8 @@ class ApiViewModelTransformer extends ApiElements.AmfHelperMixin(ArcBehaviors.Ev
     }
     if (result.schema.type === 'file') {
       result.schema.isFile = true;
-      result.schema.fileTypes = this._getValueArray(def, this.ns.raml.vocabularies.shapes + 'fileType');
+      result.schema.fileTypes = this._getValueArray(def,
+        this.ns.raml.vocabularies.shapes + 'fileType');
     } else {
       result.schema.isFile = false;
     }
@@ -542,22 +547,31 @@ class ApiViewModelTransformer extends ApiElements.AmfHelperMixin(ArcBehaviors.Ev
     if (this.noDocs) {
       result.hasDescription = false;
     } else {
-      result.description = this._computeRawModelValue(model[this.ns.raml.vocabularies.data + 'description']);
+      result.description = this._computeRawModelValue(
+        model[this.ns.raml.vocabularies.data + 'description']);
       result.hasDescription = !!result.description;
     }
 
-    result.required = this._computeRawModelValue(model[this.ns.raml.vocabularies.data + 'required']);
+    result.required = this._computeRawModelValue(
+      model[this.ns.raml.vocabularies.data + 'required']);
     result.schema = {};
     result.schema.enabled = true;
     result.schema.type = type || 'string';
-    const displayName = this._computeRawModelValue(model[this.ns.raml.vocabularies.data + 'displayName']);
+    const displayName = this._computeRawModelValue(
+      model[this.ns.raml.vocabularies.data + 'displayName']);
     result.schema.inputLabel = this._completeInputLabel(displayName, name, result.required);
-    result.schema.minLength = this._computeRawModelValue(model[this.ns.raml.vocabularies.data + 'minLength']);
-    result.schema.maxLength = this._computeRawModelValue(model[this.ns.raml.vocabularies.data + 'maxLength']);
-    result.schema.defaultValue = this._computeRawModelValue(model[this.ns.raml.vocabularies.data + 'default']);
-    result.schema.multipleOf = this._computeRawModelValue(model[this.ns.raml.vocabularies.data + 'multipleOf']);
-    result.schema.minimum = this._computeRawModelValue(model[this.ns.raml.vocabularies.data + 'minimum']);
-    result.schema.maximum = this._computeRawModelValue(model[this.ns.raml.vocabularies.data + 'maximum']);
+    result.schema.minLength = this._computeRawModelValue(
+      model[this.ns.raml.vocabularies.data + 'minLength']);
+    result.schema.maxLength = this._computeRawModelValue(
+      model[this.ns.raml.vocabularies.data + 'maxLength']);
+    result.schema.defaultValue = this._computeRawModelValue(
+      model[this.ns.raml.vocabularies.data + 'default']);
+    result.schema.multipleOf = this._computeRawModelValue(
+      model[this.ns.raml.vocabularies.data + 'multipleOf']);
+    result.schema.minimum = this._computeRawModelValue(
+      model[this.ns.raml.vocabularies.data + 'minimum']);
+    result.schema.maximum = this._computeRawModelValue(
+      model[this.ns.raml.vocabularies.data + 'maximum']);
     result.schema.enum = this._computeRawModelValue(model[this.ns.raml.vocabularies.data + 'enum']);
     let pattern = this._computeRawModelValue(model[this.ns.raml.vocabularies.data + 'pattern']);
     if (pattern instanceof Array) {
@@ -569,7 +583,8 @@ class ApiViewModelTransformer extends ApiElements.AmfHelperMixin(ArcBehaviors.Ev
     result.schema.isBool = result.schema.type === 'boolean';
     // result.schema.examples = this._computeModelExamples(def);
     if (result.schema.isArray) {
-      result.schema.items = items ? items : this._computeRawModelValue(model[this.ns.raml.vocabularies.data + 'items']);
+      result.schema.items = items ? items : this._computeRawModelValue(
+        model[this.ns.raml.vocabularies.data + 'items']);
     }
     result.schema.inputType = this._computeModelInputType(result.schema.type, result.schema.items);
     result.schema.pattern = this._computeModelPattern(result.schema.type, result.schema.pattern);
@@ -859,7 +874,7 @@ class ApiViewModelTransformer extends ApiElements.AmfHelperMixin(ArcBehaviors.Ev
    * @return {any|undefined} Value of the property or undefined if not set.
    */
   _computeVocabularyShapeProperty(shape, property) {
-    const key = this.ns.raml.vocabularies.shapes  + String(property);
+    const key = this.ns.raml.vocabularies.shapes + String(property);
     return this._getValue(shape, key);
   }
   /**
@@ -868,6 +883,7 @@ class ApiViewModelTransformer extends ApiElements.AmfHelperMixin(ArcBehaviors.Ev
    * @return {Array} List of values.
    */
   _computeModelEnum(def) {
+    def = this._resolve(def);
     const key = this.ns.w3.shacl.in;
     let model = def[key];
     if (!model) {
@@ -894,6 +910,7 @@ class ApiViewModelTransformer extends ApiElements.AmfHelperMixin(ArcBehaviors.Ev
    * defined.
    */
   _computeModelExamples(model) {
+    model = this._resolve(model);
     const key = this.ns.raml.vocabularies.document + 'examples';
     const def = model[key];
     if (!def) {
@@ -925,6 +942,7 @@ class ApiViewModelTransformer extends ApiElements.AmfHelperMixin(ArcBehaviors.Ev
     if (!this._hasType(model, this.ns.raml.vocabularies.shapes + 'ArrayShape')) {
       return;
     }
+    model = this._resolve(model);
     const items = model[this.ns.raml.vocabularies.shapes + 'items'];
     if (!items) {
       console.warn('Expected #items declaration');
@@ -937,63 +955,6 @@ class ApiViewModelTransformer extends ApiElements.AmfHelperMixin(ArcBehaviors.Ev
     }
     // TODO: add support for objects and unions.
     return type;
-  }
-  /**
-   * Tests if current model part is actually a link to definition
-   *
-   * @param {Object} model Current model object.
-   */
-  _isLink(model) {
-    const key = this.ns.raml.vocabularies.document + 'link-target';
-    return key in model;
-  }
-  /**
-   * Attempty to resolve declaration of a link.
-   * It tries tor use `_references` property if it's set. Otherwise
-   * it sends `amf-resolve-link` custom event to ask hosting application
-   * for the data.
-   *
-   * @param {Object} model Model with `#link-target` property
-   * @return {Object|undefined} Resolved declaration or undefined.
-   */
-  _importLink(model) {
-    const key = this.ns.raml.vocabularies.document + 'link-target';
-    const def = model[key][0]['@id'];
-    if (this._references) {
-      return this._searchDeclaration(def);
-    }
-    return this._requestDeclaration(def);
-  }
-  /**
-   * Searches `_references` property for an id.
-   *
-   * @param {String} id Declaration ID
-   * @return {Object|undefined} Model declaration or undefined if not found.
-   */
-  _searchDeclaration(id) {
-    if (!this._references) {
-      return;
-    }
-    return this._references.find((i) => i['@id'] === id);
-  }
-  /**
-   * Dispatches `amf-resolve-link` custom event to ask hosting application
-   * to resolve AMF model link.
-   *
-   * @param {String} id Declaration ID
-   * @return {Object|undefined} Model declaration or undefined if not found.
-   */
-  _requestDeclaration(id) {
-    const ev = new CustomEvent('amf-resolve-link', {
-      detail: {
-        id: id
-      },
-      cancelable: true,
-      bubbles: true,
-      composed: true
-    });
-    this.dispatchEvent(ev);
-    return ev.detail.result;
   }
 
   _computeValueDelimiter(binding) {
@@ -1038,7 +999,7 @@ class ApiViewModelTransformer extends ApiElements.AmfHelperMixin(ArcBehaviors.Ev
    * Parses example in an array type.
    *
    * @param {String} example An array example
-   * @param {Object} opts Options:
+   * @param {Object} processOptions Options:
    * - name {String} Processed property name
    * - valueDelimiter {?String} either `:` for headers or `=` for query params
    * - decodeValues {Boolean} True to url decode value.
@@ -1087,9 +1048,9 @@ class ApiViewModelTransformer extends ApiElements.AmfHelperMixin(ArcBehaviors.Ev
       return 'boolean';
     } else if (type === 'date-only' || type === 'date') {
       return 'date';
-    } /*else if (type === 'time-only' || type === 'time') {
+    } /* else if (type === 'time-only' || type === 'time') {
       return 'time';
-    }*/
+    } */
     return 'text';
   }
   /**
@@ -1213,6 +1174,7 @@ class ApiViewModelTransformer extends ApiElements.AmfHelperMixin(ArcBehaviors.Ev
   /**
    * Computes documentation as a markdown to be placed in the `marked-element`
    * @param {Object} item View model
+   * @return {String} Generated documentation
    */
   _computeExtendedDocumentation(item) {
     let docs = '';
@@ -1381,18 +1343,6 @@ class ApiViewModelTransformer extends ApiElements.AmfHelperMixin(ArcBehaviors.Ev
     });
     return result;
   }
-  /**
-   * Dispatched when the element is trying to resolve declaration link but
-   * `_references` is not set. It asks hosting application for the data for
-   * the id.
-   *
-   * Handlers should cancel the event and set `result`property on event's
-   * `detail` object with the declaration.
-   *
-   * @event amf-resolve-link
-   * @param {String} id Declaration ID
-   * @param {Object} result A placeholder for comupation result
-   */
 }
 window.customElements.define(ApiViewModelTransformer.is, ApiViewModelTransformer);
 })();
