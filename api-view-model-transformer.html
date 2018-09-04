@@ -286,7 +286,7 @@ class ApiViewModelTransformer extends ApiElements.AmfHelperMixin(
       shape = this.shape;
     }
     if (!shape) {
-      return Promise.resolve();
+      return;
     }
     if (shape instanceof Array) {
       shape = Array.from(shape);
@@ -737,8 +737,8 @@ class ApiViewModelTransformer extends ApiElements.AmfHelperMixin(
     if (!shape) {
       return;
     }
-    const vsh = this._getAmfKey(this.ns.raml.vocabularies.shapes);
-    const sa = this._getAmfKey(this.ns.w3.shacl.name);
+    const vsh = this.ns.raml.vocabularies.shapes;
+    const sa = this.ns.w3.shacl.name;
     if (this._hasType(shape, vsh + 'UnionShape')) {
       return 'union';
     }
@@ -767,29 +767,28 @@ class ApiViewModelTransformer extends ApiElements.AmfHelperMixin(
       return 'object';
     }
     if (this._hasType(shape, vsh + 'ScalarShape')) {
-      const sh = this._getAmfKey(this.ns.w3.xmlSchema);
-      let dt = shape[sa + 'datatype'];
+      let dt = shape[this._getAmfKey(sa + 'datatype')];
       if (dt instanceof Array) {
         dt = dt[0];
       }
       let id = dt;
-      if (typeof dt !== 'string') {
-        dt = dt['@id'];
+      if (typeof id !== 'string') {
+        id = id['@id'];
       }
       switch (id) {
-        case sh + 'string': return 'string';
-        case sh + 'integer': return 'integer';
-        case sh + 'long': return 'long';
-        case sh + 'float': return 'float';
-        case sh + 'double': return 'double';
-        case vsh + 'number': return 'number';
-        case sh + 'boolean': return 'boolean';
-        case sh + 'dateTime': return 'dateTime';
-        case vsh + 'dateTimeOnly': return 'time';
-        case sh + 'time': return 'time';
-        case sh + 'date': return 'date';
-        case sh + 'base64Binary': return 'string';
-        case vsh + 'password': return 'password';
+        case this._getAmfKey(this.ns.w3.xmlSchema + 'string'): return 'string';
+        case this._getAmfKey(this.ns.w3.xmlSchema + 'integer'): return 'integer';
+        case this._getAmfKey(this.ns.w3.xmlSchema + 'long'): return 'long';
+        case this._getAmfKey(this.ns.w3.xmlSchema + 'float'): return 'float';
+        case this._getAmfKey(this.ns.w3.xmlSchema + 'double'): return 'double';
+        case this._getAmfKey(vsh + 'number'): return 'number';
+        case this._getAmfKey(this.ns.w3.xmlSchema + 'boolean'): return 'boolean';
+        case this._getAmfKey(this.ns.w3.xmlSchema + 'dateTime'): return 'dateTime';
+        case this._getAmfKey(vsh + 'dateTimeOnly'): return 'time';
+        case this._getAmfKey(this.ns.w3.xmlSchema + 'time'): return 'time';
+        case this._getAmfKey(this.ns.w3.xmlSchema + 'date'): return 'date';
+        case this._getAmfKey(this.ns.w3.xmlSchema + 'base64Binary'): return 'string';
+        case this._getAmfKey(vsh + 'password'): return 'password';
       }
     }
     return 'string';
@@ -926,7 +925,12 @@ class ApiViewModelTransformer extends ApiElements.AmfHelperMixin(
       if (key.indexOf(rdfKey) === -1) {
         return;
       }
-      const value = this._getValue(model, key);
+      let shape = model[key];
+      if (shape instanceof Array) {
+        shape = shape[0];
+      }
+      const vKey = this._getAmfKey(this.ns.raml.vocabularies.data + 'value');
+      const value = this._getValue(shape, vKey);
       if (value) {
         result.push(value);
       }
@@ -974,7 +978,7 @@ class ApiViewModelTransformer extends ApiElements.AmfHelperMixin(
       return;
     }
     model = this._resolve(model);
-    const itKeys = this.ns.raml.vocabularies.shapes + 'items';
+    const itKeys = this._getAmfKey(this.ns.raml.vocabularies.shapes + 'items');
     let item = model[itKeys];
     if (!item) {
       console.warn('Expected #items declaration');
@@ -1040,7 +1044,6 @@ class ApiViewModelTransformer extends ApiElements.AmfHelperMixin(
    * @return {Array} Array of examples or string if cannot parse
    */
   __parseArrayExample(example, processOptions) {
-    console.warn('Remove this implementation.');
     try {
       const arr = JSON.parse(example);
       if (arr instanceof Array) {
