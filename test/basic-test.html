@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1.0, user-scalable=yes">
-    <script src="../../webcomponentsjs/webcomponents-lite.js"></script>
+    <script src="../../webcomponentsjs/webcomponents-loader.js"></script>
     <script src="../../web-component-tester/browser.js"></script>
     <!-- Polyfills for IE11 <\3 -->
     <link rel="import" href="../../arc-polyfills/arc-polyfills.html">
@@ -392,13 +392,40 @@
             '@id': 'file://models/demo-api/demo-api.raml#/web-api/end-points/%2Fpeople%2F%7BpersonId%7D/get/request/parameter/x-enum/scalar/schema/list',
             '@type': 'http://www.w3.org/2000/01/rdf-schema#Seq',
             'http://www.w3.org/2000/01/rdf-schema#_1': [{
-              '@value': 'a'
+              '@id': 'amf://id#635',
+              '@type': [
+                'http://a.ml/vocabularies/data#Scalar'
+              ],
+              'http://a.ml/vocabularies/data#value': [
+                {
+                  '@value': 'a',
+                  '@type': 'http://www.w3.org/2001/XMLSchema#string'
+                }
+              ]
             }],
             'http://www.w3.org/2000/01/rdf-schema#_2': [{
-              '@value': 'b'
+              '@id': 'amf://id#636',
+              '@type': [
+                'http://a.ml/vocabularies/data#Scalar'
+              ],
+              'http://a.ml/vocabularies/data#value': [
+                {
+                  '@value': 'b',
+                  '@type': 'http://www.w3.org/2001/XMLSchema#string'
+                }
+              ]
             }],
             'http://www.w3.org/2000/01/rdf-schema#_3': [{
-              '@value': 'c'
+              '@id': 'amf://id#637',
+              '@type': [
+                'http://a.ml/vocabularies/data#Scalar'
+              ],
+              'http://a.ml/vocabularies/data#value': [
+                {
+                  '@value': 'c',
+                  '@type': 'http://www.w3.org/2001/XMLSchema#string'
+                }
+              ]
             }]
           }]
         };

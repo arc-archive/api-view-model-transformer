@@ -16,18 +16,12 @@
         <api-view-model-transformer></api-view-model-transformer>
       </template>
     </test-fixture>
-
-    <test-fixture id="NoDocs">
-      <template>
-        <api-view-model-transformer no-docs></api-view-model-transformer>
-      </template>
-    </test-fixture>
     <script>
     /* global AmfLoader */
     suite('Model for headers', () => {
       let amf;
       suiteSetup(() => {
-        return AmfLoader.load()
+        return AmfLoader.load(true)
         .then((data) => {
           amf = data;
         });
@@ -41,10 +35,14 @@
           element.clearCache();
           element.amfModel = amf;
           const ns = ApiElements.Amf.ns;
-          const endpoint = amf[0][ns.raml.vocabularies.document + 'encodes'][0][ns.raml.vocabularies.http + 'endpoint'][3];
-          const operation = endpoint[ns.w3.hydra.core + 'supportedOperation'][0];
-          const expects = operation[ns.w3.hydra.core + 'expects'][0];
-          model = expects[ns.raml.vocabularies.http + 'header'];
+          const webApi = element._computeWebApi(amf);
+          const endpoints = element._computeEndpoints(webApi);
+          const endpoint = endpoints[3];
+          const opKey = element._getAmfKey(ns.w3.hydra.supportedOperation);
+          const operation = element._ensureArray(endpoint[opKey])[0];
+          const expects = element._computeExpects(operation);
+          const hKey = element._getAmfKey(ns.raml.vocabularies.http + 'header');
+          model = element._ensureArray(expects[hKey]);
         });
 
         test('Returns an array', () => {
@@ -174,7 +172,7 @@
     suite('Path parameters model', () => {
       let amf;
       suiteSetup(() => {
-        return AmfLoader.load()
+        return AmfLoader.load(true)
         .then((data) => {
           amf = data;
         });
@@ -188,10 +186,14 @@
           element.clearCache();
           element.amfModel = amf;
           const ns = ApiElements.Amf.ns;
-          const endpoint = amf[0][ns.raml.vocabularies.document + 'encodes'][0][ns.raml.vocabularies.http + 'endpoint'][0];
-          const operation = endpoint[ns.w3.hydra.core + 'supportedOperation'][0];
-          const expects = operation[ns.w3.hydra.core + 'expects'][0];
-          model = expects[ns.raml.vocabularies.http + 'parameter'];
+          const webApi = element._computeWebApi(amf);
+          const endpoints = element._computeEndpoints(webApi);
+          const endpoint = endpoints[0];
+          const opKey = element._getAmfKey(ns.w3.hydra.supportedOperation);
+          const operation = element._ensureArray(endpoint[opKey])[0];
+          const expects = element._computeExpects(operation);
+          const pKey = element._getAmfKey(ns.raml.vocabularies.http + 'parameter');
+          model = element._ensureArray(expects[pKey]);
         });
 
         test('Resolves to an array', () => {
@@ -324,45 +326,6 @@
           assert.isUndefined(schema.multipleOf, 'multipleOf is undefined');
           assert.isUndefined(schema.pattern, 'pattern is undefined');
           assert.equal(schema.type, 'array', 'type is set');
-        });
-      });
-    });
-
-    suite('No documentation model', () => {
-      let amf;
-      suiteSetup(() => {
-        return AmfLoader.load()
-        .then((data) => {
-          amf = data;
-        });
-      });
-
-      suite('computeViewModel()', () => {
-        let model;
-        let element;
-        setup(() => {
-          element = fixture('NoDocs');
-          element.amfModel = amf;
-          element.clearCache();
-          const ns = ApiElements.Amf.ns;
-          const endpoint = amf[0][ns.raml.vocabularies.document + 'encodes'][0][ns.raml.vocabularies.http + 'endpoint'][0];
-          const operation = endpoint[ns.w3.hydra.core + 'supportedOperation'][0];
-          const expects = operation[ns.w3.hydra.core + 'expects'][0];
-          model = expects[ns.raml.vocabularies.http + 'parameter'];
-        });
-
-        test('hasDescription is always false', () => {
-          const result = element.computeViewModel(model);
-          assert.isFalse(result[0].hasDescription);
-          assert.isFalse(result[1].hasDescription);
-          assert.isFalse(result[2].hasDescription);
-        });
-
-        test('description is always underfined', () => {
-          const result = element.computeViewModel(model);
-          assert.isUndefined(result[0].description);
-          assert.isUndefined(result[1].description);
-          assert.isUndefined(result[2].description);
         });
       });
     });
