@@ -544,12 +544,21 @@ class ApiViewModelTransformer extends ApiElements.AmfHelperMixin(
    * @return {Object} View model
    */
   _uiModelForRawObject(key, model) {
-    const name = key.split('#')[1];
+    let index = key.indexOf('#');
+    if (index === -1) {
+      index = key.indexOf(':');
+    }
+    let name;
+    if (index === -1) {
+      name = key;
+    } else {
+      name = key.substr(index + 1);
+    }
     const result = {};
     result.binding = 'type';
     result.name = name;
-    const vdKey = this._getAmfKey(this.ns.raml.vocabularies.data);
-    const typeKey = vdKey + 'type';
+    const dPrefix = this.ns.raml.vocabularies.data;
+    const typeKey = this._getAmfKey(dPrefix + 'type');
     let type = this._computeRawModelValue(model[typeKey]);
     if (!type) {
       type = 'string';
@@ -564,25 +573,25 @@ class ApiViewModelTransformer extends ApiElements.AmfHelperMixin(
     if (this.noDocs) {
       result.hasDescription = false;
     } else {
-      const descKey = vdKey + 'description';
+      const descKey = this._getAmfKey(dPrefix + 'description');
       result.description = this._computeRawModelValue(model[descKey]);
       result.hasDescription = !!result.description;
     }
 
-    result.required = this._computeRawModelValue(model[vdKey + 'required']);
+    result.required = this._computeRawModelValue(model[this._getAmfKey(dPrefix + 'required')]);
     result.schema = {};
     result.schema.enabled = true;
     result.schema.type = type || 'string';
-    const displayName = this._computeRawModelValue(model[vdKey + 'displayName']);
+    const displayName = this._computeRawModelValue(model[this._getAmfKey(dPrefix + 'displayName')]);
     result.schema.inputLabel = this._completeInputLabel(displayName, name, result.required);
-    result.schema.minLength = this._computeRawModelValue(model[vdKey + 'minLength']);
-    result.schema.maxLength = this._computeRawModelValue(model[vdKey + 'maxLength']);
-    result.schema.defaultValue = this._computeRawModelValue(model[vdKey + 'default']);
-    result.schema.multipleOf = this._computeRawModelValue(model[vdKey + 'multipleOf']);
-    result.schema.minimum = this._computeRawModelValue(model[vdKey + 'minimum']);
-    result.schema.maximum = this._computeRawModelValue(model[vdKey + 'maximum']);
-    result.schema.enum = this._computeRawModelValue(model[vdKey + 'enum']);
-    let pattern = this._computeRawModelValue(model[vdKey + 'pattern']);
+    result.schema.minLength = this._computeRawModelValue(model[this._getAmfKey(dPrefix + 'minLength')]);
+    result.schema.maxLength = this._computeRawModelValue(model[this._getAmfKey(dPrefix + 'maxLength')]);
+    result.schema.defaultValue = this._computeRawModelValue(model[this._getAmfKey(dPrefix + 'default')]);
+    result.schema.multipleOf = this._computeRawModelValue(model[this._getAmfKey(dPrefix + 'multipleOf')]);
+    result.schema.minimum = this._computeRawModelValue(model[this._getAmfKey(dPrefix + 'minimum')]);
+    result.schema.maximum = this._computeRawModelValue(model[this._getAmfKey(dPrefix + 'maximum')]);
+    result.schema.enum = this._computeRawModelValue(model[this._getAmfKey(dPrefix + 'enum')]);
+    let pattern = this._computeRawModelValue(model[this._getAmfKey(dPrefix + 'pattern')]);
     if (pattern instanceof Array) {
       pattern = '[' + pattern[0] + ']';
     }
@@ -592,15 +601,15 @@ class ApiViewModelTransformer extends ApiElements.AmfHelperMixin(
     result.schema.isBool = result.schema.type === 'boolean';
     // result.schema.examples = this._computeModelExamples(def);
     if (result.schema.isArray) {
-      result.schema.items = items ? items : this._computeRawModelValue(model[vdKey + 'items']);
+      result.schema.items = items ? items : this._computeRawModelValue(model[this._getAmfKey(dPrefix + 'items')]);
     }
     result.schema.inputType = this._computeModelInputType(result.schema.type, result.schema.items);
     result.schema.pattern = this._computeModelPattern(result.schema.type, result.schema.pattern);
-    const example = this._computeRawModelValue(model[vdKey + 'example']);
+    const example = this._computeRawModelValue(model[this._getAmfKey(dPrefix + 'example')]);
     if (example) {
       result.schema.examples = [example];
     }
-    const examples = this._computeRawExamples(model[vdKey + 'examples']);
+    const examples = this._computeRawExamples(model[this._getAmfKey(dPrefix + 'examples')]);
     if (examples) {
       const existing = result.schema.examples || [];
       result.schema.examples = existing.concat(examples);
