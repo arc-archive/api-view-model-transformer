@@ -63,6 +63,7 @@ declare namespace ApiElements {
    * - schema.enabled {Boolean} - Always `true`
    * - schema.fileTypes {Array<String>} List of file types defined for a file
    * type.
+   * - schema.readOnly {Boolean} - Nil types gets `readOnly` property
    * ## Example
    *
    * ```html
