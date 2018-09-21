@@ -167,6 +167,35 @@
           assert.equal(schema.type, 'string', 'type is set');
         });
       });
+
+      suite('Nil values', () => {
+        let model;
+        let element;
+        setup(() => {
+          element = fixture('Basic');
+          element.clearCache();
+          element.amfModel = amf;
+          const ns = ApiElements.Amf.ns;
+          const webApi = element._computeWebApi(amf);
+          const endpoints = element._computeEndpoints(webApi);
+          const endpoint = endpoints[2];
+          const opKey = element._getAmfKey(ns.w3.hydra.supportedOperation);
+          const operation = element._ensureArray(endpoint[opKey])[0];
+          const expects = element._computeExpects(operation);
+          const hKey = element._getAmfKey(ns.raml.vocabularies.http + 'header');
+          model = element._ensureArray(expects[hKey]);
+        });
+
+        test('Nil value is set', () => {
+          const result = element.computeViewModel(model.slice(1, 2));
+          assert.equal(result[0].value, 'nil');
+        });
+
+        test('Item is read only', () => {
+          const result = element.computeViewModel(model.slice(1, 2));
+          assert.isTrue(result[0].schema.readOnly);
+        });
+      });
     });
 
     suite('Path parameters model', () => {
@@ -326,6 +355,35 @@
           assert.isUndefined(schema.multipleOf, 'multipleOf is undefined');
           assert.isUndefined(schema.pattern, 'pattern is undefined');
           assert.equal(schema.type, 'array', 'type is set');
+        });
+      });
+
+      suite('Nil values', () => {
+        let model;
+        let element;
+        setup(() => {
+          element = fixture('Basic');
+          element.clearCache();
+          element.amfModel = amf;
+          const ns = ApiElements.Amf.ns;
+          const webApi = element._computeWebApi(amf);
+          const endpoints = element._computeEndpoints(webApi);
+          const endpoint = endpoints[2];
+          const opKey = element._getAmfKey(ns.w3.hydra.supportedOperation);
+          const operation = element._ensureArray(endpoint[opKey])[0];
+          const expects = element._computeExpects(operation);
+          const pKey = element._getAmfKey(ns.raml.vocabularies.http + 'parameter');
+          model = element._ensureArray(expects[pKey]);
+        });
+
+        test('Nil value is set', () => {
+          const result = element.computeViewModel(model.slice(0, 1));
+          assert.equal(result[0].value, 'nil');
+        });
+
+        test('Item is read only', () => {
+          const result = element.computeViewModel(model.slice(0, 1));
+          assert.isTrue(result[0].schema.readOnly);
         });
       });
     });

@@ -130,6 +130,7 @@ const NUMBER_INPUT_TYPES = ['number', 'integer', 'float'];
  * - schema.enabled {Boolean} - Always `true`
  * - schema.fileTypes {Array<String>} List of file types defined for a file
  * type.
+ * - schema.readOnly {Boolean} - Nil types gets `readOnly` property
  * ## Example
  *
  * ```html
@@ -625,6 +626,18 @@ class ApiViewModelTransformer extends ApiElements.AmfHelperMixin(
    * @return {Object}
    */
   _processAfterItemCreated(item, processOptions) {
+    if (item.schema.type === 'null') {
+      switch (item.binding) {
+        case 'header':
+        case 'query':
+        case 'path':
+          item.value = 'nil';
+          break;
+        default:
+          item.value = 'null';
+      }
+      item.schema.readOnly = true;
+    }
     if (item.schema.examples && item.schema.examples.length && item.schema.examples[0].value) {
       item.schema.inputPlaceholder = 'Example: ' +
         this._exampleAsValue(item.schema.examples[0].value, processOptions);

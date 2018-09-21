@@ -55,6 +55,7 @@ types:
         type: string
         description: The error message associated with the error.
         required: true
+      nilProp: nil
   Feature:
     description: A feature to test enum values in the URI parameters.
     type: string
@@ -163,6 +164,8 @@ documentation:
     displayName: List people
     description: Use this method to list all the people.
     is: [Paginated: {resourceType: AppPerson}]
+    queryParameters:
+      nilParam: nil
     headers:
       x-people-op-id:
         (annotationTest):
@@ -170,6 +173,8 @@ documentation:
         pattern: ^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[4][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$
         description: People ops ID. It is UUID v4 string
         example: 9719fa6f-c666-48e0-a191-290890760b30
+      x-nil:
+        type: nil
   post:
     (deprecated): |
       This method is not deprecated. And this is only an annotation test.
