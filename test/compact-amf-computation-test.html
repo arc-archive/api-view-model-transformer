@@ -386,6 +386,49 @@
           assert.isTrue(result[0].schema.readOnly);
         });
       });
+
+      suite('Default values', () => {
+        let model;
+        let element;
+        setup(() => {
+          element = fixture('Basic');
+          element.clearCache();
+          element.amfModel = amf;
+          const ns = ApiElements.Amf.ns;
+          const webApi = element._computeWebApi(amf);
+          const endpoints = element._computeEndpoints(webApi);
+          const endpoint = endpoints[12];
+          const opKey = element._getAmfKey(ns.w3.hydra.supportedOperation);
+          const operation = element._ensureArray(endpoint[opKey])[0];
+          const expects = element._computeExpects(operation);
+          const hKey = element._getAmfKey(ns.raml.vocabularies.http + 'header');
+          model = element._ensureArray(expects[hKey]);
+        });
+
+        test('Computes string default value', () => {
+          const result = element.computeViewModel(model.slice(0, 1));
+          assert.strictEqual(result[0].schema.defaultValue, 'TestDefault');
+          assert.strictEqual(result[0].value, result[0].schema.defaultValue);
+        });
+
+        test('Computes number default value', () => {
+          const result = element.computeViewModel(model.slice(1, 2));
+          assert.strictEqual(result[0].schema.defaultValue, 1234);
+          assert.strictEqual(result[0].value, result[0].schema.defaultValue);
+        });
+
+        test('Computes boolean default value', () => {
+          const result = element.computeViewModel(model.slice(2, 3));
+          assert.strictEqual(result[0].schema.defaultValue, false);
+          assert.strictEqual(result[0].value, result[0].schema.defaultValue);
+        });
+
+        test('Computes array default value', () => {
+          const result = element.computeViewModel(model.slice(3, 4));
+          assert.deepEqual(result[0].schema.defaultValue, ['ArrayTest', 'OtherTest']);
+          assert.deepEqual(result[0].value, result[0].schema.defaultValue);
+        });
+      });
     });
     </script>
   </body>

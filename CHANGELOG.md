@@ -1,3 +1,13 @@
+<a name="2.0.9"></a>
+## [2.0.9](https://github.com/advanced-rest-client/api-view-model-tranformer/compare/2.0.8...2.0.9) (2018-09-27)
+
+
+### Fix
+
+* Fixing default value computation ([bc5606d08556307a6f0dc7844359ed3dce541e7e](https://github.com/advanced-rest-client/api-view-model-tranformer/commit/bc5606d08556307a6f0dc7844359ed3dce541e7e))
+
+
+
 <a name="2.0.8"></a>
 ## 2.0.8 (2018-09-21)
 

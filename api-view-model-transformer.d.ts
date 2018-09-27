@@ -309,7 +309,7 @@ declare namespace ApiElements {
      * @param item Shape to test for a value.
      */
     _computeRawScalarValue(item: object|null): String|Number|Boolean|null;
-    _computeRawArrayValue(item: any): void;
+    _computeRawArrayValue(item: any): any;
 
     /**
      * Computes form input label value.
@@ -340,6 +340,14 @@ declare namespace ApiElements {
      * @returns Value of the property or undefined if not set.
      */
     _computeVocabularyShapeProperty(shape: object|null, property: String|null): any|null|undefined;
+
+    /**
+     * Computes default value for a shape.
+     *
+     * @param shape Amf shape
+     * @returns Default value for the model or undefined.
+     */
+    _computeDefaultValue(shape: object|null): any|null|undefined;
 
     /**
      * Computes enum values for the view model.
