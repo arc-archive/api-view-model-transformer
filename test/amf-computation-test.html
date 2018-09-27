@@ -408,7 +408,7 @@
       test('Computes boolean default value', () => {
         const result = element.computeViewModel(model.slice(2, 3));
         assert.strictEqual(result[0].schema.defaultValue, false);
-        assert.strictEqual(result[0].value, result[0].schema.defaultValue);
+        assert.strictEqual(result[0].value, 'false');
       });
 
       test('Computes array default value', () => {
