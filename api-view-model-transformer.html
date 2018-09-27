@@ -384,7 +384,7 @@ class ApiViewModelTransformer extends ApiElements.AmfHelperMixin(
       result.schema.pattern = this._computeShaclProperty(def, 'pattern');
       result.schema.minLength = this._computeShaclProperty(def, 'minLength');
       result.schema.maxLength = this._computeShaclProperty(def, 'maxLength');
-      result.schema.defaultValue = this._computeShaclProperty(def, 'defaultValue');
+      result.schema.defaultValue = this._computeDefaultValue(def);
       result.schema.multipleOf = this._computeVocabularyShapeProperty(def, 'multipleOf');
       result.schema.minimum = this._computeShaclProperty(def, 'minInclusive');
       result.schema.maximum = this._computeShaclProperty(def, 'maxInclusive');
@@ -458,7 +458,7 @@ class ApiViewModelTransformer extends ApiElements.AmfHelperMixin(
     result.schema.pattern = this._computeShaclProperty(def, 'pattern');
     result.schema.minLength = this._computeShaclProperty(def, 'minLength');
     result.schema.maxLength = this._computeShaclProperty(def, 'maxLength');
-    result.schema.defaultValue = this._computeShaclProperty(def, 'defaultValue');
+    result.schema.defaultValue = this._computeDefaultValue(def);
     result.schema.multipleOf = this._computeVocabularyShapeProperty(def, 'multipleOf');
     result.schema.minimum = this._computeShaclProperty(def, 'minInclusive');
     result.schema.maximum = this._computeShaclProperty(def, 'maxInclusive');
@@ -888,7 +888,7 @@ class ApiViewModelTransformer extends ApiElements.AmfHelperMixin(
         result.push(item);
       }
     });
-    return;
+    return result;
   }
   /**
    * Computes form input label value.
@@ -925,6 +925,57 @@ class ApiViewModelTransformer extends ApiElements.AmfHelperMixin(
   _computeVocabularyShapeProperty(shape, property) {
     const key = this.ns.raml.vocabularies.shapes + String(property);
     return this._getValue(shape, key);
+  }
+  /**
+   * Computes default value for a shape.
+   * @param {Object} shape Amf shape
+   * @return {any|undefined} Default value for the model or undefined.
+   */
+  _computeDefaultValue(shape) {
+    const vsh = this.ns.raml.vocabularies.shapes;
+    const valueKey = this._getAmfKey(this.ns.w3.shacl.name + 'defaultValueStr');
+    let value = shape[valueKey];
+    if (!value) {
+      return;
+    }
+    if (value instanceof Array) {
+      value = value[0];
+    }
+    if (value['@value']) {
+      value = value['@value'];
+    }
+    if (this._hasType(shape, vsh + 'ScalarShape')) {
+      const dtKey = this._getAmfKey(this.ns.w3.shacl.name + 'datatype');
+      let type = shape[dtKey];
+      if (type instanceof Array) {
+        type = type[0];
+      }
+      type = type['@id'];
+      const s = this.ns.w3.xmlSchema;
+      switch (type) {
+        case this._getAmfKey(s + 'number'):
+        case this._getAmfKey(s + 'long'):
+        case this._getAmfKey(s + 'integer'):
+        case this._getAmfKey(s + 'float'):
+        case this._getAmfKey(s + 'double'):
+          return Number(value);
+        case this._getAmfKey(s + 'boolean'):
+          return value === 'false' ? false : true;
+        default:
+          return value;
+      }
+    } else if (this._hasType(shape, this.ns.raml.vocabularies.shapes + 'ArrayShape')) {
+      const valueKey = this._getAmfKey(this.ns.w3.shacl.name + 'defaultValue');
+      let value2 = shape[valueKey];
+      if (!value2) {
+        return value;
+      }
+      if (value2 instanceof Array) {
+        value2 = value2[0];
+      }
+      return this._computeRawArrayValue(value2);
+    }
+    return value;
   }
   /**
    * Computes enum values for the view model.
