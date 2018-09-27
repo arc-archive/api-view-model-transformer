@@ -12520,6 +12520,131 @@
             "hydra:statusCode": "200"
           }
         }
+      },
+      {
+        "@id": "amf://id#639",
+        "@type": [
+          "raml-http:EndPoint",
+          "doc:DomainElement"
+        ],
+        "raml-http:path": "/defaultValues",
+        "hydra:supportedOperation": {
+          "@id": "amf://id#640",
+          "@type": [
+            "hydra:Operation",
+            "doc:DomainElement"
+          ],
+          "hydra:expects": {
+            "@id": "amf://id#641",
+            "@type": [
+              "raml-http:Request",
+              "doc:DomainElement"
+            ],
+            "raml-http:header": [
+              {
+                "@id": "amf://id#642",
+                "@type": [
+                  "raml-http:Parameter",
+                  "doc:DomainElement"
+                ],
+                "raml-http:binding": "header",
+                "raml-http:paramName": "x-string",
+                "raml-http:schema": {
+                  "@id": "amf://id#643",
+                  "@type": [
+                    "raml-shapes:ScalarShape",
+                    "shacl:Shape",
+                    "raml-shapes:Shape",
+                    "doc:DomainElement"
+                  ],
+                  "shacl:datatype": {
+                    "@id": "xsd:string"
+                  },
+                  "shacl:defaultValue": {
+                    "@id": "amf://id#644",
+                    "@type": "data:Scalar",
+                    "data:value": {
+                      "@type": "xsd:string",
+                      "@value": "TestDefault"
+                    }
+                  },
+                  "shacl:defaultValueStr": "TestDefault",
+                  "shacl:name": "schema"
+                },
+                "schema-org:name": "x-string",
+                "hydra:required": true
+              },
+              {
+                "@id": "amf://id#645",
+                "@type": [
+                  "raml-http:Parameter",
+                  "doc:DomainElement"
+                ],
+                "raml-http:binding": "header",
+                "raml-http:paramName": "x-integer",
+                "raml-http:schema": {
+                  "@id": "amf://id#646",
+                  "@type": [
+                    "raml-shapes:ScalarShape",
+                    "shacl:Shape",
+                    "raml-shapes:Shape",
+                    "doc:DomainElement"
+                  ],
+                  "shacl:datatype": {
+                    "@id": "xsd:integer"
+                  },
+                  "shacl:defaultValue": {
+                    "@id": "amf://id#647",
+                    "@type": "data:Scalar",
+                    "data:value": {
+                      "@type": "xsd:integer",
+                      "@value": "1234"
+                    }
+                  },
+                  "shacl:defaultValueStr": "1234",
+                  "shacl:name": "schema"
+                },
+                "schema-org:name": "x-integer",
+                "hydra:required": true
+              },
+              {
+                "@id": "amf://id#648",
+                "@type": [
+                  "raml-http:Parameter",
+                  "doc:DomainElement"
+                ],
+                "raml-http:binding": "header",
+                "raml-http:paramName": "x-boolean",
+                "raml-http:schema": {
+                  "@id": "amf://id#649",
+                  "@type": [
+                    "raml-shapes:ScalarShape",
+                    "shacl:Shape",
+                    "raml-shapes:Shape",
+                    "doc:DomainElement"
+                  ],
+                  "shacl:datatype": {
+                    "@id": "xsd:boolean"
+                  },
+                  "shacl:defaultValue": {
+                    "@id": "amf://id#650",
+                    "@type": "data:Scalar",
+                    "data:value": {
+                      "@type": "xsd:boolean",
+                      "@value": "false"
+                    }
+                  },
+                  "shacl:defaultValueStr": "false",
+                  "shacl:name": "schema"
+                },
+                "schema-org:name": "x-boolean",
+                "hydra:required": true
+              }
+            ],
+            "raml-http:payload": []
+          },
+          "hydra:method": "get"
+        }
       }
     ],
     "raml-http:scheme": [
@@ -12527,14 +12652,14 @@
       "HTTPS"
     ],
     "raml-http:server": {
-      "@id": "amf://id#639",
+      "@id": "amf://id#651",
       "@type": [
         "raml-http:Server",
         "doc:DomainElement"
       ],
       "raml-http:url": "http://{instance}.domain.com/",
       "raml-http:variable": {
-        "@id": "amf://id#640",
+        "@id": "amf://id#652",
         "@type": [
           "raml-http:Parameter",
           "doc:DomainElement"
@@ -12542,7 +12667,7 @@
         "raml-http:binding": "path",
         "raml-http:paramName": "instance",
         "raml-http:schema": {
-          "@id": "amf://id#641",
+          "@id": "amf://id#653",
           "@type": [
             "raml-shapes:ScalarShape",
             "shacl:Shape",
@@ -12554,7 +12679,7 @@
             "@id": "xsd:string"
           },
           "shacl:defaultValue": {
-            "@id": "amf://id#642",
+            "@id": "amf://id#654",
             "@type": "data:Scalar",
             "data:value": {
               "@type": "xsd:string",
@@ -12563,10 +12688,10 @@
           },
           "shacl:defaultValueStr": "production",
           "shacl:in": {
-            "@id": "amf://id#641/list",
+            "@id": "amf://id#653/list",
             "@type": "rdfs:Seq",
             "rdfs:_1": {
-              "@id": "amf://id#642",
+              "@id": "amf://id#654",
               "@type": "data:Scalar",
               "data:value": {
                 "@type": "xsd:string",
@@ -12574,7 +12699,7 @@
               }
             },
             "rdfs:_2": {
-              "@id": "amf://id#643",
+              "@id": "amf://id#655",
               "@type": "data:Scalar",
               "data:value": {
                 "@type": "xsd:string",
@@ -12582,7 +12707,7 @@
               }
             },
             "rdfs:_3": {
-              "@id": "amf://id#644",
+              "@id": "amf://id#656",
               "@type": "data:Scalar",
               "data:value": {
                 "@type": "xsd:string",
@@ -12590,7 +12715,7 @@
               }
             },
             "rdfs:_4": {
-              "@id": "amf://id#645",
+              "@id": "amf://id#657",
               "@type": "data:Scalar",
               "data:value": {
                 "@type": "xsd:string",
@@ -12608,7 +12733,7 @@
     },
     "schema-org:description": "This is a description of demo API.\n\nThis is **markdown**.\n",
     "schema-org:documentation": {
-      "@id": "amf://id#646",
+      "@id": "amf://id#658",
       "@type": [
         "schema-org:CreativeWork",
         "doc:DomainElement"
