@@ -672,7 +672,7 @@ class ApiViewModelTransformer extends ApiElements.AmfHelperMixin(
       item.value = [''];
     }
 
-    if (item.isBoolean && typeof item.value === 'boolean') {
+    if (item.schema.isBool && typeof item.value === 'boolean') {
       item.value = String(item.value);
     }
     return item;
