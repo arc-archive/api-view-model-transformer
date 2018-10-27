@@ -224,8 +224,8 @@
           const example = schema.examples[0];
           assert.isFalse(example.hasName, 'example.hasName is false');
           assert.isUndefined(example.name, 'example.name is undefined');
-          assert.equal(example.value, '[value1, value2]', 'example.value is set'); // <----- THIS IS WRONG!
-          assert.equal(schema.inputPlaceholder, 'Example: [value1, value2]', 'inputPlaceholder is set');
+          assert.equal(example.value, '[\n  "value1",\n  "value2"\n]', 'example.value is set');
+          assert.equal(schema.inputPlaceholder, 'Example: [\n  "value1",\n  "value2"\n]', 'inputPlaceholder is set');
           assert.isTrue(schema.inputFloatLabel, 'inputFloatLabel is true');
           assert.equal(schema.inputLabel, 'testRepeatable*', 'inputLabel is set and required');
           assert.equal(schema.inputType, 'text', 'inputType is set');

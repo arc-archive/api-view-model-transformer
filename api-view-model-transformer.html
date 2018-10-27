@@ -1,6 +1,7 @@
 <link rel="import" href="../polymer/polymer-element.html">
 <link rel="import" href="../events-target-behavior/events-target-behavior.html">
 <link rel="import" href="../amf-helper-mixin/amf-helper-mixin.html">
+<link rel="import" href="../api-example-generator/api-example-generator.html">
 <script>
 (function() {
 'use strict';
@@ -229,6 +230,15 @@ class ApiViewModelTransformer extends ApiElements.AmfHelperMixin(
       noDocs: Boolean
     };
   }
+  /**
+   * @return {Element} Instance of `api-example-generator` element.
+   */
+  get _exampleGenerator() {
+    if (!this.__exampleGenerator) {
+      this.__exampleGenerator = document.createElement('api-example-generator');
+    }
+    return this.__exampleGenerator;
+  }
 
   constructor() {
     super();
@@ -241,6 +251,13 @@ class ApiViewModelTransformer extends ApiElements.AmfHelperMixin(
 
   _detachListeners(node) {
     node.removeEventListener('api-property-model-build', this._buildPropertyHandler);
+  }
+
+  disconnectedCallback() {
+    super.disconnectedCallback();
+    if (this.__exampleGenerator) {
+      delete this.__exampleGenerator;
+    }
   }
   /**
    * Clears cache for computed models.
@@ -1010,6 +1027,7 @@ class ApiViewModelTransformer extends ApiElements.AmfHelperMixin(
     });
     return result;
   }
+
   /**
    * Computes list of examples for the Property model.
    *
@@ -1020,7 +1038,7 @@ class ApiViewModelTransformer extends ApiElements.AmfHelperMixin(
   _computeModelExamples(model) {
     model = this._resolve(model);
     const key = this._getAmfKey(this.ns.raml.vocabularies.document + 'examples');
-    const def = this._ensureArray(model[key]);
+    let def = this._ensureArray(model[key]);
     if (!def) {
       return;
     }
@@ -1028,9 +1046,21 @@ class ApiViewModelTransformer extends ApiElements.AmfHelperMixin(
     for (let i = 0, len = def.length; i < len; i++) {
       const item = def[i];
       const name = this._getValue(item, this.ns.schema.schemaName);
-      const value = this._getExampleValue(item);
+      let value = this._getExampleValue(item, true);
       if (!name && !value) {
         continue;
+      }
+      try {
+        JSON.parse(value);
+        if (value[value.length - 1] === '"' && value[0] === '"') {
+          value = value.substr(1, value.length - 2);
+        }
+      } catch (_) {
+        try {
+          const gen = this._exampleGenerator;
+          gen.amfModel = this.amfModel;
+          value = gen.computeExample('application/json', item, {});
+        } catch (_) {}
       }
       result.push({
         name: name,

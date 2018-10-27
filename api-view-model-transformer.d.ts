@@ -11,6 +11,7 @@
 /// <reference path="../polymer/types/polymer-element.d.ts" />
 /// <reference path="../events-target-behavior/events-target-behavior.d.ts" />
 /// <reference path="../amf-helper-mixin/amf-helper-mixin.d.ts" />
+/// <reference path="../api-example-generator/api-example-generator.d.ts" />
 
 declare namespace ApiElements {
 
@@ -110,6 +111,7 @@ declare namespace ApiElements {
      * It is only used to resolve references.
      */
     amfModel: object|any[]|null;
+    readonly _exampleGenerator: Element|null;
 
     /**
      * An array of propertues for which view model is to be generated.
@@ -146,6 +148,7 @@ declare namespace ApiElements {
      * clears and documentation from ther model.
      */
     noDocs: boolean|null|undefined;
+    disconnectedCallback(): void;
     _attachListeners(node: any): void;
     _detachListeners(node: any): void;
 
