@@ -1,3 +1,18 @@
+<a name="2.0.12"></a>
+## [2.0.12](https://github.com/advanced-rest-client/api-view-model-tranformer/compare/2.0.8...2.0.12) (2018-10-29)
+
+
+### Fix
+
+* Fixed type computation in compact model ([3f9e4cf8bd7008ca79c2ed094d258e86dc6d8bd0](https://github.com/advanced-rest-client/api-view-model-tranformer/commit/3f9e4cf8bd7008ca79c2ed094d258e86dc6d8bd0))
+* Fixing default value computation ([bc5606d08556307a6f0dc7844359ed3dce541e7e](https://github.com/advanced-rest-client/api-view-model-tranformer/commit/bc5606d08556307a6f0dc7844359ed3dce541e7e))
+
+### Update
+
+* Adding support for array example values. ([7754528c0900e43a2f98f0b5af0beb5677ab4333](https://github.com/advanced-rest-client/api-view-model-tranformer/commit/7754528c0900e43a2f98f0b5af0beb5677ab4333))
+
+
+
 <a name="2.0.11"></a>
 ## [2.0.11](https://github.com/advanced-rest-client/api-view-model-tranformer/compare/2.0.8...2.0.11) (2018-10-27)
 
