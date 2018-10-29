@@ -814,20 +814,47 @@ class ApiViewModelTransformer extends ApiElements.AmfHelperMixin(
       if (typeof id !== 'string') {
         id = id['@id'];
       }
+      const x = this.ns.w3.xmlSchema;
       switch (id) {
-        case this._getAmfKey(this.ns.w3.xmlSchema + 'string'): return 'string';
-        case this._getAmfKey(this.ns.w3.xmlSchema + 'integer'): return 'integer';
-        case this._getAmfKey(this.ns.w3.xmlSchema + 'long'): return 'long';
-        case this._getAmfKey(this.ns.w3.xmlSchema + 'float'): return 'float';
-        case this._getAmfKey(this.ns.w3.xmlSchema + 'double'): return 'double';
-        case this._getAmfKey(vsh + 'number'): return 'number';
-        case this._getAmfKey(this.ns.w3.xmlSchema + 'boolean'): return 'boolean';
-        case this._getAmfKey(this.ns.w3.xmlSchema + 'dateTime'): return 'dateTime';
-        case this._getAmfKey(vsh + 'dateTimeOnly'): return 'time';
-        case this._getAmfKey(this.ns.w3.xmlSchema + 'time'): return 'time';
-        case this._getAmfKey(this.ns.w3.xmlSchema + 'date'): return 'date';
-        case this._getAmfKey(this.ns.w3.xmlSchema + 'base64Binary'): return 'string';
-        case this._getAmfKey(vsh + 'password'): return 'password';
+        case x + 'string':
+        case this._getAmfKey(x + 'string'):
+          return 'string';
+        case x + 'integer':
+        case this._getAmfKey(x + 'integer'):
+          return 'integer';
+        case x + 'long':
+        case this._getAmfKey(x + 'long'):
+          return 'long';
+        case x + 'float':
+        case this._getAmfKey(x + 'float'):
+          return 'float';
+        case x + 'double':
+        case this._getAmfKey(x + 'double'):
+          return 'double';
+        case vsh + 'number':
+        case this._getAmfKey(vsh + 'number'):
+          return 'number';
+        case x + 'boolean':
+        case this._getAmfKey(x + 'boolean'):
+          return 'boolean';
+        case x + 'dateTime':
+        case this._getAmfKey(x + 'dateTime'):
+          return 'dateTime';
+        case vsh + 'dateTimeOnly':
+        case this._getAmfKey(vsh + 'dateTimeOnly'):
+          return 'time';
+        case x + 'time':
+        case this._getAmfKey(x + 'time'):
+          return 'time';
+        case x + 'date':
+        case this._getAmfKey(x + 'date'):
+          return 'date';
+        case x + 'base64Binary':
+        case this._getAmfKey(x + 'base64Binary'):
+          return 'string';
+        case vsh + 'password':
+        case this._getAmfKey(vsh + 'password'):
+          return 'password';
       }
     }
     return 'string';
