@@ -999,12 +999,18 @@ class ApiViewModelTransformer extends ApiElements.AmfHelperMixin(
       type = type['@id'];
       const s = this.ns.w3.xmlSchema;
       switch (type) {
+        case s + 'number':
+        case s + 'long':
+        case s + 'integer':
+        case s + 'float':
+        case s + 'double':
         case this._getAmfKey(s + 'number'):
         case this._getAmfKey(s + 'long'):
         case this._getAmfKey(s + 'integer'):
         case this._getAmfKey(s + 'float'):
         case this._getAmfKey(s + 'double'):
           return Number(value);
+        case s + 'boolean':
         case this._getAmfKey(s + 'boolean'):
           return value === 'false' ? false : true;
         default:
