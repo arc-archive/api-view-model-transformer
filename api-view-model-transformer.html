@@ -171,7 +171,9 @@ const NUMBER_INPUT_TYPES = ['number', 'integer', 'float'];
  */
 class ApiViewModelTransformer extends ApiElements.AmfHelperMixin(
   ArcBehaviors.EventsTargetBehavior(Polymer.Element)) {
-  static get is() {return 'api-view-model-transformer';}
+  static get is() {
+    return 'api-view-model-transformer';
+  }
   static get properties() {
     return {
       /**
