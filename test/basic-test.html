@@ -275,8 +275,8 @@
         ['http://www.w3.org/2001/XMLSchema#boolean', 'boolean'],
         ['http://www.w3.org/2001/XMLSchema#date', 'date'],
         ['http://www.w3.org/2001/XMLSchema#time', 'time'],
-        ['http://www.w3.org/2001/XMLSchema#dateTime', 'dateTime'],
-        ['http://a.ml/vocabularies/shapes#dateTimeOnly', 'time'],
+        ['http://www.w3.org/2001/XMLSchema#dateTime', 'datetime'],
+        ['http://a.ml/vocabularies/shapes#dateTimeOnly', 'datetime-only'],
         ['http://www.w3.org/2001/XMLSchema#float', 'float'],
         ['http://www.w3.org/2001/XMLSchema#long', 'long'],
         ['http://www.w3.org/2001/XMLSchema#double', 'double'],
@@ -444,6 +444,105 @@
       test('Items are in order', () => {
         const result = element._computeModelEnum(model);
         assert.deepEqual(result, ['a', 'b', 'c']);
+      });
+    });
+
+    suite('_computeModelPattern()', () => {
+      let element;
+      suiteSetup(() => {
+        element = fixture('basic');
+      });
+
+      test('Always returns pattern if provided', () => {
+        const result = element._computeModelPattern('time', 'test-pattern');
+        assert.equal(result, 'test-pattern');
+      });
+
+      test('Returns pattern for time type', () => {
+        const result = element._computeModelPattern('time');
+        assert.equal(result, '^[0-9]{2}:[0-9]{2}:[0-9]{2}\.?[0-9]{0,3}$');
+      });
+
+      test('time pattern matches "partial-time" notation of RFC3339', () => {
+        const result = element._computeModelPattern('time');
+        const reg = new RegExp(result);
+        assert.isTrue(reg.test('00:00:00'), 'Matches HH:mm:ss');
+        assert.isTrue(reg.test('00:00:00.0'), 'Matches HH:mm:ss.f');
+        assert.isTrue(reg.test('00:00:00.00'), 'Matches HH:mm:ss.ff');
+        assert.isTrue(reg.test('00:00:00.000'), 'Matches HH:mm:ss.fff');
+        assert.isFalse(reg.test('00:00:00.00Z'), 'Does not matches time zone');
+        assert.isFalse(reg.test('00:00'), 'Full time is required');
+      });
+
+      test('Returns pattern for date type', () => {
+        const result = element._computeModelPattern('date');
+        assert.equal(result, '^[0-9]{4}-[0-9]{2}-[0-9]{2}$');
+      });
+
+      test('date pattern matches "full-date" notation of RFC3339', () => {
+        const result = element._computeModelPattern('date');
+        const reg = new RegExp(result);
+        assert.isTrue(reg.test('0000-00-00'), 'Matches YYYY-MM-DD');
+        assert.isFalse(reg.test('00:00:00.00T00:00:00'), 'Does not matches time');
+        assert.isFalse(reg.test('0000-00'), 'Full date is required');
+      });
+
+      test('Returns pattern for datetime-only type', () => {
+        const result = element._computeModelPattern('datetime-only');
+        assert.equal(result, '^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}\.?[0-9]{0,3}$');
+      });
+
+      test('datetime-only pattern matches "full-date" and "partial-time" notation of RFC3339', () => {
+        const result = element._computeModelPattern('datetime-only');
+        const reg = new RegExp(result);
+        assert.isTrue(reg.test('0000-00-00T00:00:00'), 'Matches YYYY-MM-DDTHH:mm:ss');
+        assert.isTrue(reg.test('0000-00-00T00:00:00.0'), 'Matches YYYY-MM-DDTHH:mm:ss.f');
+        assert.isTrue(reg.test('0000-00-00T00:00:00.00'), 'Matches YYYY-MM-DDTHH:mm:ss.ff');
+        assert.isTrue(reg.test('0000-00-00T00:00:00.000'), 'Matches YYYY-MM-DDTHH:mm:ss.fff');
+        assert.isFalse(reg.test('0000-00-00T00:00:00.00Z'), 'Does not matches time zone');
+        assert.isFalse(reg.test('0000-00-00T00'), 'Full date + time is required');
+      });
+
+      test('Returns pattern for datetime type, default format', () => {
+        const result = element._computeModelPattern('datetime');
+        assert.equal(result, '^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}.*$');
+      });
+
+      test('Pattern for datetime type and rfc2616 format is empty', () => {
+        const result = element._computeModelPattern('datetime', undefined, 'rfc2616');
+        assert.equal(result, '');
+      });
+
+      test('_computeTypePlaceholder()', () => {
+        let element;
+        suiteSetup(() => {
+          element = fixture('basic');
+        });
+
+        test('Returns placeholder value for time', () => {
+          const result = element._computeTypePlaceholder('time');
+          assert.equal(result, '00:00:00.000');
+        });
+
+        test('Returns placeholder value for date', () => {
+          const result = element._computeTypePlaceholder('date');
+          assert.equal(result, '0000-00-00');
+        });
+
+        test('Returns placeholder value for datetime-only', () => {
+          const result = element._computeTypePlaceholder('datetime-only');
+          assert.equal(result, '0000-00-00T00:00:00.000');
+        });
+
+        test('Returns placeholder value for datetime, default format', () => {
+          const result = element._computeTypePlaceholder('datetime');
+          assert.equal(result, '0000-00-00T00:00:00Z+01:00');
+        });
+
+        test('Returns placeholder value for datetime, rfc2616 format', () => {
+          const result = element._computeTypePlaceholder('datetime');
+          assert.equal(result, 'Sun, 01 Jan 2000 00:00:00 GMT');
+        });
       });
     });
 
