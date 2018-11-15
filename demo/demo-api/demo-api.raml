@@ -475,3 +475,16 @@ documentation:
       x-array:
         type: string[]
         default: [ArrayTest, OtherTest]
+/dateformats:
+  get:
+    headers:
+      x-date-only: date-only
+      x-time-only: time-only
+      x-datetime-only: datetime-only
+      x-datetime: datetime
+      x-datetime-format-default:
+        type: datetime
+        format: rfc3339
+      x-datetime-format:
+        type: datetime
+        format: rfc2616

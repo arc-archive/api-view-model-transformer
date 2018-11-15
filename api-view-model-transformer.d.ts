@@ -408,17 +408,21 @@ declare namespace ApiElements {
      *
      * @param modelType Type of the property item.
      * @param pattern Pattern declared on the property
+     * @param format For `datetime` type additional format value.
+     * `rfc3339` is assumed by default
      * @returns Pattern or undefined if does not exists.
      */
-    _computeModelPattern(modelType: String|null, pattern: String|null): String|null|undefined;
+    _computeModelPattern(modelType: String|null, pattern: String|null, format: String|null): String|null|undefined;
 
     /**
      * Computes a placeholder value for data and time inputs.
      *
      * @param type Model type.
+     * @param format For `datetime` type additional format value.
+     * `rfc3339` is assumed by default
      * @returns Placeholder value.
      */
-    _computeTypePlaceholder(type: String|null): String|null|undefined;
+    _computeTypePlaceholder(type: String|null, format: String|null): String|null|undefined;
 
     /**
      * Handler for the `api-property-model-build` custom event.
