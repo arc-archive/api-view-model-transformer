@@ -283,12 +283,20 @@ declare namespace ApiElements {
     _computeFormName(model: object|null): String|null|undefined;
 
     /**
-     * Computes rwquired property from AMF model.
+     * Computes `required` property from AMF model.
      *
      * @param model AMF item model
      * @returns True if the property is required.
      */
     _computeRequired(model: object|null): Boolean|null;
+
+    /**
+     * Computes `minCount` property from AMF model for PropertyShape object.
+     *
+     * @param model AMF item model
+     * @returns True if `minCount` equals `1`
+     */
+    _computeRequiredPropertyShape(model: object|null): Boolean|null;
 
     /**
      * Computes type of the model. It's RAML data type property.
@@ -459,40 +467,6 @@ declare namespace ApiElements {
      * @returns Generated documentation
      */
     _computeExtendedDocumentation(item: object|null): String|null;
-
-    /**
-     * Creates an example body from a body property of AMF.
-     * This object must be of a type of `http://raml.org/vocabularies/http#Payload`.
-     *
-     * @param body AMF body object
-     * @returns An example body value if possible to compute.
-     * It returns undefined if passed value if not a payload type. It may be empty
-     * string.
-     */
-    bodyToExample(body: object|null): String|null|undefined;
-
-    /**
-     * Computes an example JSON display value from AMF model
-     *
-     * @param properties List of AMF Prooperty models
-     * @returns Example
-     */
-    computeAmfDisplayJson(properties: any[]|null): String|null;
-
-    /**
-     * Computes a JSON object to display from view model propertiers
-     *
-     * @returns JSON string value.
-     */
-    computeDisplayJson(properties: Array<object|null>|null): String|null;
-
-    /**
-     * Computes an XML schema to display from view model propertiers
-     *
-     * @returns XML string value.
-     */
-    computeDisplayXml(properties: Array<object|null>|null): String|null;
-    _computeDisplayJsonRecursive(properties: any, result: any): any;
   }
 }
 
