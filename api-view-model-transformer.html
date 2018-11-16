@@ -450,19 +450,21 @@ class ApiViewModelTransformer extends ApiElements.AmfHelperMixin(
     const result = {};
     result.binding = 'type';
     result.name = this._computeShaclProperty(amfItem, 'name');
-    const rangeKey = this._getAmfKey(this.ns.raml.vocabularies.shapes + 'range');
-    let def = amfItem[rangeKey];
-    if (!def) {
-      return result;
+    let def;
+    if (this._hasType(amfItem, this.ns.raml.vocabularies.shapes + 'ScalarShape')) {
+      def = amfItem;
+    } else {
+      const rangeKey = this._getAmfKey(this.ns.raml.vocabularies.shapes + 'range');
+      def = amfItem[rangeKey];
+      if (!def) {
+        return result;
+      }
+      if (def instanceof Array) {
+        def = def[0];
+      }
+      def = this._resolve(def);
     }
-    if (def instanceof Array) {
-      def = def[0];
-    }
-    def = this._resolve(def);
-    result.required = this._computeRequired(def);
-    if (result.required === undefined) {
-      result.required = false;
-    }
+    result.required = this._computeRequiredPropertyShape(amfItem);
     result.schema = {};
     result.schema.enabled = true;
     result.schema.type = this._computeModelType(def);
@@ -766,13 +768,24 @@ class ApiViewModelTransformer extends ApiElements.AmfHelperMixin(
     return this._getValue(model, key);
   }
   /**
-   * Computes rwquired property from AMF model.
+   * Computes `required` property from AMF model.
    * @param {Object} model AMF item model
    * @return {Boolean} True if the property is required.
    */
   _computeRequired(model) {
     const key = this.ns.w3.hydra.core + 'required';
     return this._getValue(model, key);
+  }
+  /**
+   * Computes `minCount` property from AMF model for PropertyShape object.
+   *
+   * @param {Object} model AMF item model
+   * @return {Boolean} True if `minCount` equals `1`
+   */
+  _computeRequiredPropertyShape(model) {
+    const key = this.ns.w3.shacl.name + 'minCount';
+    const result = this._getValue(model, key);
+    return result === 1;
   }
   /**
    * Computes type of the model. It's RAML data type property.
@@ -1131,9 +1144,7 @@ class ApiViewModelTransformer extends ApiElements.AmfHelperMixin(
       item = item[0];
     }
     const type = this._computeModelType(item);
-    if (!type) {
-      return;
-    }
+    // _computeModelType() always returns a value
     // TODO: add support for objects and unions.
     return type;
   }
@@ -1384,7 +1395,9 @@ class ApiViewModelTransformer extends ApiElements.AmfHelperMixin(
       return docs;
     }
     const schema = item.schema;
-    docs += '\n\n\n';
+    if (docs) {
+      docs += '\n\n\n';
+    }
     if (schema.pattern) {
       docs += '- Pattern: `' + schema.pattern + '`\n';
     }
