@@ -63,7 +63,14 @@ types:
       - A
       - B
       - C
-
+  StrLength:
+    type: string
+    minLength: 10
+    maxLength: 20
+  NumSize:
+    type: integer
+    minimum: 2
+    maximum: 12
 resourceTypes:
   ResourceNotFound:
     get:
