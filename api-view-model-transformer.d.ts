@@ -56,6 +56,8 @@ declare namespace ApiElements {
    * - schema.isBool {Boolean} - Flag describing boolean value for the property
    * - schema.isFile {Boolean} - Flag describing File value for the property
    * - schema.isObject {Boolean} - Flag describing Object value for the property
+   * - schema.isNillable {Boolean} - True when it is an union and one of union
+   * items is nil.
    * - schema.inputPlaceholder {?String} - A placeholder value for the input.
    * - schema.inputFloatLabel {Boolean} - Only if placeholder is set. Instructs
    * input control to float a label.
@@ -467,6 +469,14 @@ declare namespace ApiElements {
      * @returns Generated documentation
      */
     _computeExtendedDocumentation(item: object|null): String|null;
+
+    /**
+     * Returns `true` only when passed shape has `shapes#anyOf` array and
+     * one of the union properties is of a type od NilShape.
+     *
+     * @param shape Schape test for nillable union.
+     */
+    _computeIsNillable(shape: object|null): Boolean|null;
   }
 }
 
