@@ -975,6 +975,49 @@
             assert.isFalse(result.hasDescription);
           });
         });
+
+        suite('Nillable union', () => {
+          let amf;
+          suiteSetup(() => {
+            return AmfLoader.load(item[1])
+            .then((data) => {
+              amf = data;
+            });
+          });
+
+          let element;
+          let model;
+          setup(() => {
+            element = fixture('Manual');
+            element.clearCache();
+            element.amfModel = amf;
+            model = computeHeaders(element, amf, 14);
+          });
+
+          test('Sets "isNillable" property', () => {
+            const result = element.computeViewModel(model);
+            const item = result[0];
+            assert.isTrue(item.schema.isNillable);
+          });
+
+          test('"isNillable" is false when no union', () => {
+            const result = element.computeViewModel(model);
+            const item = result[1];
+            assert.isFalse(item.schema.isNillable);
+          });
+
+          test('"isNillable" is false when other scalar', () => {
+            const result = element.computeViewModel(model);
+            const item = result[2];
+            assert.isFalse(item.schema.isNillable);
+          });
+
+          test('"isNillable" is false when union without nil', () => {
+            const result = element.computeViewModel(model);
+            const item = result[3];
+            assert.isFalse(item.schema.isNillable);
+          });
+        });
       });
     });
     </script>

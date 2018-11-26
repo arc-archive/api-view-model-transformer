@@ -123,6 +123,8 @@ const NUMBER_INPUT_TYPES = ['number', 'integer', 'float'];
  * - schema.isBool {Boolean} - Flag describing boolean value for the property
  * - schema.isFile {Boolean} - Flag describing File value for the property
  * - schema.isObject {Boolean} - Flag describing Object value for the property
+ * - schema.isNillable {Boolean} - True when it is an union and one of union
+ * items is nil.
  * - schema.inputPlaceholder {?String} - A placeholder value for the input.
  * - schema.inputFloatLabel {Boolean} - Only if placeholder is set. Instructs
  * input control to float a label.
@@ -418,6 +420,7 @@ class ApiViewModelTransformer extends ApiElements.AmfHelperMixin(
       result.schema.format = this._computeVocabularyShapeProperty(schema, 'format');
       result.schema.pattern = this._computeModelPattern(
         result.schema.type, result.schema.pattern, result.schema.format);
+      result.schema.isNillable = result.schema.type === 'union' ? this._computeIsNillable(def) : false;
     }
     if (this.noDocs) {
       result.hasDescription = false;
@@ -497,6 +500,7 @@ class ApiViewModelTransformer extends ApiElements.AmfHelperMixin(
     result.schema.pattern = this._computeModelPattern(
       result.schema.type, result.schema.pattern, result.schema.format);
     result.hasExtendedDescs = this._computeHasExtendedDocumentation(result);
+    result.schema.isNillable = result.schema.type === 'union' ? this._computeIsNillable(result) : false;
 
     if (this.noDocs) {
       result.hasDescription = false;
@@ -1411,6 +1415,28 @@ class ApiViewModelTransformer extends ApiElements.AmfHelperMixin(
       });
     }
     return docs;
+  }
+  /**
+   * Returns `true` only when passed shape has `shapes#anyOf` array and
+   * one of the union properties is of a type od NilShape.
+   * @param {Object} shape Schape test for nillable union.
+   * @return {Boolean}
+   */
+  _computeIsNillable(shape) {
+    if (!shape) {
+      return false;
+    }
+    const key = this._getAmfKey(this.ns.raml.vocabularies.shapes + 'anyOf');
+    const values = this._ensureArray(shape[key]);
+    if (!values) {
+      return false;
+    }
+    for (let i = 0, len = values.length; i < len; i++) {
+      if (this._hasType(values[i], this.ns.raml.vocabularies.shapes + 'NilShape')) {
+        return true;
+      }
+    }
+    return false;
   }
 }
 window.customElements.define(ApiViewModelTransformer.is, ApiViewModelTransformer);

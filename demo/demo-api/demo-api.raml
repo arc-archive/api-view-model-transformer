@@ -495,3 +495,11 @@ documentation:
       x-datetime-format:
         type: datetime
         format: rfc2616
+/nillableUnion:
+  get:
+    headers:
+      nillable:
+        type: integer | nil
+      notUnion: nil
+      notNillable: integer
+      notNillableUnion: integer | string
