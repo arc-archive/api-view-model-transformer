@@ -811,6 +811,87 @@
         assert.equal(result, 'boolean');
       });
     });
+
+    suite('_computeIsNillable()', () => {
+      let element;
+      suiteSetup(() => {
+        element = fixture('basic');
+      });
+
+      test('Returns false when no argument', () => {
+        const result = element._computeIsNillable();
+        assert.isFalse(result);
+      });
+
+      test('Returns false when no anyOf key', () => {
+        const result = element._computeIsNillable({});
+        assert.isFalse(result);
+      });
+    });
+
+    suite('_exampleAsValue()', () => {
+      let element;
+      suiteSetup(() => {
+        element = fixture('basic');
+      });
+
+      test('Returns undefined when no argument', () => {
+        const result = element._exampleAsValue();
+        assert.isUndefined(result);
+      });
+
+      test('Returns the same value when argument is not a string', () => {
+        const result = element._exampleAsValue(123, {});
+        assert.equal(result, 123);
+      });
+
+      test('Trims string argument', () => {
+        const result = element._exampleAsValue(' abc ', {});
+        assert.equal(result, 'abc');
+      });
+
+      test('Removes parameter name from example', () => {
+        const param = 'test: value';
+        const result = element._exampleAsValue(param, {
+          valueDelimiter: ':',
+          name: 'test'
+        });
+        assert.equal(result, 'value');
+      });
+
+      test('Decodes encoded values', () => {
+        const param = 'test%20and+value';
+        const result = element._exampleAsValue(param, {
+          decodeValues: true
+        });
+        assert.equal(result, 'test and value');
+      });
+    });
+
+    suite('__parseArrayExample()', () => {
+      let element;
+      suiteSetup(() => {
+        element = fixture('basic');
+      });
+
+      test('Returns undefined for empty array string', () => {
+        const result = element.__parseArrayExample('[]', {});
+        assert.isUndefined(result);
+      });
+
+      test('Returns array of examples', () => {
+        const result = element.__parseArrayExample('["test-example"]', {});
+        assert.typeOf(result, 'array');
+        assert.lengthOf(result, 1);
+        assert.equal(result[0], 'test-example');
+      });
+
+      test('Returns string when argument is not an array', () => {
+        const result = element.__parseArrayExample('test-example', {});
+        assert.typeOf(result, 'string');
+        assert.equal(result, 'test-example');
+      });
+    });
     </script>
 
   </body>

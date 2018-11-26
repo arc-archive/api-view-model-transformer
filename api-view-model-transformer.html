@@ -1182,7 +1182,7 @@ class ApiViewModelTransformer extends ApiElements.AmfHelperMixin(
     }
     example = example.trim();
     if (opts.valueDelimiter && example.indexOf(opts.name + opts.valueDelimiter) === 0) {
-      example = example.substr(opts.name.length + 1);
+      example = example.substr(opts.name.length + 1).trim();
     }
     if (opts.decodeValues) {
       try {
@@ -1205,11 +1205,15 @@ class ApiViewModelTransformer extends ApiElements.AmfHelperMixin(
     try {
       const arr = JSON.parse(example);
       if (arr instanceof Array) {
-        return arr.map(function(item) {
-          return this._exampleAsValue(item, processOptions);
-        }, this);
+        const result = [];
+        arr.forEach((item) => {
+          const ex = this._exampleAsValue(item, processOptions);
+          if (ex) {
+            result[result.length] = ex;
+          }
+        });
+        return result.length ? result : undefined;
       }
-      return this._exampleAsValue(example, processOptions);
     } catch (e) {}
     return this._exampleAsValue(example, processOptions);
   }
