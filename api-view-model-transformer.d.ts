@@ -56,6 +56,8 @@ declare namespace ApiElements {
    * - schema.isBool {Boolean} - Flag describing boolean value for the property
    * - schema.isFile {Boolean} - Flag describing File value for the property
    * - schema.isObject {Boolean} - Flag describing Object value for the property
+   * - schema.isNillable {Boolean} - True when it is an union and one of union
+   * items is nil.
    * - schema.inputPlaceholder {?String} - A placeholder value for the input.
    * - schema.inputFloatLabel {Boolean} - Only if placeholder is set. Instructs
    * input control to float a label.
@@ -283,12 +285,20 @@ declare namespace ApiElements {
     _computeFormName(model: object|null): String|null|undefined;
 
     /**
-     * Computes rwquired property from AMF model.
+     * Computes `required` property from AMF model.
      *
      * @param model AMF item model
      * @returns True if the property is required.
      */
     _computeRequired(model: object|null): Boolean|null;
+
+    /**
+     * Computes `minCount` property from AMF model for PropertyShape object.
+     *
+     * @param model AMF item model
+     * @returns True if `minCount` equals `1`
+     */
+    _computeRequiredPropertyShape(model: object|null): Boolean|null;
 
     /**
      * Computes type of the model. It's RAML data type property.
@@ -461,38 +471,12 @@ declare namespace ApiElements {
     _computeExtendedDocumentation(item: object|null): String|null;
 
     /**
-     * Creates an example body from a body property of AMF.
-     * This object must be of a type of `http://raml.org/vocabularies/http#Payload`.
+     * Returns `true` only when passed shape has `shapes#anyOf` array and
+     * one of the union properties is of a type od NilShape.
      *
-     * @param body AMF body object
-     * @returns An example body value if possible to compute.
-     * It returns undefined if passed value if not a payload type. It may be empty
-     * string.
+     * @param shape Schape test for nillable union.
      */
-    bodyToExample(body: object|null): String|null|undefined;
-
-    /**
-     * Computes an example JSON display value from AMF model
-     *
-     * @param properties List of AMF Prooperty models
-     * @returns Example
-     */
-    computeAmfDisplayJson(properties: any[]|null): String|null;
-
-    /**
-     * Computes a JSON object to display from view model propertiers
-     *
-     * @returns JSON string value.
-     */
-    computeDisplayJson(properties: Array<object|null>|null): String|null;
-
-    /**
-     * Computes an XML schema to display from view model propertiers
-     *
-     * @returns XML string value.
-     */
-    computeDisplayXml(properties: Array<object|null>|null): String|null;
-    _computeDisplayJsonRecursive(properties: any, result: any): any;
+    _computeIsNillable(shape: object|null): Boolean|null;
   }
 }
 

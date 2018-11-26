@@ -63,7 +63,14 @@ types:
       - A
       - B
       - C
-
+  StrLength:
+    type: string
+    minLength: 10
+    maxLength: 20
+  NumSize:
+    type: integer
+    minimum: 2
+    maximum: 12
 resourceTypes:
   ResourceNotFound:
     get:
@@ -488,3 +495,11 @@ documentation:
       x-datetime-format:
         type: datetime
         format: rfc2616
+/nillableUnion:
+  get:
+    headers:
+      nillable:
+        type: integer | nil
+      notUnion: nil
+      notNillable: integer
+      notNillableUnion: integer | string

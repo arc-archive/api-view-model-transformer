@@ -123,6 +123,8 @@ const NUMBER_INPUT_TYPES = ['number', 'integer', 'float'];
  * - schema.isBool {Boolean} - Flag describing boolean value for the property
  * - schema.isFile {Boolean} - Flag describing File value for the property
  * - schema.isObject {Boolean} - Flag describing Object value for the property
+ * - schema.isNillable {Boolean} - True when it is an union and one of union
+ * items is nil.
  * - schema.inputPlaceholder {?String} - A placeholder value for the input.
  * - schema.inputFloatLabel {Boolean} - Only if placeholder is set. Instructs
  * input control to float a label.
@@ -418,6 +420,7 @@ class ApiViewModelTransformer extends ApiElements.AmfHelperMixin(
       result.schema.format = this._computeVocabularyShapeProperty(schema, 'format');
       result.schema.pattern = this._computeModelPattern(
         result.schema.type, result.schema.pattern, result.schema.format);
+      result.schema.isNillable = result.schema.type === 'union' ? this._computeIsNillable(def) : false;
     }
     if (this.noDocs) {
       result.hasDescription = false;
@@ -450,19 +453,21 @@ class ApiViewModelTransformer extends ApiElements.AmfHelperMixin(
     const result = {};
     result.binding = 'type';
     result.name = this._computeShaclProperty(amfItem, 'name');
-    const rangeKey = this._getAmfKey(this.ns.raml.vocabularies.shapes + 'range');
-    let def = amfItem[rangeKey];
-    if (!def) {
-      return result;
+    let def;
+    if (this._hasType(amfItem, this.ns.raml.vocabularies.shapes + 'ScalarShape')) {
+      def = amfItem;
+    } else {
+      const rangeKey = this._getAmfKey(this.ns.raml.vocabularies.shapes + 'range');
+      def = amfItem[rangeKey];
+      if (!def) {
+        return result;
+      }
+      if (def instanceof Array) {
+        def = def[0];
+      }
+      def = this._resolve(def);
     }
-    if (def instanceof Array) {
-      def = def[0];
-    }
-    def = this._resolve(def);
-    result.required = this._computeRequired(def);
-    if (result.required === undefined) {
-      result.required = false;
-    }
+    result.required = this._computeRequiredPropertyShape(amfItem);
     result.schema = {};
     result.schema.enabled = true;
     result.schema.type = this._computeModelType(def);
@@ -495,6 +500,7 @@ class ApiViewModelTransformer extends ApiElements.AmfHelperMixin(
     result.schema.pattern = this._computeModelPattern(
       result.schema.type, result.schema.pattern, result.schema.format);
     result.hasExtendedDescs = this._computeHasExtendedDocumentation(result);
+    result.schema.isNillable = result.schema.type === 'union' ? this._computeIsNillable(result) : false;
 
     if (this.noDocs) {
       result.hasDescription = false;
@@ -766,13 +772,24 @@ class ApiViewModelTransformer extends ApiElements.AmfHelperMixin(
     return this._getValue(model, key);
   }
   /**
-   * Computes rwquired property from AMF model.
+   * Computes `required` property from AMF model.
    * @param {Object} model AMF item model
    * @return {Boolean} True if the property is required.
    */
   _computeRequired(model) {
     const key = this.ns.w3.hydra.core + 'required';
     return this._getValue(model, key);
+  }
+  /**
+   * Computes `minCount` property from AMF model for PropertyShape object.
+   *
+   * @param {Object} model AMF item model
+   * @return {Boolean} True if `minCount` equals `1`
+   */
+  _computeRequiredPropertyShape(model) {
+    const key = this.ns.w3.shacl.name + 'minCount';
+    const result = this._getValue(model, key);
+    return result === 1;
   }
   /**
    * Computes type of the model. It's RAML data type property.
@@ -1131,9 +1148,7 @@ class ApiViewModelTransformer extends ApiElements.AmfHelperMixin(
       item = item[0];
     }
     const type = this._computeModelType(item);
-    if (!type) {
-      return;
-    }
+    // _computeModelType() always returns a value
     // TODO: add support for objects and unions.
     return type;
   }
@@ -1167,7 +1182,7 @@ class ApiViewModelTransformer extends ApiElements.AmfHelperMixin(
     }
     example = example.trim();
     if (opts.valueDelimiter && example.indexOf(opts.name + opts.valueDelimiter) === 0) {
-      example = example.substr(opts.name.length + 1);
+      example = example.substr(opts.name.length + 1).trim();
     }
     if (opts.decodeValues) {
       try {
@@ -1190,11 +1205,15 @@ class ApiViewModelTransformer extends ApiElements.AmfHelperMixin(
     try {
       const arr = JSON.parse(example);
       if (arr instanceof Array) {
-        return arr.map(function(item) {
-          return this._exampleAsValue(item, processOptions);
-        }, this);
+        const result = [];
+        arr.forEach((item) => {
+          const ex = this._exampleAsValue(item, processOptions);
+          if (ex) {
+            result[result.length] = ex;
+          }
+        });
+        return result.length ? result : undefined;
       }
-      return this._exampleAsValue(example, processOptions);
     } catch (e) {}
     return this._exampleAsValue(example, processOptions);
   }
@@ -1384,7 +1403,9 @@ class ApiViewModelTransformer extends ApiElements.AmfHelperMixin(
       return docs;
     }
     const schema = item.schema;
-    docs += '\n\n\n';
+    if (docs) {
+      docs += '\n\n\n';
+    }
     if (schema.pattern) {
       docs += '- Pattern: `' + schema.pattern + '`\n';
     }
@@ -1400,156 +1421,26 @@ class ApiViewModelTransformer extends ApiElements.AmfHelperMixin(
     return docs;
   }
   /**
-   * Creates an example body from a body property of AMF.
-   * This object must be of a type of `http://raml.org/vocabularies/http#Payload`.
-   *
-   * @param {Object} body AMF body object
-   * @return {String|undefined} An example body value if possible to compute.
-   * It returns undefined if passed value if not a payload type. It may be empty
-   * string.
+   * Returns `true` only when passed shape has `shapes#anyOf` array and
+   * one of the union properties is of a type od NilShape.
+   * @param {Object} shape Schape test for nillable union.
+   * @return {Boolean}
    */
-  bodyToExample(body) {
-    console.warn(`Remove this implementation`);
-    if (!this._hasType(body, this.ns.raml.vocabularies.http + 'Payload')) {
-      return;
+  _computeIsNillable(shape) {
+    if (!shape) {
+      return false;
     }
-    // First lets try an example
-    const sKey = this._getAmfKey(this.ns.raml.vocabularies.http + 'schema');
-    let schema = body[sKey];
-    if (!schema) {
-      // there's nothing we can compute here
-      return '';
+    const key = this._getAmfKey(this.ns.raml.vocabularies.shapes + 'anyOf');
+    const values = this._ensureArray(shape[key]);
+    if (!values) {
+      return false;
     }
-    if (schema instanceof Array) {
-      schema = schema[0];
-    }
-    const examples = this._computeModelExamples(schema);
-    if (examples && examples.length) {
-      return examples[0].value;
-    }
-    const ct = this._getValue(body, this.ns.raml.vocabularies.http + 'mediaType');
-    switch (ct) {
-      case 'application/json':
-        const pKey = this._getAmfKey(this.ns.w3.shacl.name + 'property');
-        return this.computeAmfDisplayJson(schema[pKey]);
-      case 'application/xml':
-        const rKey = this._getAmfKey(this.ns.w3.shacl.name + 'raw');
-        return this._getValue(schema[rKey]) || '';
-      default:
-        return '';
-    }
-  }
-  /**
-   * Computes an example JSON display value from AMF model
-   * @param {Array} properties List of AMF Prooperty models
-   * @return {String} Example
-   */
-  computeAmfDisplayJson(properties) {
-    console.warn(`Remove this implementation`);
-    if (!properties || !properties.length) {
-      return '';
-    }
-    const result = {};
-    properties.forEach((item) => {
-      const model = this.uiModelForAmfItem(item);
-      result[model.name] = model.value || model.schema.type || '';
-    });
-    return JSON.stringify(result, null, 2);
-  }
-
-  /**
-   * Computes a JSON object to display from view model propertiers
-   * @param {Array<Object>} properties
-   * @return {String} JSON string value.
-   */
-  computeDisplayJson(properties) {
-    console.warn(`Remove this implementation`);
-    const result = this._computeDisplayJsonRecursive(properties);
-    return JSON.stringify(result, null, 2);
-  }
-  /**
-   * Computes an XML schema to display from view model propertiers
-   * @param {Array<Object>} properties
-   * @return {String} XML string value.
-   */
-  computeDisplayXml(properties) {
-    let result = '';
-    if (!properties || !properties.length) {
-      return result;
-    }
-    properties.forEach((item) => {
-      const schema = item.schema;
-      result += `<${item.name}>`;
-      let v = schema.defaultValue;
-      if (!v) {
-        switch (true) {
-          case schema.isEnum:
-            v = schema.enum && schema.enum[0];
-            break;
-          case schema.isArray:
-            v = schema.items;
-            break;
-          case schema.isBool:
-            v = 'true';
-            break;
-          case schema.isFile:
-            v = '';
-            break;
-          case schema.isObject:
-            v = this.computeDisplayXml(item.properties);
-            break;
-          default:
-            if (schema.hasExamples) {
-              v = schema.examples[0].value || schema.examples[0];
-            } else {
-              v = schema.type;
-            }
-            break;
-        }
+    for (let i = 0, len = values.length; i < len; i++) {
+      if (this._hasType(values[i], this.ns.raml.vocabularies.shapes + 'NilShape')) {
+        return true;
       }
-      result += v;
-      result += `</${item.name}>\n`;
-    });
-    return result;
-  }
-
-  _computeDisplayJsonRecursive(properties, result) {
-    result = result || {};
-    if (!properties || !properties.length) {
-      return result;
     }
-    properties.forEach((item) => {
-      const schema = item.schema;
-      let v = schema.defaultValue;
-      if (!v) {
-        switch (true) {
-          case schema.isEnum:
-            v = schema.enum && schema.enum[0];
-            break;
-          case schema.isArray:
-            v = schema.items;
-            break;
-          case schema.isBool:
-            v = true;
-            break;
-          case schema.isFile:
-            v = '';
-            break;
-          case schema.isObject:
-            v = this._computeDisplayJsonRecursive(item.properties);
-            break;
-          default:
-            if (schema.hasExamples) {
-              v = schema.examples[0].value || schema.examples[0];
-            } else {
-              v = schema.type;
-            }
-            break;
-        }
-      }
-      result[item.name] = v || '';
-    });
-    return result;
+    return false;
   }
 }
 window.customElements.define(ApiViewModelTransformer.is, ApiViewModelTransformer);
