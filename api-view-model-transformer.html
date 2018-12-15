@@ -521,12 +521,14 @@ class ApiViewModelTransformer extends ApiElements.AmfHelperMixin(
     if (result.schema.isObject) {
       const props = [];
       const pKey = this._getAmfKey(this.ns.w3.shacl.name + 'property');
-      let items = def[pKey];
+      let items = this._ensureArray(def[pKey]);
       if (items) {
-        if (items instanceof Array) {
-          items = items[0];
-        }
-        items.forEach((item) => props.push(this.uiModelForAmfItem(item)));
+        items.forEach((item) => {
+          if (item instanceof Array) {
+            item = item[0];
+          }
+          props.push(this.uiModelForAmfItem(item));
+        });
       }
       result.properties = props;
     }
