@@ -8,6 +8,10 @@
  *   api-view-model-transformer.html
  */
 
+
+// tslint:disable:variable-name Describing an API that's defined elsewhere.
+// tslint:disable:no-any describes the API as best we are able today
+
 /// <reference path="../polymer/types/polymer-element.d.ts" />
 /// <reference path="../events-target-behavior/events-target-behavior.d.ts" />
 /// <reference path="../amf-helper-mixin/amf-helper-mixin.d.ts" />

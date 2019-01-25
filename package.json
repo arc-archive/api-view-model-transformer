@@ -11,7 +11,7 @@
   "private": false,
   "devDependencies": {
     "@api-components/api-model-generator": "0.1.5",
-    "@polymer/gen-typescript-declarations": "1.5.1"
+    "@polymer/gen-typescript-declarations": "1.6.1"
   },
   "scripts": {
     "lint": "polymer lint api-view-model-transformer.html",
