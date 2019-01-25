@@ -520,3 +520,22 @@
 
 
 
+## [2.0.18](https://github.com/advanced-rest-client/api-view-model-tranformer/compare/2.0.8...2.0.18) (2019-01-25)
+
+
+### Fix
+
+* Fixed type computation in compact model ([3f9e4cf8bd7008ca79c2ed094d258e86dc6d8bd0](https://github.com/advanced-rest-client/api-view-model-tranformer/commit/3f9e4cf8bd7008ca79c2ed094d258e86dc6d8bd0))
+* Fixing date/time format patterns and placeholders ([fc20d03971be85e4020991c46831d161a021c492](https://github.com/advanced-rest-client/api-view-model-tranformer/commit/fc20d03971be85e4020991c46831d161a021c492))
+* Fixing default value computation ([bc5606d08556307a6f0dc7844359ed3dce541e7e](https://github.com/advanced-rest-client/api-view-model-tranformer/commit/bc5606d08556307a6f0dc7844359ed3dce541e7e))
+
+### Update
+
+* Adding support for array example values. ([7754528c0900e43a2f98f0b5af0beb5677ab4333](https://github.com/advanced-rest-client/api-view-model-tranformer/commit/7754528c0900e43a2f98f0b5af0beb5677ab4333))
+* Removing old CI files ([09a4c05d53d492feff17721ea4d02dc40c79dfc2](https://github.com/advanced-rest-client/api-view-model-tranformer/commit/09a4c05d53d492feff17721ea4d02dc40c79dfc2))
+* Updating AMF generator and models ([8a040e517e42bfe89af36d6ba4fad81652ad43ec](https://github.com/advanced-rest-client/api-view-model-tranformer/commit/8a040e517e42bfe89af36d6ba4fad81652ad43ec))
+* Updating date pattern ([3640eaab38c3d7b020eeaabf486b76780293370c](https://github.com/advanced-rest-client/api-view-model-tranformer/commit/3640eaab38c3d7b020eeaabf486b76780293370c))
+* Updating docs and typpings ([f48bd32e9aeaaf544a3a2a3e05291750cdca61e3](https://github.com/advanced-rest-client/api-view-model-tranformer/commit/f48bd32e9aeaaf544a3a2a3e05291750cdca61e3))
+
+
+
