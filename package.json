@@ -10,7 +10,7 @@
   "main": "api-view-model-transformer.html",
   "private": false,
   "devDependencies": {
-    "@api-components/api-model-generator": "0.1.5",
+    "@api-components/api-model-generator": "0.1.8",
     "@polymer/gen-typescript-declarations": "1.6.1"
   },
   "scripts": {
