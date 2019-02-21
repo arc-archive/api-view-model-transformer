@@ -5,17 +5,20 @@
  *   https://github.com/Polymer/tools/tree/master/packages/gen-typescript-declarations
  *
  * To modify these typings, edit the source file(s):
- *   api-view-model-transformer.html
+ *   api-view-model-transformer.js
  */
 
 
 // tslint:disable:variable-name Describing an API that's defined elsewhere.
 // tslint:disable:no-any describes the API as best we are able today
 
-/// <reference path="../polymer/types/polymer-element.d.ts" />
-/// <reference path="../events-target-behavior/events-target-behavior.d.ts" />
-/// <reference path="../amf-helper-mixin/amf-helper-mixin.d.ts" />
-/// <reference path="../api-example-generator/api-example-generator.d.ts" />
+import {PolymerElement} from '@polymer/polymer/polymer-element.js';
+
+import {EventsTargetMixin} from '@advanced-rest-client/events-target-mixin/events-target-mixin.js';
+
+import {AmfHelperMixin} from '@api-components/amf-helper-mixin/amf-helper-mixin.js';
+
+export {ApiViewModelTransformer};
 
 declare namespace ApiElements {
 
@@ -104,8 +107,8 @@ declare namespace ApiElements {
    * and `amfContext` property is not set.**
    */
   class ApiViewModelTransformer extends
-    ArcBehaviors.EventsTargetBehavior(
-    ApiElements.AmfHelperMixin(
+    EventsTargetMixin(
+    AmfHelperMixin(
     Object)) {
 
     /**
@@ -484,6 +487,9 @@ declare namespace ApiElements {
   }
 }
 
-interface HTMLElementTagNameMap {
-  "api-view-model-transformer": ApiElements.ApiViewModelTransformer;
+declare global {
+
+  interface HTMLElementTagNameMap {
+    "api-view-model-transformer": ApiElements.ApiViewModelTransformer;
+  }
 }

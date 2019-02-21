@@ -1,10 +1,7 @@
-<link rel="import" href="../polymer/polymer-element.html">
-<link rel="import" href="../events-target-behavior/events-target-behavior.html">
-<link rel="import" href="../amf-helper-mixin/amf-helper-mixin.html">
-<link rel="import" href="../api-example-generator/api-example-generator.html">
-<script>
-(function() {
-'use strict';
+import {PolymerElement} from '@polymer/polymer/polymer-element.js';
+import {EventsTargetMixin} from '@advanced-rest-client/events-target-mixin/events-target-mixin.js';
+import {AmfHelperMixin} from '@api-components/amf-helper-mixin/amf-helper-mixin.js';
+import '@api-components/api-example-generator/api-example-generator.js';
 const GLOBAL_PATH_PARAMS = [];
 const GLOBAL_QUERY_PARAMS = [];
 const GLOBAL_OTHER_PARAMS = [];
@@ -168,11 +165,10 @@ const NUMBER_INPUT_TYPES = ['number', 'integer', 'float'];
  *
  * @customElement
  * @memberof ApiElements
- * @appliesMixin ArcBehaviors.EventsTargetBehavior
- * @appliesMixin ApiElements.AmfHelperMixin
+ * @appliesMixin EventsTargetMixin
+ * @appliesMixin AmfHelperMixin
  */
-class ApiViewModelTransformer extends ApiElements.AmfHelperMixin(
-  ArcBehaviors.EventsTargetBehavior(Polymer.Element)) {
+export class ApiViewModelTransformer extends AmfHelperMixin(EventsTargetMixin(PolymerElement)) {
   static get is() {
     return 'api-view-model-transformer';
   }
@@ -749,7 +745,7 @@ class ApiViewModelTransformer extends ApiElements.AmfHelperMixin(
         result.push({
           name: name,
           value: value,
-          hasName: !!name
+          hasTitle: !!name
         });
       }
     });
@@ -1095,39 +1091,9 @@ class ApiViewModelTransformer extends ApiElements.AmfHelperMixin(
    * defined.
    */
   _computeModelExamples(model) {
-    model = this._resolve(model);
-    const key = this._getAmfKey(this.ns.raml.vocabularies.document + 'examples');
-    let def = this._ensureArray(model[key]);
-    if (!def) {
-      return;
-    }
-    const result = [];
-    for (let i = 0, len = def.length; i < len; i++) {
-      const item = def[i];
-      const name = this._getValue(item, this.ns.schema.schemaName);
-      let value = this._getExampleValue(item, true);
-      if (!name && !value) {
-        continue;
-      }
-      try {
-        JSON.parse(value);
-        if (value[value.length - 1] === '"' && value[0] === '"') {
-          value = value.substr(1, value.length - 2);
-        }
-      } catch (_) {
-        try {
-          const gen = this._exampleGenerator;
-          gen.amfModel = this.amfModel;
-          value = gen.computeExample('application/json', item, {});
-        } catch (_) {}
-      }
-      result.push({
-        name: name,
-        value: value,
-        hasName: !!name
-      });
-    }
-    return result;
+    const gen = this._exampleGenerator;
+    gen.amfModel = this.amfModel;
+    return gen.computeExamples(model, 'application/json', {});
   }
   /**
    * Computes `items` property for AMF array property
@@ -1414,7 +1380,7 @@ class ApiViewModelTransformer extends ApiElements.AmfHelperMixin(
     if (schema.examples && schema.examples.length) {
       schema.examples.forEach((item) => {
         docs += '- Example';
-        if (item.hasName) {
+        if (item.hasTitle) {
           docs += ' ' + item.name;
         }
         docs += ': `' + item.value + '`\n';
@@ -1446,5 +1412,3 @@ class ApiViewModelTransformer extends ApiElements.AmfHelperMixin(
   }
 }
 window.customElements.define(ApiViewModelTransformer.is, ApiViewModelTransformer);
-})();
-</script>

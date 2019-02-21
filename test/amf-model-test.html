@@ -3,12 +3,15 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1.0, user-scalable=yes">
-    <script src="../../webcomponentsjs/webcomponents-loader.js"></script>
-    <script src="../../web-component-tester/browser.js"></script>
-    <!-- Polyfills for IE11 <\3 -->
-    <link rel="import" href="../../arc-polyfills/arc-polyfills.html">
-    <link rel="import" href="../api-view-model-transformer.html">
-    <script src="amf-loader.js"></script>
+
+    <script src="../node_modules/@webcomponents/webcomponentsjs/webcomponents-loader.js"></script>
+    <script src="../node_modules/@polymer/test-fixture/test-fixture.js"></script>
+    <script src="../node_modules/mocha/mocha.js"></script>
+    <script src="../node_modules/chai/chai.js"></script>
+    <script src="../node_modules/wct-mocha/wct-mocha.js"></script>
+
+    <script type="module" src="../api-view-model-transformer.js"></script>
+    <script src="./amf-loader.js"></script>
   </head>
   <body>
     <test-fixture id="Basic">
@@ -22,11 +25,10 @@
         <api-view-model-transformer manual-model></api-view-model-transformer>
       </template>
     </test-fixture>
-    <script>
+    <script type="module">
+    import {ns} from '@api-components/amf-helper-mixin/amf-helper-mixin.js';
     /* global AmfLoader */
-
     function computeHeaders(element, amf, endpointIndex) {
-      const ns = ApiElements.Amf.ns;
       const webApi = element._computeWebApi(amf);
       const endpoints = element._computeEndpoints(webApi);
       const endpoint = endpoints[endpointIndex];
@@ -87,7 +89,7 @@
               assert.typeOf(schema.examples, 'array', 'Examples are set');
               assert.lengthOf(schema.examples, 1, 'Examples has 1 item');
               const example = schema.examples[0];
-              assert.isFalse(example.hasName, 'example.hasName is false');
+              assert.isFalse(example.hasTitle, 'example.hasTitle is false');
               assert.isUndefined(example.name, 'example.name is undefined');
               assert.equal(example.value, '123456-acme.client.com', 'example.value is set');
               assert.equal(schema.inputPlaceholder, 'Example: 123456-acme.client.com', 'inputPlaceholder is set');
@@ -126,10 +128,12 @@
               assert.typeOf(schema.examples, 'array', 'Examples are set');
               assert.lengthOf(schema.examples, 1, 'Examples has 1 item');
               const example = schema.examples[0];
-              assert.isFalse(example.hasName, 'example.hasName is false');
+              assert.isFalse(example.hasTitle, 'example.hasTitle is false');
               assert.isUndefined(example.name, 'example.name is undefined');
               assert.equal(example.value, '9719fa6f-c666-48e0-a191-290890760b30', 'example.value is set');
-              assert.equal(schema.inputPlaceholder, 'Example: 9719fa6f-c666-48e0-a191-290890760b30', 'inputPlaceholder is set');
+              assert.equal(schema.inputPlaceholder,
+                'Example: 9719fa6f-c666-48e0-a191-290890760b30',
+                'inputPlaceholder is set');
               // When placeholder is set
               assert.isTrue(schema.inputFloatLabel, 'inputFloatLabel is true');
               assert.equal(schema.inputLabel, 'x-people-op-id*', 'inputLabel is set and required');
@@ -144,7 +148,9 @@
               assert.isUndefined(schema.minLength, 'minLength is undefined');
               assert.isUndefined(schema.minimum, 'minimum is undefined');
               assert.isUndefined(schema.multipleOf, 'multipleOf is undefined');
-              assert.equal(schema.pattern, '^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[4][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$', 'pattern is set');
+              assert.equal(schema.pattern,
+                '^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[4][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$',
+                'pattern is set');
               assert.equal(schema.type, 'string', 'type is set');
             });
 
@@ -221,7 +227,6 @@
               element = fixture('Basic');
               element.clearCache();
               element.amfModel = amf;
-              const ns = ApiElements.Amf.ns;
               const webApi = element._computeWebApi(amf);
               const endpoints = element._computeEndpoints(webApi);
               const endpoint = endpoints[0];
@@ -242,7 +247,7 @@
               assert.lengthOf(result, 3);
             });
 
-            test('Has computed data for #1', () => {
+            test.only('Has computed data for #1', () => {
               const result = element.computeViewModel(model.slice(0, 1));
               const item = result[0];
               assert.equal(item.binding, 'query', 'Binding is set');
@@ -260,7 +265,7 @@
               assert.typeOf(schema.examples, 'array', 'Examples are set');
               assert.lengthOf(schema.examples, 1, 'Examples has 1 item');
               const example = schema.examples[0];
-              assert.isFalse(example.hasName, 'example.hasName is false');
+              assert.isFalse(example.hasTitle, 'example.hasTitle is false');
               assert.isUndefined(example.name, 'example.name is undefined');
               assert.equal(example.value, '[\n  "value1",\n  "value2"\n]', 'example.value is set');
               assert.equal(schema.inputPlaceholder, 'Example: [\n  "value1",\n  "value2"\n]', 'inputPlaceholder is set');
@@ -301,12 +306,12 @@
               assert.lengthOf(schema.examples, 2, 'Examples has 2 items');
 
               const example1 = schema.examples[0];
-              assert.isTrue(example1.hasName, 'example.hasName is true');
+              assert.isTrue(example1.hasTitle, 'example.hasTitle is true');
               assert.equal(example1.name, 'Some-test-example', 'example.name is undefined');
               assert.equal(example1.value, '[123, 456]', 'example.value is set'); // <----- THIS IS WRONG!
 
               const example2 = schema.examples[1];
-              assert.isTrue(example2.hasName, 'example2.hasName is true');
+              assert.isTrue(example2.hasTitle, 'example2.hasTitle is true');
               assert.equal(example2.name, 'Other-example', 'example2.name is undefined');
               assert.equal(example2.value, '[1011, 1213]', 'example2.value is set'); // <----- THIS IS WRONG!
 
@@ -373,7 +378,6 @@
               element = fixture('Basic');
               element.clearCache();
               element.amfModel = amf;
-              const ns = ApiElements.Amf.ns;
               const webApi = element._computeWebApi(amf);
               const endpoints = element._computeEndpoints(webApi);
               const endpoint = endpoints[2];
@@ -447,7 +451,6 @@
               element = fixture('Basic');
               element.clearCache();
               element.amfModel = amf;
-              const ns = ApiElements.Amf.ns;
               const webApi = element._computeWebApi(amf);
               const endpoints = element._computeEndpoints(webApi);
               const endpoint = endpoints[0];
@@ -739,10 +742,10 @@
           if (dec instanceof Array) {
             dec = dec[0];
           }
-          if (element._hasType(dec, ApiElements.Amf.ns.raml.vocabularies.shapes + 'ScalarShape')) {
+          if (element._hasType(dec, ns.raml.vocabularies.shapes + 'ScalarShape')) {
             return dec;
           }
-          const key = element._getAmfKey(ApiElements.Amf.ns.w3.shacl.name + 'property');
+          const key = element._getAmfKey(ns.w3.shacl.name + 'property');
           return element._ensureArray(dec[key]);
         }
 
@@ -815,7 +818,7 @@
 
           test('Has name and binding only when no range', () => {
             const model = Object.assign({}, computePropertyShape(element, amf, 3)[0]);
-            const key = element._getAmfKey(ApiElements.Amf.ns.raml.vocabularies.shapes + 'range');
+            const key = element._getAmfKey(ns.raml.vocabularies.shapes + 'range');
             delete model[key];
             const result = element._uiModelForPropertyShape(model);
             assert.typeOf(result.name, 'string');

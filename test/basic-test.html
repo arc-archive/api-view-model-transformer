@@ -3,11 +3,14 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1.0, user-scalable=yes">
-    <script src="../../webcomponentsjs/webcomponents-loader.js"></script>
-    <script src="../../web-component-tester/browser.js"></script>
-    <!-- Polyfills for IE11 <\3 -->
-    <link rel="import" href="../../arc-polyfills/arc-polyfills.html">
-    <link rel="import" href="../api-view-model-transformer.html">
+
+    <script src="../node_modules/@webcomponents/webcomponentsjs/webcomponents-loader.js"></script>
+    <script src="../node_modules/@polymer/test-fixture/test-fixture.js"></script>
+    <script src="../node_modules/mocha/mocha.js"></script>
+    <script src="../node_modules/chai/chai.js"></script>
+    <script src="../node_modules/wct-mocha/wct-mocha.js"></script>
+
+    <script type="module" src="../api-view-model-transformer.js"></script>
   </head>
   <body>
     <test-fixture id="basic">
@@ -22,7 +25,7 @@
       </template>
     </test-fixture>
 
-    <script>
+    <script type="module">
     suite('Basic tests', () => {
       let element;
       test('manualModel is undefined by default', () => {
@@ -747,7 +750,7 @@
         const result = element._computeExtendedDocumentation({
           schema: {
             examples: [{
-              hasName: true,
+              hasTitle: true,
               name: 'test-name',
               value: 'test-example'
             }]
@@ -893,6 +896,5 @@
       });
     });
     </script>
-
   </body>
 </html>
