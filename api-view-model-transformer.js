@@ -1,7 +1,7 @@
-import {PolymerElement} from '@polymer/polymer/polymer-element.js';
-import {EventsTargetMixin} from '@advanced-rest-client/events-target-mixin/events-target-mixin.js';
-import {AmfHelperMixin} from '@api-components/amf-helper-mixin/amf-helper-mixin.js';
-import '@api-components/api-example-generator/api-example-generator.js';
+import {PolymerElement} from '../../@polymer/polymer/polymer-element.js';
+import {EventsTargetMixin} from '../../@advanced-rest-client/events-target-mixin/events-target-mixin.js';
+import {AmfHelperMixin} from '../../@api-components/amf-helper-mixin/amf-helper-mixin.js';
+import '../../@api-components/api-example-generator/api-example-generator.js';
 const GLOBAL_PATH_PARAMS = [];
 const GLOBAL_QUERY_PARAMS = [];
 const GLOBAL_OTHER_PARAMS = [];
