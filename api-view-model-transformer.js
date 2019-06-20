@@ -1,7 +1,8 @@
-import {PolymerElement} from '../../@polymer/polymer/polymer-element.js';
-import {EventsTargetMixin} from '../../@advanced-rest-client/events-target-mixin/events-target-mixin.js';
-import {AmfHelperMixin} from '../../@api-components/amf-helper-mixin/amf-helper-mixin.js';
-import '../../@api-components/api-example-generator/api-example-generator.js';
+import { LitElement } from 'lit-element';
+import { AmfHelperMixin } from '@api-components/amf-helper-mixin/amf-helper-mixin.js';
+import { EventsTargetMixin } from '@advanced-rest-client/events-target-mixin/events-target-mixin.js';
+import '@api-components/api-example-generator/api-example-generator.js';
+
 const GLOBAL_PATH_PARAMS = [];
 const GLOBAL_QUERY_PARAMS = [];
 const GLOBAL_OTHER_PARAMS = [];
@@ -138,12 +139,12 @@ const NUMBER_INPUT_TYPES = ['number', 'integer', 'float'];
  * <script>
  * const amfModel = getAmfFromRamlOrOas();
  * const processor = document.querySelector('api-view-model-transformer');
- * processor.amfModel = amfModel;
+ * processor.amf = amfModel;
  * processor.shape = extractHeadersForMethod(amfModel);
  * processor.addEventListener('view-model-changed', (e) => {
  *  console.log(e.detail.value);
  * });
- * < /script>
+ * </script>
  * ```
  *
  * This example uses `getAmfFromRamlOrOas()` function where you implement
@@ -152,39 +153,14 @@ const NUMBER_INPUT_TYPES = ['number', 'integer', 'float'];
  * extract properties that you want to transform. It can be headers, query
  * parameters or body type.
  *
- * ## JSON ld context
- *
- * JSON schema may contain `@context` property. It can be used to reduce size
- * of the schema by replacing namespace ids with defined in `@context` keywords.
- * This transformer does not consume whole AMF model, but only the portion that
- * should be transformed. Because of that the tranformer is missing context
- * for namespace resolving. Set `@context` value of the model to `amfContext`
- * property so it can be expanded to the canonical form.
- * **Tranformation won't work properly if namespace name are altered by context
- * and `amfContext` property is not set.**
- *
  * @customElement
  * @memberof ApiElements
  * @appliesMixin EventsTargetMixin
  * @appliesMixin AmfHelperMixin
  */
-export class ApiViewModelTransformer extends AmfHelperMixin(EventsTargetMixin(PolymerElement)) {
-  static get is() {
-    return 'api-view-model-transformer';
-  }
+export class ApiViewModelTransformer extends AmfHelperMixin(EventsTargetMixin(LitElement)) {
   static get properties() {
     return {
-      /**
-       * Generated AMF json/ld model form the API spec.
-       * The element assumes the object of the first array item to be a
-       * type of `"http://raml.org/vocabularies/document#Document`
-       * on AMF vocabulary.
-       *
-       * It is only used to resolve references.
-       *
-       * @type {Object|Array}
-       */
-      amfModel: Object,
       /**
        * An array of propertues for which view model is to be generated.
        * It accepts model for headers, query parameters, uri parameters and
@@ -193,25 +169,18 @@ export class ApiViewModelTransformer extends AmfHelperMixin(EventsTargetMixin(Po
        * trigger model computation. Otherwise call `computeViewModel()`
        * function manually to generate the model.
        */
-      shape: {
-        type: Array,
-        observer: '_shapeChanged'
-      },
+      shape: { type: Array },
       /**
        * Generated view model from the `shape`
        *
        * @type {Array<Object>}
        */
-      viewModel: {
-        type: Array,
-        notify: true,
-        readOnly: true
-      },
+      viewModel: { type: Array },
       /**
        * If set, assigning a value to `shape` will not trigger view model
        * computation.
        */
-      manualModel: Boolean,
+      manualModel: { type: Boolean },
       /**
        * The declarations model computed from the AMF object. It is used when the
        * transformer attempt to transform link value.
@@ -219,17 +188,59 @@ export class ApiViewModelTransformer extends AmfHelperMixin(EventsTargetMixin(Po
        * If this property is not set then it dispatches `amf-resolve-link`
        * custom event.
        */
-      _references: {
-        type: Array,
-        computed: '_computeReferences(amfModel)'
-      },
+      _references: { type: Array },
       /**
        * Makes the model to always have `hasDescription` to false and
        * clears and documentation from ther model.
        */
-      noDocs: Boolean
+      noDocs: { type: Boolean }
     };
   }
+
+  get amf() {
+    return this._amf;
+  }
+
+  set amf(value) {
+    const old = this._amf;
+    if (value === old) {
+      return;
+    }
+    this._amf = value;
+    this._references = this._computeReferences(value);
+  }
+
+  get shape() {
+    return this._shape;
+  }
+
+  set shape(value) {
+    const old = this._shape;
+    if (value === old) {
+      return;
+    }
+    this._shape = value;
+    this._shapeChanged(value);
+  }
+
+  get viewModel() {
+    return this._viewModel;
+  }
+
+  set viewModel(value) {
+    const old = this._viewModel;
+    if (value === old) {
+      return;
+    }
+    this._viewModel = value;
+    this.dispatchEvent(new CustomEvent('view-model-changed', {
+      composed: true,
+      detail: {
+        value
+      }
+    }));
+  }
+
   /**
    * @return {Element} Instance of `api-example-generator` element.
    */
@@ -279,7 +290,7 @@ export class ApiViewModelTransformer extends AmfHelperMixin(EventsTargetMixin(Po
    * Note, this function won't be called when sub property of the model
    * change. For peformance rerasons it won't be supported.
    *
-   * Note, `computeViewModel` is called asynchronusly so `amfContext`
+   * Note, `computeViewModel` is called asynchronusly so `amf`
    * property can be set.
    *
    * @param {Array} shape Model for shape
@@ -299,7 +310,7 @@ export class ApiViewModelTransformer extends AmfHelperMixin(EventsTargetMixin(Po
    * @return {Array<Object>} A promise resolved to generated model.
    */
   computeViewModel(shape) {
-    this._setViewModel(undefined);
+    this.viewModel = undefined;
     if (!shape) {
       shape = this.shape;
     }
@@ -310,7 +321,7 @@ export class ApiViewModelTransformer extends AmfHelperMixin(EventsTargetMixin(Po
       shape = Array.from(shape);
     }
     const result = this._computeViewModel(shape);
-    this._setViewModel(result);
+    this.viewModel = result;
     return result;
   }
   /**
@@ -686,9 +697,14 @@ export class ApiViewModelTransformer extends AmfHelperMixin(EventsTargetMixin(Po
       if (examples && examples.length) {
         item.value = this._exampleAsValue(examples[0].value, processOptions);
       }
-      if (typeof item.value === 'undefined' && item.schema.isEnum) {
+      if ((typeof item.value === 'undefined' || item.value === '') && item.schema.isEnum) {
         item.value = this._exampleAsValue(item.schema.enum[0], processOptions);
       }
+    }
+
+    if (item.schema.isEnum && item.schema.examples && item.schema.examples.length === 1 &&
+      !item.schema.examples[0].value) {
+      delete item.schema.examples;
     }
 
     if (item.value && item.schema.isArray && typeof item.value === 'string') {
@@ -1092,7 +1108,7 @@ export class ApiViewModelTransformer extends AmfHelperMixin(EventsTargetMixin(Po
    */
   _computeModelExamples(model) {
     const gen = this._exampleGenerator;
-    gen.amfModel = this.amfModel;
+    gen.amf = this.amf;
     return gen.computeExamples(model, 'application/json', {});
   }
   /**
@@ -1411,4 +1427,4 @@ export class ApiViewModelTransformer extends AmfHelperMixin(EventsTargetMixin(Po
     return false;
   }
 }
-window.customElements.define(ApiViewModelTransformer.is, ApiViewModelTransformer);
+window.customElements.define('api-view-model-transformer', ApiViewModelTransformer);

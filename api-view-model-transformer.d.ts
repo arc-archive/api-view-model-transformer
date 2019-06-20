@@ -12,11 +12,11 @@
 // tslint:disable:variable-name Describing an API that's defined elsewhere.
 // tslint:disable:no-any describes the API as best we are able today
 
-import {PolymerElement} from '@polymer/polymer/polymer-element.js';
-
-import {EventsTargetMixin} from '@advanced-rest-client/events-target-mixin/events-target-mixin.js';
+import {LitElement} from 'lit-element';
 
 import {AmfHelperMixin} from '@api-components/amf-helper-mixin/amf-helper-mixin.js';
+
+import {EventsTargetMixin} from '@advanced-rest-client/events-target-mixin/events-target-mixin.js';
 
 export {ApiViewModelTransformer};
 
@@ -81,12 +81,12 @@ declare namespace ApiElements {
    * <script>
    * const amfModel = getAmfFromRamlOrOas();
    * const processor = document.querySelector('api-view-model-transformer');
-   * processor.amfModel = amfModel;
+   * processor.amf = amfModel;
    * processor.shape = extractHeadersForMethod(amfModel);
    * processor.addEventListener('view-model-changed', (e) => {
    *  console.log(e.detail.value);
    * });
-   * < /script>
+   * </script>
    * ```
    *
    * This example uses `getAmfFromRamlOrOas()` function where you implement
@@ -94,33 +94,12 @@ declare namespace ApiElements {
    * using AMF parsers. The `extractHeadersForMethod()` represents a logic to
    * extract properties that you want to transform. It can be headers, query
    * parameters or body type.
-   *
-   * ## JSON ld context
-   *
-   * JSON schema may contain `@context` property. It can be used to reduce size
-   * of the schema by replacing namespace ids with defined in `@context` keywords.
-   * This transformer does not consume whole AMF model, but only the portion that
-   * should be transformed. Because of that the tranformer is missing context
-   * for namespace resolving. Set `@context` value of the model to `amfContext`
-   * property so it can be expanded to the canonical form.
-   * **Tranformation won't work properly if namespace name are altered by context
-   * and `amfContext` property is not set.**
    */
   class ApiViewModelTransformer extends
     EventsTargetMixin(
     AmfHelperMixin(
     Object)) {
-
-    /**
-     * Generated AMF json/ld model form the API spec.
-     * The element assumes the object of the first array item to be a
-     * type of `"http://raml.org/vocabularies/document#Document`
-     * on AMF vocabulary.
-     *
-     * It is only used to resolve references.
-     */
-    amfModel: object|any[]|null;
-    readonly _exampleGenerator: Element|null;
+    amf: any;
 
     /**
      * An array of propertues for which view model is to be generated.
@@ -135,7 +114,8 @@ declare namespace ApiElements {
     /**
      * Generated view model from the `shape`
      */
-    readonly viewModel: Array<object|null>|null;
+    viewModel: Array<object|null>|null;
+    readonly _exampleGenerator: Element|null;
 
     /**
      * If set, assigning a value to `shape` will not trigger view model
@@ -150,16 +130,16 @@ declare namespace ApiElements {
      * If this property is not set then it dispatches `amf-resolve-link`
      * custom event.
      */
-    readonly _references: any[]|null|undefined;
+    _references: any[]|null|undefined;
 
     /**
      * Makes the model to always have `hasDescription` to false and
      * clears and documentation from ther model.
      */
     noDocs: boolean|null|undefined;
-    disconnectedCallback(): void;
     _attachListeners(node: any): void;
     _detachListeners(node: any): void;
+    disconnectedCallback(): void;
 
     /**
      * Clears cache for computed models.
@@ -178,7 +158,7 @@ declare namespace ApiElements {
      * Note, this function won't be called when sub property of the model
      * change. For peformance rerasons it won't be supported.
      *
-     * Note, `computeViewModel` is called asynchronusly so `amfContext`
+     * Note, `computeViewModel` is called asynchronusly so `amf`
      * property can be set.
      *
      * @param shape Model for shape
