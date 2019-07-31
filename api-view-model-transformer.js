@@ -3,6 +3,8 @@ import { AmfHelperMixin } from '@api-components/amf-helper-mixin/amf-helper-mixi
 import { EventsTargetMixin } from '@advanced-rest-client/events-target-mixin/events-target-mixin.js';
 import '@api-components/api-example-generator/api-example-generator.js';
 
+function noop() {}
+
 const GLOBAL_PATH_PARAMS = [];
 const GLOBAL_QUERY_PARAMS = [];
 const GLOBAL_OTHER_PARAMS = [];
@@ -265,7 +267,9 @@ export class ApiViewModelTransformer extends AmfHelperMixin(EventsTargetMixin(Li
   }
 
   disconnectedCallback() {
-    super.disconnectedCallback();
+    if (super.disconnectedCallback) {
+      super.disconnectedCallback();
+    }
     if (this.__exampleGenerator) {
       delete this.__exampleGenerator;
     }
@@ -349,8 +353,6 @@ export class ApiViewModelTransformer extends AmfHelperMixin(EventsTargetMixin(Li
         const model = this.uiModelForAmfItem(item);
         if (model) {
           result.push(model);
-        } else {
-          console.warn('Unable to compute view data model for', item);
         }
       }
     } else {
@@ -1125,7 +1127,6 @@ export class ApiViewModelTransformer extends AmfHelperMixin(EventsTargetMixin(Li
     const itKeys = this._getAmfKey(this.ns.raml.vocabularies.shapes + 'items');
     let item = model[itKeys];
     if (!item) {
-      console.warn('Expected #items declaration');
       return;
     }
     if (item instanceof Array) {
@@ -1171,7 +1172,9 @@ export class ApiViewModelTransformer extends AmfHelperMixin(EventsTargetMixin(Li
     if (opts.decodeValues) {
       try {
         example = decodeURIComponent(example.replace(/\+/g, ' '));
-      } catch (e) {}
+      } catch (e) {
+        noop();
+      }
     }
     return example;
   }
@@ -1198,7 +1201,9 @@ export class ApiViewModelTransformer extends AmfHelperMixin(EventsTargetMixin(Li
         });
         return result.length ? result : undefined;
       }
-    } catch (e) {}
+    } catch (e) {
+      noop();
+    }
     return this._exampleAsValue(example, processOptions);
   }
 
