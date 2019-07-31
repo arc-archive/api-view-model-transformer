@@ -499,7 +499,7 @@ describe('<api-view-model-transformer>', function() {
         it('Has pattern for "time" type', () => {
           const result = element.computeViewModel(model);
           const item = result[1];
-          assert.equal(item.schema.pattern, '^[0-9]{2}:[0-9]{2}:[0-9]{2}\.?[0-9]{0,3}$');
+          assert.equal(item.schema.pattern, '^[0-9]{2}:[0-9]{2}:[0-9]{2}\\.?[0-9]{0,3}$');
         });
 
         it('Format for "time" type is undefined', () => {
@@ -535,7 +535,7 @@ describe('<api-view-model-transformer>', function() {
         it('Has pattern for "datetime-only" type', () => {
           const result = element.computeViewModel(model);
           const item = result[2];
-          assert.equal(item.schema.pattern, '^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}\.?[0-9]{0,3}$');
+          assert.equal(item.schema.pattern, '^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}\\.?[0-9]{0,3}$');
         });
 
         it('Format for "datetime-only" type is undefined', () => {

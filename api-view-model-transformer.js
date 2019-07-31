@@ -530,7 +530,7 @@ export class ApiViewModelTransformer extends AmfHelperMixin(EventsTargetMixin(Li
     if (result.schema.isObject) {
       const props = [];
       const pKey = this._getAmfKey(this.ns.w3.shacl.name + 'property');
-      let items = this._ensureArray(def[pKey]);
+      const items = this._ensureArray(def[pKey]);
       if (items) {
         items.forEach((item) => {
           if (item instanceof Array) {
@@ -961,7 +961,7 @@ export class ApiViewModelTransformer extends AmfHelperMixin(EventsTargetMixin(Li
 
   _computeRawArrayValue(item) {
     const key = this._getAmfKey('http://www.w3.org/1999/02/22-rdf-syntax-ns#member');
-    let values = this._ensureArray(item[key]);
+    const values = this._ensureArray(item[key]);
     if (!values) {
       return;
     }
@@ -1255,13 +1255,13 @@ export class ApiViewModelTransformer extends AmfHelperMixin(EventsTargetMixin(Li
     if (!pattern) {
       switch (modelType) {
         case 'time':
-          pattern = '^[0-9]{2}:[0-9]{2}:[0-9]{2}\.?[0-9]{0,3}$';
+          pattern = '^[0-9]{2}:[0-9]{2}:[0-9]{2}\\.?[0-9]{0,3}$';
           break;
         case 'date':
           pattern = '^[0-9]{4}-[0-9]{2}-[0-9]{2}$';
           break;
         case 'datetime-only':
-          pattern = '^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}\.?[0-9]{0,3}$';
+          pattern = '^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}\\.?[0-9]{0,3}$';
           break;
         case 'datetime':
           if (format === 'rfc2616') {

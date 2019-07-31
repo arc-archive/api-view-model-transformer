@@ -243,7 +243,7 @@ describe('<api-view-model-transformer>', function() {
 
   describe('_computeModelType() - ScalarShape', () => {
     let element;
-    let shape = {
+    const shape = {
       '@type': ['http://a.ml/vocabularies/shapes#ScalarShape'],
       'http://www.w3.org/ns/shacl#datatype': [{
         '@id': ''
@@ -448,7 +448,7 @@ describe('<api-view-model-transformer>', function() {
 
     it('Returns pattern for time type', () => {
       const result = element._computeModelPattern('time');
-      assert.equal(result, '^[0-9]{2}:[0-9]{2}:[0-9]{2}\.?[0-9]{0,3}$');
+      assert.equal(result, '^[0-9]{2}:[0-9]{2}:[0-9]{2}\\.?[0-9]{0,3}$');
     });
 
     it('time pattern matches "partial-time" notation of RFC3339', () => {
@@ -477,7 +477,7 @@ describe('<api-view-model-transformer>', function() {
 
     it('Returns pattern for datetime-only type', () => {
       const result = element._computeModelPattern('datetime-only');
-      assert.equal(result, '^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}\.?[0-9]{0,3}$');
+      assert.equal(result, '^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}\\.?[0-9]{0,3}$');
     });
 
     it('datetime-only pattern matches "full-date" and "partial-time" notation of RFC3339', () => {
