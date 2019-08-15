@@ -568,3 +568,14 @@
 
 
 
+## [3.0.1](https://github.com/advanced-rest-client/api-view-model-tranformer/compare/2.0.8...3.0.1) (2019-08-15)
+
+
+### Bug Fixes
+
+* fixing date time pattern ([b0886d2](https://github.com/advanced-rest-client/api-view-model-tranformer/commit/b0886d2))
+* fixing misspell in the docs ([da9f76f](https://github.com/advanced-rest-client/api-view-model-tranformer/commit/da9f76f))
+* fixing npm audit errors by upgrading to last ARC standard ([54394fe](https://github.com/advanced-rest-client/api-view-model-tranformer/commit/54394fe))
+
+
+
