@@ -1,10 +1,10 @@
-[![Published on NPM](https://img.shields.io/npm/v/@api-components/api-view-model-tranformer.svg)](https://www.npmjs.com/package/@api-components/api-view-model-tranformer)
+[![Published on NPM](https://img.shields.io/npm/v/@api-components/api-view-model-transformer.svg)](https://www.npmjs.com/package/@api-components/api-view-model-transformer)
 
 [![Build Status](https://travis-ci.org/advanced-rest-client/api-view-model-transformer.svg?branch=stage)](https://travis-ci.org/advanced-rest-client/api-view-model-transformer)
 
-[![Published on webcomponents.org](https://img.shields.io/badge/webcomponents.org-published-blue.svg)](https://www.webcomponents.org/element/advanced-rest-client/api-view-model-tranformer)
+[![Published on webcomponents.org](https://img.shields.io/badge/webcomponents.org-published-blue.svg)](https://www.webcomponents.org/element/advanced-rest-client/api-view-model-transformer)
 
-# api-view-model-tranformer
+# api-view-model-transformer
 
 An element to transform AMF's ld=json model into a form view model.
 
@@ -79,14 +79,14 @@ This components is a part of [API components ecosystem](https://elements.advance
 ### Installation
 
 ```sh
-npm install --save @api-components/api-view-model-tranformer
+npm install --save @api-components/api-view-model-transformer
 ```
 
 ### Development
 
 ```sh
-git clone https://github.com/advanced-rest-client/api-view-model-tranformer
-cd api-view-model-tranformer
+git clone https://github.com/advanced-rest-client/api-view-model-transformer
+cd api-view-model-transformer
 npm install
 ```
 
