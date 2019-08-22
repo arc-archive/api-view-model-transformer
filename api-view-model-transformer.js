@@ -338,7 +338,7 @@ export class ApiViewModelTransformer extends AmfHelperMixin(EventsTargetMixin(Li
    * @return {Array<Object>} Promise resolved to the view model.
    */
   _computeViewModel(items) {
-    const result = [];
+    let result = [];
     if (!items) {
       return result;
     }
@@ -361,6 +361,13 @@ export class ApiViewModelTransformer extends AmfHelperMixin(EventsTargetMixin(Li
         if (data) {
           result[result.length] = data;
         }
+      } else if (this._hasType(items, this.ns.w3.shacl.name + 'NodeShape')) {
+        result = this._processNodeSchape(items);
+      } else if (this._hasType(items, this.ns.raml.vocabularies.shapes + 'ScalarShape')) {
+        const data = this._uiModelForPropertyShape(items);
+        if (data) {
+          result[result.length] = data;
+        }
       }
     }
     return result;
@@ -378,6 +385,30 @@ export class ApiViewModelTransformer extends AmfHelperMixin(EventsTargetMixin(Li
     if (this._hasType(amfItem, this.ns.w3.shacl.name + 'PropertyShape')) {
       return this._uiModelForPropertyShape(amfItem);
     }
+  }
+  /**
+   * Creates a model for a shacl's PropertyShape. It can be found, for example,
+   * in `queryString` of security scheme settings.
+   *
+   * @param {Object} shape The shape to process
+   * @return {Array<Object>} Generated view model for an item.
+   */
+  _processNodeSchape(shape) {
+    this._resolve(shape);
+    const key = this._getAmfKey(this.ns.w3.shacl.name + 'property');
+    const items = this._ensureArray(shape[key]);
+    const result = [];
+    if (!items) {
+      return result;
+    }
+    for (let i = 0, len = items.length; i < len; i++) {
+      const item = items[i];
+      const model = this.uiModelForAmfItem(item);
+      if (model) {
+        result[result.length] = model;
+      }
+    }
+    return result;
   }
   /**
    * Creates a UI model item from AMF json/ld model for a parameter.
