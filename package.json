@@ -1,7 +1,7 @@
 {
   "name": "@api-components/api-view-model-transformer",
   "description": "AMF model transformer to a form view model used in API components.",
-  "version": "3.0.1",
+  "version": "3.0.2",
   "license": "Apache-2.0",
   "main": "api-view-model-transformer.js",
   "keywords": [
