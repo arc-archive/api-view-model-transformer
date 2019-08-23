@@ -359,7 +359,7 @@ export class ApiViewModelTransformer extends AmfHelperMixin(EventsTargetMixin(Li
       if (this._hasType(items, this.ns.raml.vocabularies.data + 'Object')) {
         const data = this.modelForRawObject(items);
         if (data) {
-          result[result.length] = data;
+          result = data;
         }
       } else if (this._hasType(items, this.ns.w3.shacl.name + 'NodeShape')) {
         result = this._processNodeSchape(items);
@@ -788,7 +788,8 @@ export class ApiViewModelTransformer extends AmfHelperMixin(EventsTargetMixin(Li
       if (key.indexOf(dKey) === -1) {
         return;
       }
-      const name = key.split('#')[1];
+      const symbol = key.indexOf('#') !== -1 ? '#' : ':';
+      const name = key.split(symbol)[1];
       const value = this._computeRawModelValue(model[key]);
       if (value) {
         result.push({

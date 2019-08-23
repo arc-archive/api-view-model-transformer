@@ -65,3 +65,13 @@ AmfLoader.lookupSecurityScheme = function(model, endpoint, operation) {
   }
   return scheme;
 };
+
+AmfLoader.lookupSecuritySettings = function(model, endpoint, operation) {
+  const security = AmfLoader.lookupSecurityScheme(model, endpoint, operation);
+  const key = helper._getAmfKey(helper.ns.raml.vocabularies.security + 'settings');
+  let settings = security[key];
+  if (settings instanceof Array) {
+    settings = settings[0];
+  }
+  return settings;
+};

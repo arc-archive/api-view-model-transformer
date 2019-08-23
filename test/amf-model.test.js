@@ -678,18 +678,6 @@ describe('<api-view-model-transformer>', function() {
           assert.lengthOf(result, 0);
         });
 
-        // This test does not have sense.
-        it('Retuns model for RAW type.', () => {
-          const refs = element._computeReferences(amf);
-          const r = refs[3];
-          const enc = element._ensureArray(element._computeEncodes(r));
-          const key = element._getAmfKey(element.ns.raml.vocabularies.document + 'dataNode');
-          const model = element._ensureArray(enc[0][key])[0];
-          const result = element._computeViewModel(model);
-          assert.typeOf(result, 'array');
-          assert.lengthOf(result, 1);
-        });
-
         it('Do not returns invalid definitions', () => {
           const result = element._computeViewModel([{}]);
           assert.typeOf(result, 'array');
