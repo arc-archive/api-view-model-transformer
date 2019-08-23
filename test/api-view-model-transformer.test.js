@@ -694,52 +694,76 @@ describe('<api-view-model-transformer>', function() {
 
   describe('_computeExtendedDocumentation()', () => {
     let element;
-    before(async () => {
+    beforeEach(async () => {
       element = await basicFixture();
     });
 
-    it('Returns empty string when no schema and description', () => {
-      const result = element._computeExtendedDocumentation({});
+    it('returns empty string when no properties', () => {
+      const result = element._computeExtendedDocumentation({ schema: {} });
       assert.equal(result, '');
     });
 
-    it('Returns description only when no schema', () => {
+    it('returns description part', () => {
       const result = element._computeExtendedDocumentation({
+        schema: {},
         description: 'test'
       });
       assert.equal(result, 'test');
     });
 
-    it('Adds pattern to description', () => {
+    it('returns pattern part', () => {
+      const result = element._computeExtendedDocumentation({
+        schema: {
+          pattern: 'test'
+        }
+      });
+      assert.equal(result, '- Pattern: `test`');
+    });
+
+    it('adds new lines after description', () => {
       const result = element._computeExtendedDocumentation({
         description: 'test',
         schema: {
           pattern: 'test'
         }
       });
-      assert.equal(result, 'test\n\n\n- Pattern: `test`\n');
+      assert.equal(result, 'test\n\n\n- Pattern: `test`');
     });
 
-    it('Returns pattern only to description', () => {
-      const result = element._computeExtendedDocumentation({
-        schema: {
-          pattern: 'test'
-        }
-      });
-      assert.equal(result, '- Pattern: `test`\n');
-    });
-
-    it('Returns exampels', () => {
+    it('adds examples', () => {
       const result = element._computeExtendedDocumentation({
         schema: {
           examples: [{
-            hasTitle: true,
-            name: 'test-name',
-            value: 'test-example'
+            value: 'test'
           }]
         }
       });
-      assert.equal(result, '- Example test-name: `test-example`\n');
+      assert.equal(result, '- Example: `test`');
+    });
+
+    it('adds title for example', () => {
+      const result = element._computeExtendedDocumentation({
+        schema: {
+          examples: [{
+            value: 'test',
+            name: 'title',
+            hasName: true
+          }]
+        }
+      });
+      assert.equal(result, '- Example title: `test`');
+    });
+
+    it('ignores examples without a value', () => {
+      const result = element._computeExtendedDocumentation({
+        schema: {
+          examples: [{
+            name: 'title',
+            hasName: true
+          }]
+        }
+      });
+      assert.equal(result, '');
     });
   });
 

@@ -63,6 +63,8 @@ describe('<api-view-model-transformer>', function() {
             const item = findByName(result, 'resource');
             assert.equal(item.schema.type, 'string', 'has type');
             assert.equal(item.schema.pattern, '[a-zA-Z]+', 'has pattern');
+            assert.typeOf(item.extendedDescription, 'string', 'extendedDescription is set');
+            assert.isTrue(item.hasExtendedDescription, 'hasExtendedDescription is set');
             const { examples } = item.schema;
             assert.lengthOf(examples, 2, 'example has 2 items');
             assert.equal(examples[0].value, 'named example value', 'example value is set');

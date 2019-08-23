@@ -103,6 +103,8 @@ describe('<api-view-model-transformer>', function() {
             assert.isTrue(header.required, 'Required is set');
             assert.equal(header.value, '9719fa6f-c666-48e0-a191-290890760b30', 'Default value is set');
             assert.typeOf(header.schema, 'object', 'Schema is set');
+            assert.typeOf(header.extendedDescription, 'string', 'extendedDescription is set');
+            assert.isTrue(header.hasExtendedDescription, 'hasExtendedDescription is set');
             const schema = header.schema;
             assert.isUndefined(schema.defaultValue, 'defaultValue is undefined');
             assert.isTrue(schema.enabled, 'Is enabled');
@@ -146,6 +148,8 @@ describe('<api-view-model-transformer>', function() {
             assert.isTrue(header.required, 'Required is set');
             assert.equal(header.value, 'a', 'value is set');
             assert.typeOf(header.schema, 'object', 'Schema is set');
+            assert.isUndefined(header.extendedDescription, 'string', 'extendedDescription is not set');
+            assert.isFalse(header.hasExtendedDescription, 'hasExtendedDescription is false');
             const schema = header.schema;
             assert.isUndefined(schema.defaultValue, 'defaultValue is undefined');
             assert.isTrue(schema.enabled, 'Is enabled');

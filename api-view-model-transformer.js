@@ -134,6 +134,10 @@ const NUMBER_INPUT_TYPES = ['number', 'integer', 'float'];
  * - schema.fileTypes {Array<String>} List of file types defined for a file
  * type.
  * - schema.readOnly {Boolean} - Nil types gets `readOnly` property
+ * - schema.extendedDescription {String} - extended documentation that includes description,
+ * patterns and examples.
+ * - schema.hasExtendedDescription {Boolean} - True when extendedDescription is set.
+ *
  * ## Example
  *
  * ```html
@@ -468,7 +472,6 @@ export class ApiViewModelTransformer extends AmfHelperMixin(EventsTargetMixin(Li
       result.description = this._computeDescription(amfItem);
       result.hasDescription = !!result.description;
     }
-
     const valueDelimiter = this._computeValueDelimiter(result.binding);
     const decodeValues = this._computeDecodeValues(result.binding);
     const processOptions = {
@@ -539,7 +542,6 @@ export class ApiViewModelTransformer extends AmfHelperMixin(EventsTargetMixin(Li
     result.schema.format = this._computeVocabularyShapeProperty(def, 'format');
     result.schema.pattern = this._computeModelPattern(
       result.schema.type, result.schema.pattern, result.schema.format);
-    result.hasExtendedDescs = this._computeHasExtendedDocumentation(result);
     result.schema.isNillable = result.schema.type === 'union' ? this._computeIsNillable(result) : false;
 
     if (this.noDocs) {
@@ -547,9 +549,6 @@ export class ApiViewModelTransformer extends AmfHelperMixin(EventsTargetMixin(Li
     } else {
       result.description = this._computeDescription(def);
       result.hasDescription = !!result.description;
-    }
-    if (result.hasDescription) {
-      result.extendedDocs = this._computeExtendedDocumentation(result);
     }
     if (result.schema.type === 'file') {
       result.schema.isFile = true;
@@ -751,6 +750,10 @@ export class ApiViewModelTransformer extends AmfHelperMixin(EventsTargetMixin(Li
 
     if (item.schema.isBool && typeof item.value === 'boolean') {
       item.value = String(item.value);
+    }
+    item.hasExtendedDescription = this._computeHasExtendedDocumentation(item);
+    if (item.hasExtendedDescription) {
+      item.extendedDescription = this._computeExtendedDocumentation(item);
     }
     return item;
   }
@@ -1395,17 +1398,14 @@ export class ApiViewModelTransformer extends AmfHelperMixin(EventsTargetMixin(Li
    * @return {Boolean} True if documentation can be rendered.
    */
   _computeHasExtendedDocumentation(item) {
-    if (item.hasDescription) {
+    const schema = item.schema || {};
+    if (item.hasDescription || schema.pattern) {
       return true;
     }
-    if (!item.schema) {
+    if (!(schema.examples || []).length) {
       return false;
     }
-    const schema = item.schema;
-    if (schema.pattern) {
-      return true;
-    }
-    if (schema.examples && schema.examples.length) {
+    if (schema.examples && schema.examples.length && schema.examples[0]) {
       return true;
     }
     return false;
@@ -1420,26 +1420,28 @@ export class ApiViewModelTransformer extends AmfHelperMixin(EventsTargetMixin(Li
     if (item.description) {
       docs += item.description;
     }
-    if (!item.schema) {
-      return docs;
-    }
-    const schema = item.schema;
-    if (docs) {
-      docs += '\n\n\n';
-    }
+    const { schema } = item;
+    const items = [];
     if (schema.pattern) {
-      docs += '- Pattern: `' + schema.pattern + '`\n';
+      items[items.length] = '- Pattern: `' + schema.pattern + '`';
     }
     if (schema.examples && schema.examples.length) {
       schema.examples.forEach((item) => {
-        docs += '- Example';
-        if (item.hasTitle) {
-          docs += ' ' + item.name;
+        if (!item.value) {
+          return;
         }
-        docs += ': `' + item.value + '`\n';
+        let result = '- Example';
+        if (item.hasName) {
+          result += ' ' + item.name;
+        }
+        result += ': `' + item.value + '`';
+        items[items.length] = result;
       });
     }
-    return docs;
+    if (docs && items.length) {
+      docs += '\n\n\n';
+    }
+    return docs + items.join('\n');
   }
   /**
    * Returns `true` only when passed shape has `shapes#anyOf` array and
