@@ -1406,7 +1406,11 @@ export class ApiViewModelTransformer extends AmfHelperMixin(EventsTargetMixin(Li
       return false;
     }
     if (schema.examples && schema.examples.length && schema.examples[0]) {
-      return true;
+      let value = schema.examples[0].value;
+      if (value instanceof Array) {
+        value = value[0];
+      }
+      return value !== undefined && value !== '';
     }
     return false;
   }
@@ -1427,14 +1431,20 @@ export class ApiViewModelTransformer extends AmfHelperMixin(EventsTargetMixin(Li
     }
     if (schema.examples && schema.examples.length) {
       schema.examples.forEach((item) => {
-        if (!item.value) {
+        if (item.value === undefined || item.value === '') {
           return;
         }
         let result = '- Example';
         if (item.hasName) {
           result += ' ' + item.name;
         }
-        result += ': `' + item.value + '`';
+        let value;
+        if (item.value instanceof Array) {
+          value = item.value.join(', ');
+        } else {
+          value = item.value;
+        }
+        result += ': `' + value + '`';
         items[items.length] = result;
       });
     }

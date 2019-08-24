@@ -1,5 +1,5 @@
 import { fixture, assert } from '@open-wc/testing';
-import sinon from 'sinon/pkg/sinon-esm.js';
+import * as sinon from 'sinon/pkg/sinon-esm.js';
 import '../api-view-model-transformer.js';
 
 describe('<api-view-model-transformer>', function() {
@@ -338,7 +338,7 @@ describe('<api-view-model-transformer>', function() {
 
     it('returns value of the property', () => {
       const shape = {};
-      shape[key + 'test-key'] = [{'@value': 'test-value'}];
+      shape[key + 'test-key'] = [{ '@value': 'test-value' }];
       const result = element._computeShaclProperty(shape, 'test-key');
       assert.equal(result, 'test-value');
     });
@@ -364,7 +364,7 @@ describe('<api-view-model-transformer>', function() {
 
     it('returns value of the property', () => {
       const shape = {};
-      shape[key + 'test-key'] = [{'@value': 'test-value'}];
+      shape[key + 'test-key'] = [{ '@value': 'test-value' }];
       const result = element._computeVocabularyShapeProperty(shape, 'test-key');
       assert.equal(result, 'test-value');
     });
@@ -375,9 +375,11 @@ describe('<api-view-model-transformer>', function() {
     let model;
     before(async () => {
       element = await basicFixture();
+      const longId = 'file://models/demo-api/demo-api.raml#/web-api/end-points/' +
+      '%2Fpeople%2F%7BpersonId%7D/get/request/parameter/x-enum/scalar/schema/list';
       model = {
         'http://www.w3.org/ns/shacl#in': [{
-          '@id': 'file://models/demo-api/demo-api.raml#/web-api/end-points/%2Fpeople%2F%7BpersonId%7D/get/request/parameter/x-enum/scalar/schema/list',
+          '@id': longId,
           '@type': 'http://www.w3.org/2000/01/rdf-schema#Seq',
           'http://www.w3.org/2000/01/rdf-schema#_1': [{
             '@id': 'amf://id#635',
@@ -565,9 +567,9 @@ describe('<api-view-model-transformer>', function() {
       element._buildPropertyHandler({
         stopImmediatePropagation: () => {},
         preventDefault: () => {},
-        detail: {test: true}
+        detail: { test: true }
       });
-      assert.deepEqual(passedData, {test: true});
+      assert.deepEqual(passedData, { test: true });
     });
 
     it('Prevents event defaults', () => {
@@ -675,10 +677,65 @@ describe('<api-view-model-transformer>', function() {
       assert.isTrue(result);
     });
 
-    it('Returns true when "schema.examples"', () => {
+    it('Returns true when example value has a value', () => {
       const result = element._computeHasExtendedDocumentation({
         schema: {
-          examples: ['test']
+          examples: [{
+            value: 'test',
+            name: 'title',
+            hasName: true
+          }]
+        }
+      });
+      assert.isTrue(result);
+    });
+
+    it('Returns true when example value has a "0" value', () => {
+      const result = element._computeHasExtendedDocumentation({
+        schema: {
+          examples: [{
+            value: 0,
+            name: 'title',
+            hasName: true
+          }]
+        }
+      });
+      assert.isTrue(result);
+    });
+
+    it('Returns false when example value has empty value', () => {
+      const result = element._computeHasExtendedDocumentation({
+        schema: {
+          examples: [{
+            value: '',
+            hasName: false
+          }]
+        }
+      });
+      assert.isFalse(result);
+    });
+
+    it('Returns true when example value has array value', () => {
+      const result = element._computeHasExtendedDocumentation({
+        schema: {
+          examples: [{
+            value: ['a', 'b'],
+            name: 'title',
+            hasName: true
+          }]
+        }
+      });
+      assert.isTrue(result);
+    });
+
+    it('Returns true when example value has array value with 0', () => {
+      const result = element._computeHasExtendedDocumentation({
+        schema: {
+          examples: [{
+            value: [0, 1],
+            name: 'title',
+            hasName: true
+          }]
         }
       });
       assert.isTrue(result);
