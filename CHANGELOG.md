@@ -616,3 +616,22 @@
 
 
 
+## [3.0.5](https://github.com/advanced-rest-client/api-view-model-tranformer/compare/2.0.8...3.0.5) (2019-08-26)
+
+
+### Bug Fixes
+
+* fixed extended description computation ([d56ecb2](https://github.com/advanced-rest-client/api-view-model-tranformer/commit/d56ecb2))
+* fixes [#2](https://github.com/advanced-rest-client/api-view-model-tranformer/issues/2) - [APIC-168] - Add support for PropertyShape [#2](https://github.com/advanced-rest-client/api-view-model-tranformer/issues/2) ([c660df3](https://github.com/advanced-rest-client/api-view-model-tranformer/commit/c660df3))
+* fixing date time pattern ([b0886d2](https://github.com/advanced-rest-client/api-view-model-tranformer/commit/b0886d2))
+* fixing misspell in the docs ([da9f76f](https://github.com/advanced-rest-client/api-view-model-tranformer/commit/da9f76f))
+* fixing npm audit errors by upgrading to last ARC standard ([54394fe](https://github.com/advanced-rest-client/api-view-model-tranformer/commit/54394fe))
+* fixing siupport for PropertyShape schema ([c2f99c2](https://github.com/advanced-rest-client/api-view-model-tranformer/commit/c2f99c2))
+
+
+### Features
+
+* adding `extendedDescription` property to the schema ([b3e1b08](https://github.com/advanced-rest-client/api-view-model-tranformer/commit/b3e1b08))
+
+
+
