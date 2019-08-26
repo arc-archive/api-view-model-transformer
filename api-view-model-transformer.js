@@ -203,19 +203,6 @@ export class ApiViewModelTransformer extends AmfHelperMixin(EventsTargetMixin(Li
     };
   }
 
-  get amf() {
-    return this._amf;
-  }
-
-  set amf(value) {
-    const old = this._amf;
-    if (value === old) {
-      return;
-    }
-    this._amf = value;
-    this._references = this._computeReferences(value);
-  }
-
   get shape() {
     return this._shape;
   }
@@ -277,6 +264,10 @@ export class ApiViewModelTransformer extends AmfHelperMixin(EventsTargetMixin(Li
     if (this.__exampleGenerator) {
       delete this.__exampleGenerator;
     }
+  }
+
+  __amfChanged() {
+    this._references = this._computeReferences(this.amf);
   }
   /**
    * Clears cache for computed models.
