@@ -10,7 +10,7 @@ describe('<api-view-model-transformer>', function() {
   const apiFile = 'APIC-168';
 
   function getQueryStringShape(element, scheme) {
-    const qKey = element._getAmfKey(element.ns.raml.vocabularies.http + 'queryString');
+    const qKey = element._getAmfKey(element.ns.aml.vocabularies.apiContract.queryString);
     let result = element._ensureArray(scheme[qKey]);
     if (result) {
       result = result[0];
@@ -69,6 +69,7 @@ describe('<api-view-model-transformer>', function() {
               hasTitle: false,
               hasUnion: false,
               hasRaw: true,
+              isScalar: true,
               raw: '5',
               value: 5
             });
@@ -77,6 +78,7 @@ describe('<api-view-model-transformer>', function() {
               hasTitle: false,
               hasUnion: false,
               hasRaw: false,
+              isScalar: true,
               value: 0
             });
           });

@@ -79,7 +79,7 @@ describe('<api-view-model-transformer>', function() {
   describe('_computeBinding()', () => {
     let element;
     const model = {
-      'http://a.ml/vocabularies/http#binding': [{
+      'http://a.ml/vocabularies/apiContract#binding': [{
         '@value': 'test-value'
       }]
     };
@@ -101,7 +101,7 @@ describe('<api-view-model-transformer>', function() {
   describe('_computeFormName()', () => {
     let element;
     const model = {
-      'http://schema.org/name': [{
+      'http://a.ml/vocabularies/core#name': [{
         '@value': 'test-value'
       }]
     };
@@ -123,7 +123,7 @@ describe('<api-view-model-transformer>', function() {
   describe('_computeDescription()', () => {
     let element;
     const model = {
-      'http://schema.org/description': [{
+      'http://a.ml/vocabularies/core#description': [{
         '@value': 'test-value'
       }]
     };
@@ -145,7 +145,7 @@ describe('<api-view-model-transformer>', function() {
   describe('_computeRequired()', () => {
     let element;
     const model = {
-      'http://www.w3.org/ns/hydra/core#required': [{
+      'http://a.ml/vocabularies/apiContract#required': [{
         '@value': 'test-value'
       }]
     };
@@ -289,7 +289,7 @@ describe('<api-view-model-transformer>', function() {
 
     it('Finds name in the model', () => {
       const result = element._computeInputLabel({
-        'http://schema.org/name': [{
+        'http://a.ml/vocabularies/core#name': [{
           '@value': 'test-name'
         }]
       });
@@ -298,7 +298,7 @@ describe('<api-view-model-transformer>', function() {
 
     it('Adds asterix when required', () => {
       const result = element._computeInputLabel({
-        'http://schema.org/name': [{
+        'http://a.ml/vocabularies/core#name': [{
           '@value': 'test-name'
         }]
       }, true);
@@ -837,15 +837,15 @@ describe('<api-view-model-transformer>', function() {
 
     it('Returns undefined when no items declaration', () => {
       const obj = {};
-      obj['@type'] = [element.ns.raml.vocabularies.shapes + 'ArrayShape'];
+      obj['@type'] = [element.ns.aml.vocabularies.shapes.ArrayShape];
       const result = element._computeModelItems(obj);
       assert.isUndefined(result);
     });
 
     it('Returns "string"', () => {
       const obj = {};
-      obj['@type'] = [element.ns.raml.vocabularies.shapes + 'ArrayShape'];
-      obj[element.ns.raml.vocabularies.shapes + 'items'] = [{}];
+      obj['@type'] = [element.ns.raml.vocabularies.shapes.ArrayShape];
+      obj[element.ns.aml.vocabularies.shapes.items] = [{}];
       const result = element._computeModelItems(obj);
       assert.equal(result, 'string');
     });

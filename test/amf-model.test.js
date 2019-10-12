@@ -18,7 +18,7 @@ describe('<api-view-model-transformer>', function() {
     const opKey = element._getAmfKey(element.ns.w3.hydra.supportedOperation);
     const operation = element._ensureArray(endpoint[opKey])[0];
     const expects = element._computeExpects(operation);
-    const hKey = element._getAmfKey(element.ns.raml.vocabularies.http + 'header');
+    const hKey = element._getAmfKey(element.ns.aml.vocabularies.apiContract.header);
     return element._ensureArray(expects[hKey]);
   }
 
@@ -215,7 +215,7 @@ describe('<api-view-model-transformer>', function() {
             const opKey = element._getAmfKey(element.ns.w3.hydra.supportedOperation);
             const operation = element._ensureArray(endpoint[opKey])[0];
             const expects = element._computeExpects(operation);
-            const pKey = element._getAmfKey(element.ns.raml.vocabularies.http + 'parameter');
+            const pKey = element._getAmfKey(element.ns.aml.vocabularies.apiContract.parameter);
             model = element._ensureArray(expects[pKey]);
           });
 
@@ -366,7 +366,7 @@ describe('<api-view-model-transformer>', function() {
             const opKey = element._getAmfKey(element.ns.w3.hydra.supportedOperation);
             const operation = element._ensureArray(endpoint[opKey])[0];
             const expects = element._computeExpects(operation);
-            const pKey = element._getAmfKey(element.ns.raml.vocabularies.http + 'parameter');
+            const pKey = element._getAmfKey(element.ns.aml.vocabularies.apiContract.parameter);
             model = element._ensureArray(expects[pKey]);
           });
 
@@ -433,7 +433,7 @@ describe('<api-view-model-transformer>', function() {
             const webApi = element._computeWebApi(amf);
             const endpoints = element._computeEndpoints(webApi);
             const endpoint = endpoints[0];
-            const pKey = element._getAmfKey(element.ns.raml.vocabularies.http + 'parameter');
+            const pKey = element._getAmfKey(element.ns.aml.vocabularies.apiContract.parameter);
             model = element._ensureArray(endpoint[pKey]);
           });
 
@@ -701,10 +701,10 @@ describe('<api-view-model-transformer>', function() {
         if (dec instanceof Array) {
           dec = dec[0];
         }
-        if (element._hasType(dec, element.ns.raml.vocabularies.shapes + 'ScalarShape')) {
+        if (element._hasType(dec, element.ns.aml.vocabularies.shapes.ScalarShape)) {
           return dec;
         }
-        const key = element._getAmfKey(element.ns.w3.shacl.name + 'property');
+        const key = element._getAmfKey(element.ns.w3.shacl.property);
         return element._ensureArray(dec[key]);
       }
 
@@ -771,7 +771,7 @@ describe('<api-view-model-transformer>', function() {
 
         it('Has name and binding only when no range', () => {
           const model = Object.assign({}, computePropertyShape(element, amf, 3)[0]);
-          const key = element._getAmfKey(element.ns.raml.vocabularies.shapes + 'range');
+          const key = element._getAmfKey(element.ns.raml.vocabularies.shapes.range);
           delete model[key];
           const result = element._uiModelForPropertyShape(model);
           assert.typeOf(result.name, 'string');

@@ -12,7 +12,12 @@ Note, this element does not include polyfills for `Promise` and `Array.from`.
 
 The model should be used to build a form view for request parameters like header, query parameters, uri parameters or the body.
 
-### Data model
+## Version compatibility
+
+This version only works with AMF model version 2 (AMF parser >= 4.0.0).
+For compatibility with previous model version use `3.x.x` version of the component.
+
+## Data model
 
 -   binding {String} - one of `path`, `query`, `header`
 -   name {String} - property (form) name
