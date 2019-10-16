@@ -2,7 +2,7 @@ import { fixture, assert } from '@open-wc/testing';
 import { AmfLoader } from './amf-loader.js';
 import '../api-view-model-transformer.js';
 
-describe.only('<api-view-model-transformer>', function() {
+describe('<api-view-model-transformer>', function() {
   async function basicFixture() {
     return (await fixture(`<api-view-model-transformer></api-view-model-transformer>`));
   }
