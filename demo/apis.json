@@ -1,5 +1,6 @@
 {
   "demo-api/demo-api.raml": "RAML 1.0",
   "APIC-168/APIC-168.raml": "RAML 1.0",
-  "annotated-oauth2/annotated-oauth2.raml": "RAML 1.0"
+  "annotated-oauth2/annotated-oauth2.raml": "RAML 1.0",
+  "APIC-298/APIC-298.json": ["OAS 2.0", "application/json"]
 }

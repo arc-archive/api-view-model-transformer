@@ -36,6 +36,17 @@ AmfLoader.load = async function(compact, fileName) {
   });
 };
 
+AmfLoader.lookupEndpoint = function(model, endpoint) {
+  helper.amf = model;
+  const webApi = helper._computeWebApi(model);
+  return helper._computeEndpointByPath(webApi, endpoint);
+};
+
+AmfLoader.lookupEndpointParameters = function(model, endpoint) {
+  const endPoint = AmfLoader.lookupEndpoint(model, endpoint);
+  const key = helper._getAmfKey(helper.ns.aml.vocabularies.apiContract.parameter);
+  return helper._ensureArray(endPoint[key]);
+};
 
 AmfLoader.lookupOperation = function(model, endpoint, operation) {
   helper.amf = model;

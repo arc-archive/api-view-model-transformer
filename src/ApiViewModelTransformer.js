@@ -814,8 +814,13 @@ export class ApiViewModelTransformer extends AmfHelperMixin(EventsTargetMixin(Li
    * @return {String|undefined} Name property or undefined if not found.
    */
   _computeFormName(model) {
-    const key = this.ns.aml.vocabularies.core.name;
-    return this._getValue(model, key);
+    const pNameKey = this.ns.aml.vocabularies.apiContract.paramName;
+    let name = this._getValue(model, pNameKey);
+    if (!name) {
+      const key = this.ns.aml.vocabularies.core.name;
+      name = this._getValue(model, key);
+    }
+    return name;
   }
   /**
    * Computes `required` property from AMF model.
