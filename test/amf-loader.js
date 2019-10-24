@@ -57,6 +57,13 @@ AmfLoader.lookupOperation = function(model, endpoint, operation) {
   return ops.find((item) => helper._getValue(item, helper.ns.aml.vocabularies.apiContract.method) === operation);
 };
 
+AmfLoader.lookupOperationParameters = function(model, endpoint, operation) {
+  const method = AmfLoader.lookupOperation(model, endpoint, operation);
+  const expects = helper._computeExpects(method);
+  const key = helper._getAmfKey(helper.ns.aml.vocabularies.apiContract.parameter);
+  return helper._ensureArray(expects[key]);
+};
+
 AmfLoader.lookupSecurity = function(model, endpoint, operation) {
   const method = AmfLoader.lookupOperation(model, endpoint, operation);
   const secKey = helper._getAmfKey(helper.ns.aml.vocabularies.security.security);
