@@ -473,7 +473,7 @@ export class ApiViewModelTransformer extends AmfHelperMixin(EventsTargetMixin(Li
       decodeValues: decodeValues
     };
     this._processAfterItemCreated(result, processOptions);
-    result.autoEncode = this._computeAutoEncode(amfItem);
+    result.autoEncode = this._computeNoAutoEncode(amfItem);
     // store cache
     appendGlobalValue(result);
     return result;
