@@ -456,7 +456,7 @@ export class ApiViewModelTransformer extends AmfHelperMixin(EventsTargetMixin(Li
       result.schema.pattern = this._computeModelPattern(
         result.schema.type, result.schema.pattern, result.schema.format);
       result.schema.isNillable = result.schema.type === 'union' ? this._computeIsNillable(def) : false;
-      result.schema.autoEncode = this._computeAutoEncode(schema);
+      result.schema.noAutoEncode = this._computeNoAutoEncode(schema);
     }
     if (this.noDocs) {
       result.hasDescription = false;
@@ -1471,23 +1471,23 @@ export class ApiViewModelTransformer extends AmfHelperMixin(EventsTargetMixin(Li
     }
     return false;
   }
-  _computeAutoEncode(shape) {
+  _computeNoAutoEncode(shape) {
     if (!shape) {
-      return true;
+      return false;
     }
     const key = this._getAmfKey(this.ns.aml.vocabularies.document.customDomainProperties);
     const values = this._ensureArray(shape[key]);
     if (!values) {
-      return true;
+      return false;
     }
     for (let i = 0, len = values.length; i < len; i++) {
       const id = this._getValue(values[i], '@id');
       const node = shape[id];
       const extensionNameKey = this._getAmfKey(this.ns.aml.vocabularies.core.extensionName);
       if (this._getValue(node, extensionNameKey) === 'no-auto-encoding') {
-        return false;
+        return true;
       }
     }
-    return true;
+    return false;
   }
 }
