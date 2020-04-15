@@ -959,4 +959,30 @@ describe('<api-view-model-transformer>', function() {
       assert.equal(result, 'test-example');
     });
   });
+
+  describe('_computeNoAutoEncode', () => {
+    let element;
+    const model = {
+      'amf': {
+        'http://a.ml/vocabularies/core#extensionName': {
+          '@value': 'no-auto-encoding'
+        }
+      },
+      'http://a.ml/vocabularies/document#customDomainProperties': [{
+        '@id': 'amf'
+      }]
+    };
+
+    before(async () => {
+      element = await basicFixture();
+    });
+
+    it('Returns false if no value', () => {
+      assert.isFalse(element._computeNoAutoEncode());
+    });
+
+    it('Returns true if no-auto-encoding is present', () => {
+      assert.isTrue(element._computeNoAutoEncode(model));
+    });
+  })
 });
