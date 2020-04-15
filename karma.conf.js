@@ -19,6 +19,12 @@ module.exports = (config) => {
         }
       ],
 
+      client: {
+        mocha: {
+          timeout: 12000
+        }
+      },
+
       // see the karma-esm docs for all options
       esm: {
         // if you are using 'bare module imports' you will need this option
