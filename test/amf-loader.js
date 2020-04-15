@@ -74,14 +74,22 @@ AmfLoader.lookupSecurity = function(model, endpoint, operation) {
   return security;
 };
 
-AmfLoader.lookupSecurityScheme = function(model, endpoint, operation) {
+AmfLoader.lookupSecurityScheme = function(model, endpoint, operation, schemeName) {
   const security = AmfLoader.lookupSecurity(model, endpoint, operation);
-  const shKey = helper._getAmfKey(helper.ns.aml.vocabularies.security.scheme);
-  let scheme = security[shKey];
-  if (scheme instanceof Array) {
+  const schemesKey = helper._getAmfKey(helper.ns.aml.vocabularies.security.schemes);
+  const schemes = security[schemesKey];
+  let parametrizedSecurityScheme;
+  if (schemeName) {
+    parametrizedSecurityScheme = schemes.find(scheme => helper._getValue(scheme, helper.ns.aml.vocabularies.core.name));
+  } else {
+    parametrizedSecurityScheme = schemes[0];
+  }
+  const schemeKey = helper._getAmfKey(helper.ns.aml.vocabularies.security.scheme);
+  let scheme = parametrizedSecurityScheme[schemeKey];
+  if (Array.isArray(scheme)) {
     scheme = scheme[0];
   }
-  return scheme;
+  return scheme
 };
 
 AmfLoader.lookupSecuritySettings = function(model, endpoint, operation) {

@@ -290,15 +290,15 @@ describe('<api-view-model-transformer>', function() {
             const example1 = schema.examples[0];
             assert.isTrue(example1.hasTitle, 'example.hasTitle is true');
             assert.equal(example1.title, 'Some-test-example', 'example.title is undefined');
-            assert.equal(example1.value, '[123, 456]', 'example.value is set'); // <----- THIS IS WRONG!
+            assert.equal(example1.value, '[\n  123,\n  456\n]', 'example.value is set'); // <----- THIS IS WRONG!
 
             const example2 = schema.examples[1];
             assert.isTrue(example2.hasTitle, 'example2.hasTitle is true');
             assert.equal(example2.title, 'Other-example', 'example2.title is undefined');
-            assert.equal(example2.value, '[1011, 1213]', 'example2.value is set'); // <----- THIS IS WRONG!
+            assert.equal(example2.value, '[\n  1011,\n  1213\n]', 'example2.value is set'); // <----- THIS IS WRONG!
 
             assert.equal(schema.inputPlaceholder,
-              'Example: [123, 456]', 'inputPlaceholder is set'); // <----- THIS IS WRONG! is it?
+              'Example: [\n  123,\n  456\n]', 'inputPlaceholder is set'); // <----- THIS IS WRONG! is it?
             assert.isTrue(schema.inputFloatLabel, 'inputFloatLabel is true');
             assert.equal(schema.inputLabel, 'numericRepeatable*', 'inputLabel is set and required');
             assert.equal(schema.inputType, 'number', 'inputType is set');
