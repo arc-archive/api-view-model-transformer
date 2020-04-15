@@ -28,7 +28,7 @@
   },
   "dependencies": {
     "@advanced-rest-client/events-target-mixin": "^3.0.0",
-    "@api-components/amf-helper-mixin": "^4.0.14",
+    "@api-components/amf-helper-mixin": "^4.0.26",
     "@api-components/api-example-generator": "^4.0.3",
     "lit-element": "^2.2.1"
   },
