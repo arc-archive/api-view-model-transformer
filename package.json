@@ -3,7 +3,8 @@
   "description": "AMF model transformer to a form view model used in API components.",
   "version": "4.0.3",
   "license": "Apache-2.0",
-  "main": "api-view-model-transformer.js",
+  "main": "index.js",
+  "module": "index.js",
   "keywords": [
     "web-components",
     "api-console",
