@@ -30,54 +30,6 @@ declare namespace ApiElements {
    * The model should be used to build a form view for request parameters
    * like header, query parameters, uri parameters or the body.
    *
-   * ### Data model
-   * - binding {String} - one of `path`, `query`, `header`
-   * - name {String} - property (form) name
-   * - required {Boolean} - is property required
-   * - value {any} - Value of the property
-   * - description {String} - The description of the property
-   * - hasDescription {Boolean} - Flag describing if the property has a
-   * description.
-   * - properties {Array<Object>} - If the model is a type of object it is a list
-   * of this model objects.
-   * - schema {Object} - Property schma information
-   * - schema.type {String} - Data type of the property
-   * - schema.inputLabel {String} Label for the form control
-   * - schema.inputType {String} - type attribute of the `input` element.
-   * - schema.pattern {String} - Regex pattern of the property
-   * - schema.minLength {Number} - String property minimum length
-   * - schema.maxLength {Number} - String property maximum length
-   * - schema.defaultValue {any} - Default value of the property
-   * - schema.examples {Array<Object>} - List of examples for the form property.
-   * - schema.multipleOf {Number} - For numeric values, a `step` attribute of
-   * the `input` element.
-   * Each object may contain `name` (may be undefined) and must contain `value`
-   * property of the example.
-   * - schema.minimum {Number} - For numeric values, minimum value of the property
-   * - schema.maximum {Number} - For numeric values, maximum value of the property
-   * - schema.isEnum {Boolean} - Flag describing enumerable value
-   * - schema.enum {Array<any>} - Only if `schema.isEnum` is set. Values for enum
-   * input.
-   * - schema.isArray {Boolean} - Flag describing array value for the property
-   * - schema.items {Object} - Lsit of items definitions
-   * - schema.isBool {Boolean} - Flag describing boolean value for the property
-   * - schema.isFile {Boolean} - Flag describing File value for the property
-   * - schema.isObject {Boolean} - Flag describing Object value for the property
-   * - schema.isNillable {Boolean} - True when it is an union and one of union
-   * items is nil.
-   * - schema.inputPlaceholder {?String} - A placeholder value for the input.
-   * - schema.inputFloatLabel {Boolean} - Only if placeholder is set. Instructs
-   * input control to float a label.
-   * - schema.isUnion {Boolean} - Flag describing union value
-   * - schema.anyOf {Array<Object>} - List of possible types of the union.
-   * - schema.enabled {Boolean} - Always `true`
-   * - schema.fileTypes {Array<String>} List of file types defined for a file
-   * type.
-   * - schema.readOnly {Boolean} - Nil types gets `readOnly` property
-   * - schema.extendedDescription {String} - extended documentation that includes description,
-   * patterns and examples.
-   * - schema.hasExtendedDescription {Boolean} - True when extendedDescription is set.
-   *
    * ## Example
    *
    * ```html
@@ -117,8 +69,8 @@ declare namespace ApiElements {
     /**
      * Generated view model from the `shape`
      */
-    viewModel: Array<object|null>|null;
-    readonly _exampleGenerator: Element|null;
+    viewModel: any[]|null|undefined;
+    readonly _exampleGenerator: ApiExampleGenerator|null;
 
     /**
      * If set, assigning a value to `shape` will not trigger view model
@@ -176,7 +128,7 @@ declare namespace ApiElements {
      * property of the element.
      * @returns A promise resolved to generated model.
      */
-    computeViewModel(shape: any[]|object|null): Array<object|null>|null;
+    computeViewModel(shape: any[]|object|null): Array<ModelItem|null>|null;
 
     /**
      * Conputes model for each item recursively. It allows browser to return
@@ -185,9 +137,9 @@ declare namespace ApiElements {
      * @param items List of remanding AMF model items.
      * This shuld be copy of the model since this function removes items from
      * the list.
-     * @returns Promise resolved to the view model.
+     * @returns The view model.
      */
-    _computeViewModel(items: any[]|null): Array<object|null>|null;
+    _computeViewModel(items: any[]|null): Array<ModelItem|null>|null;
 
     /**
      * Creates a UI model item from AMF json/ld model.
@@ -196,7 +148,7 @@ declare namespace ApiElements {
      * `http://raml.org/vocabularies/http#Parameter`
      * @returns UI data model.
      */
-    uiModelForAmfItem(amfItem: object|null): object|null;
+    uiModelForAmfItem(amfItem: object|null): ModelItem|null;
 
     /**
      * Creates a model for a shacl's PropertyShape. It can be found, for example,
@@ -205,7 +157,7 @@ declare namespace ApiElements {
      * @param shape The shape to process
      * @returns Generated view model for an item.
      */
-    _processNodeSchape(shape: object|null): Array<object|null>|null;
+    _processNodeSchape(shape: object|null): Array<ModelItem|null>|null;
 
     /**
      * Creates a UI model item from AMF json/ld model for a parameter.
@@ -214,7 +166,7 @@ declare namespace ApiElements {
      * `http://raml.org/vocabularies/http#Parameter`
      * @returns UI data model.
      */
-    _uiModelForParameter(amfItem: object|null): object|null;
+    _uiModelForParameter(amfItem: object|null): ModelItem|null;
 
     /**
      * Creates a UI model item from AMF json/ld model for a parameter.
@@ -223,7 +175,7 @@ declare namespace ApiElements {
      * `http://raml.org/vocabularies/http#Parameter`
      * @returns UI data model.
      */
-    _uiModelForPropertyShape(amfItem: object|null): object|null;
+    _uiModelForPropertyShape(amfItem: object|null): ModelItem|null;
 
     /**
      * Creates a view model for an object definition. Object definition can be
@@ -232,7 +184,7 @@ declare namespace ApiElements {
      * @param model Model to extract data from.
      * @returns View model for items.
      */
-    modelForRawObject(model: object|null, processOptions: object|null): any[]|null;
+    modelForRawObject(model: object|null, processOptions?: object|null): Array<ModelItem|null>|null;
 
     /**
      * Creates a view model from "raw" item (model before resolving).
@@ -241,7 +193,7 @@ declare namespace ApiElements {
      * @param model Item model
      * @returns View model
      */
-    _uiModelForRawObject(key: String|null, model: String|null): object|null;
+    _uiModelForRawObject(key: String|null, model: String|null): ModelItem|null;
 
     /**
      * Sets up additional properties like `value` or placeholder from
@@ -250,7 +202,7 @@ declare namespace ApiElements {
      * @param item Computed UI model.
      * @param processOptions Model creation options
      */
-    _processAfterItemCreated(item: object|null, processOptions: object|null): object|null;
+    _processAfterItemCreated(item: ModelItem|null, processOptions: object|null): ModelItem|null;
 
     /**
      * Completes computation of input label.
@@ -313,7 +265,7 @@ declare namespace ApiElements {
      * @param model Property schema.
      * @returns Type of the nproperty.
      */
-    _computeRawModelValue(model: any[]|null): String|null|undefined;
+    _computeRawModelValue(model: any[]|object|null): String|Number|Boolean|any[]|null|undefined;
 
     /**
      * Computes scalar value that has proper type.
@@ -382,23 +334,19 @@ declare namespace ApiElements {
      * Computes `items` property for AMF array property
      *
      * @param model AMF property model
-     * @returns Array definition model
+     * @returns Type of an item
      */
-    _computeModelItems(model: object|null): object|null;
+    _computeModelItems(model: object|null): string;
     _computeValueDelimiter(binding: any): any;
     _computeDecodeValues(binding: any): any;
 
     /**
-     * Parses a string from example or enum value to be used as default value.
+     * Parses a string from example or enum value to be used as a default value.
      *
      * @param example Example value to process as a value
-     * @param opts Options:
-     * - name {String} Processed property name
-     * - valueDelimiter {?String} either `:` for headers or `=` for query params
-     * - decodeValues {Boolean} True to url decode value.
      * @returns [description]
      */
-    _exampleAsValue(example: String|null, opts: object|null): any;
+    _exampleAsValue(example: String|null, opts: object|null): String|null;
 
     /**
      * Computes rendered item input field type based on RAML definition.
@@ -410,7 +358,7 @@ declare namespace ApiElements {
      * @param items Array items if any
      * @returns Input field type.
      */
-    _computeModelInputType(type: String|null, items: any[]|null): String|null;
+    _computeModelInputType(type: String|null, items: ModelItem|object|String|null): String|null;
 
     /**
      * Computes pattern for the input.
@@ -421,7 +369,7 @@ declare namespace ApiElements {
      * `rfc3339` is assumed by default
      * @returns Pattern or undefined if does not exists.
      */
-    _computeModelPattern(modelType: String|null, pattern: String|null, format: String|null): String|null|undefined;
+    _computeModelPattern(modelType: String|null, pattern: String|null, format?: String|null): String|null|undefined;
 
     /**
      * Computes a placeholder value for data and time inputs.
@@ -476,5 +424,6 @@ declare namespace ApiElements {
      * @param shape Schape test for nillable union.
      */
     _computeIsNillable(shape: object|null): Boolean|null;
+    _computeNoAutoEncode(shape: any): any;
   }
 }

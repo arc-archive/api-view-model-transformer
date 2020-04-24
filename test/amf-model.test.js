@@ -26,7 +26,7 @@ describe('<api-view-model-transformer>', function() {
     ['Regular model', false],
     ['Compact model', true]
   ].forEach((item) => {
-    describe(item[0], () => {
+    describe(String(item[0]), () => {
       describe('Model for headers', () => {
         let amf;
         before(async () => {
@@ -61,7 +61,7 @@ describe('<api-view-model-transformer>', function() {
             assert.isTrue(header.hasDescription, 'hasDescription is set');
             assert.equal(header.name, 'x-client-id', 'Name is set');
             assert.isTrue(header.required, 'Required is set');
-            assert.equal(header.value, '123456-acme.client.com', 'Default value is set');
+            assert.equal(header.value, '123456-acme.client.com', 'value is set');
             assert.typeOf(header.schema, 'object', 'Schema is set');
             const schema = header.schema;
             assert.isUndefined(schema.defaultValue, 'defaultValue is undefined');
@@ -147,7 +147,7 @@ describe('<api-view-model-transformer>', function() {
             assert.isTrue(header.required, 'Required is set');
             assert.equal(header.value, 'a', 'value is set');
             assert.typeOf(header.schema, 'object', 'Schema is set');
-            assert.isUndefined(header.extendedDescription, 'string', 'extendedDescription is not set');
+            assert.isUndefined(header.extendedDescription, 'extendedDescription is not set');
             assert.isFalse(header.hasExtendedDescription, 'hasExtendedDescription is false');
             const schema = header.schema;
             assert.isUndefined(schema.defaultValue, 'defaultValue is undefined');
@@ -463,7 +463,7 @@ describe('<api-view-model-transformer>', function() {
             assert.isTrue(schema.enabled, 'Is enabled');
             assert.typeOf(schema.enum, 'array', 'enum is set');
             assert.deepEqual(schema.enum, ['A', 'B', 'C'], 'enum values are set');
-            assert.isUndefined(schema.examples, 'array', 'Examples is undefined');
+            assert.isUndefined(schema.examples, 'Examples is undefined');
             assert.isUndefined(schema.inputPlaceholder, 'inputPlaceholder is not set');
             assert.isUndefined(schema.inputFloatLabel, 'inputFloatLabel is undefined');
             assert.equal(schema.inputLabel, 'feature*', 'inputLabel is set and required');
@@ -472,7 +472,7 @@ describe('<api-view-model-transformer>', function() {
             assert.isFalse(schema.isBool, 'is not isBool');
             assert.isTrue(schema.isEnum, 'is not isEnum');
             assert.isFalse(schema.isObject, 'is not isObject');
-            assert.isUndefined(schema.items, 'string', 'items is set');
+            assert.isUndefined(schema.items, 'items is set');
             assert.isUndefined(schema.maxLength, 'maxLength is undefined');
             assert.isUndefined(schema.maximum, 'maximum is undefined');
             assert.isUndefined(schema.minLength, 'minLength is undefined');
@@ -776,7 +776,7 @@ describe('<api-view-model-transformer>', function() {
           const result = element._uiModelForPropertyShape(model);
           assert.typeOf(result.name, 'string');
           assert.typeOf(result.binding, 'string');
-          assert.lengthOf(Object.keys(result), 2);
+          assert.lengthOf(Object.keys(result), 5);
         });
 
         it('required is computed', () => {

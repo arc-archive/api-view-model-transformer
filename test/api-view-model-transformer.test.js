@@ -1,5 +1,5 @@
 import { fixture, assert } from '@open-wc/testing';
-import * as sinon from 'sinon/pkg/sinon-esm.js';
+import * as sinon from 'sinon';
 import '../api-view-model-transformer.js';
 
 describe('<api-view-model-transformer>', function() {

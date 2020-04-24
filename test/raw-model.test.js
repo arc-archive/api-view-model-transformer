@@ -33,7 +33,7 @@ describe('<api-view-model-transformer>', function() {
       ['Compact model', true],
       ['Full model', false]
     ].forEach(([label, compact]) => {
-      describe(label, () => {
+      describe(String(label), () => {
         describe('PropertyShape schema', () => {
           let amf;
 

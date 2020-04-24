@@ -3,6 +3,10 @@ import { AmfHelperMixin } from '@api-components/amf-helper-mixin/amf-helper-mixi
 import { EventsTargetMixin } from '@advanced-rest-client/events-target-mixin/events-target-mixin.js';
 import '@api-components/api-example-generator/api-example-generator.js';
 
+/** @typedef {
+  import('@api-components/api-example-generator/src/ApiExampleGenerator').ApiExampleGenerator
+  } ApiExampleGenerator */
+
 function noop() {}
 
 const GLOBAL_PATH_PARAMS = [];
@@ -82,6 +86,59 @@ function appendGlobalValue(data) {
  * the License.
  */
 const NUMBER_INPUT_TYPES = ['number', 'integer', 'float'];
+
+/**
+ * @typedef {Object} ModelItemSchema
+ * @property {String} type Data type of the property
+ * @property {String=} inputLabel Label for the form control
+ * @property {String=} inputType Type attribute of the `input` element.
+ * @property {String=} pattern Regex pattern of the property
+ * @property {Number=} minLength String property minimum length
+ * @property {Number=} maxLength String property maximum length
+ * @property {String|Number|Boolean|Array=} defaultValue Default value of the property
+ * @property {Array<Object>=} examples List of examples for the form property.
+ * @property {Number=} multipleOf For numeric values, a `step` attribute of
+ * the `input` element. Each object may contain `name` (may be undefined) and must contain `value`
+ * property of the example.
+ * @property {Number=} minimum For numeric values, minimum value of the property
+ * @property {Number=} maximum For numeric values, maximum value of the property
+ * @property {Array<any>=} enum Only if `schema.isEnum` is set. Values for enum input
+ * @property {Boolean} isEnum Flag describing enumerable value
+ * @property {Boolean} isArray Flag describing array value for the property
+ * @property {string|Array=} items Name iof the items type
+ * @property {Boolean} isBool Flag describing boolean value for the property
+ * @property {Boolean} isFile Flag describing File value for the property
+ * @property {Boolean} isObject Flag describing Object value for the property
+ * @property {Boolean} isNillable True when it is an union and one of union
+ * items is nil.
+ * @property {String=} inputPlaceholder A placeholder value for the input.
+ * @property {Boolean=} inputFloatLabel Only if placeholder is set. Instructs
+ * input control to float a label.
+ * @property {Boolean} isUnion Flag describing whether the type is an union
+ * @property {Array<Object>=} anyOf List of possible types of the union.
+ * @property {Boolean} enabled Always `true`
+ * @property {Array<String>=} fileTypes List of file types defined for a file
+ * type.
+ * @property {Boolean=} readOnly Nil types gets `readOnly` property
+ * @property {String=} format Format of a number type
+ */
+
+/**
+ * @typedef {Object} ModelItem
+ * @property {String} binding One of `path`, `query`, `header`, `cookie`
+ * @property {String} name Property (form) name
+ * @property {Boolean} required is property required
+ * @property {String|Number|Boolean|Array=} value Value of the form control
+ * @property {String=} description The description of the property
+ * @property {Boolean} hasDescription Flag describing if the property has a
+ * description.
+ * @property {Boolean} hasExtendedDescription True when extendedDescription is set.
+ * @property {String=} extendedDescription Extended documentation that includes description,
+ * patterns and examples.
+ * @property {Array<Object>=} properties If the model is a type of object it is a list
+ * of this model objects.
+ * @property {ModelItemSchema=} schema
+ */
 /**
  * An element to transform AMF LD model into a form view model.
  *
@@ -89,54 +146,6 @@ const NUMBER_INPUT_TYPES = ['number', 'integer', 'float'];
  *
  * The model should be used to build a form view for request parameters
  * like header, query parameters, uri parameters or the body.
- *
- * ### Data model
- * - binding {String} - one of `path`, `query`, `header`
- * - name {String} - property (form) name
- * - required {Boolean} - is property required
- * - value {any} - Value of the property
- * - description {String} - The description of the property
- * - hasDescription {Boolean} - Flag describing if the property has a
- * description.
- * - properties {Array<Object>} - If the model is a type of object it is a list
- * of this model objects.
- * - schema {Object} - Property schma information
- * - schema.type {String} - Data type of the property
- * - schema.inputLabel {String} Label for the form control
- * - schema.inputType {String} - type attribute of the `input` element.
- * - schema.pattern {String} - Regex pattern of the property
- * - schema.minLength {Number} - String property minimum length
- * - schema.maxLength {Number} - String property maximum length
- * - schema.defaultValue {any} - Default value of the property
- * - schema.examples {Array<Object>} - List of examples for the form property.
- * - schema.multipleOf {Number} - For numeric values, a `step` attribute of
- * the `input` element.
- * Each object may contain `name` (may be undefined) and must contain `value`
- * property of the example.
- * - schema.minimum {Number} - For numeric values, minimum value of the property
- * - schema.maximum {Number} - For numeric values, maximum value of the property
- * - schema.isEnum {Boolean} - Flag describing enumerable value
- * - schema.enum {Array<any>} - Only if `schema.isEnum` is set. Values for enum
- * input.
- * - schema.isArray {Boolean} - Flag describing array value for the property
- * - schema.items {Object} - Lsit of items definitions
- * - schema.isBool {Boolean} - Flag describing boolean value for the property
- * - schema.isFile {Boolean} - Flag describing File value for the property
- * - schema.isObject {Boolean} - Flag describing Object value for the property
- * - schema.isNillable {Boolean} - True when it is an union and one of union
- * items is nil.
- * - schema.inputPlaceholder {?String} - A placeholder value for the input.
- * - schema.inputFloatLabel {Boolean} - Only if placeholder is set. Instructs
- * input control to float a label.
- * - schema.isUnion {Boolean} - Flag describing union value
- * - schema.anyOf {Array<Object>} - List of possible types of the union.
- * - schema.enabled {Boolean} - Always `true`
- * - schema.fileTypes {Array<String>} List of file types defined for a file
- * type.
- * - schema.readOnly {Boolean} - Nil types gets `readOnly` property
- * - schema.extendedDescription {String} - extended documentation that includes description,
- * patterns and examples.
- * - schema.hasExtendedDescription {Boolean} - True when extendedDescription is set.
  *
  * ## Example
  *
@@ -178,8 +187,6 @@ export class ApiViewModelTransformer extends AmfHelperMixin(EventsTargetMixin(Li
       shape: { type: Array },
       /**
        * Generated view model from the `shape`
-       *
-       * @type {Array<Object>}
        */
       viewModel: { type: Array },
       /**
@@ -235,7 +242,7 @@ export class ApiViewModelTransformer extends AmfHelperMixin(EventsTargetMixin(Li
   }
 
   /**
-   * @return {Element} Instance of `api-example-generator` element.
+   * @return {ApiExampleGenerator} Instance of `api-example-generator` element.
    */
   get _exampleGenerator() {
     if (!this.__exampleGenerator) {
@@ -306,7 +313,7 @@ export class ApiViewModelTransformer extends AmfHelperMixin(EventsTargetMixin(Li
    *
    * @param {?Array|Object} shape AMF type model. If not set it uses `shape`
    * property of the element.
-   * @return {Array<Object>} A promise resolved to generated model.
+   * @return {Array<ModelItem>} A promise resolved to generated model.
    */
   computeViewModel(shape) {
     this.viewModel = undefined;
@@ -330,7 +337,7 @@ export class ApiViewModelTransformer extends AmfHelperMixin(EventsTargetMixin(Li
    * @param {Array} items List of remanding AMF model items.
    * This shuld be copy of the model since this function removes items from
    * the list.
-   * @return {Array<Object>} Promise resolved to the view model.
+   * @return {Array<ModelItem>} The view model.
    */
   _computeViewModel(items) {
     let result = [];
@@ -371,7 +378,7 @@ export class ApiViewModelTransformer extends AmfHelperMixin(EventsTargetMixin(Li
    * Creates a UI model item from AMF json/ld model.
    * @param {Object} amfItem AMF model with schema for
    * `http://raml.org/vocabularies/http#Parameter`
-   * @return {Object} UI data model.
+   * @return {ModelItem} UI data model.
    */
   uiModelForAmfItem(amfItem) {
     if (this._hasType(amfItem, this.ns.aml.vocabularies.apiContract.Parameter)) {
@@ -386,7 +393,7 @@ export class ApiViewModelTransformer extends AmfHelperMixin(EventsTargetMixin(Li
    * in `queryString` of security scheme settings.
    *
    * @param {Object} shape The shape to process
-   * @return {Array<Object>} Generated view model for an item.
+   * @return {Array<ModelItem>} Generated view model for an item.
    */
   _processNodeSchape(shape) {
     this._resolve(shape);
@@ -409,15 +416,29 @@ export class ApiViewModelTransformer extends AmfHelperMixin(EventsTargetMixin(Li
    * Creates a UI model item from AMF json/ld model for a parameter.
    * @param {Object} amfItem AMF model with schema for
    * `http://raml.org/vocabularies/http#Parameter`
-   * @return {Object} UI data model.
+   * @return {ModelItem} UI data model.
    */
   _uiModelForParameter(amfItem) {
     amfItem = this._resolve(amfItem);
-    const result = {};
-    result.binding = this._computeBinding(amfItem);
-    result.name = this._computeFormName(amfItem);
-    result.required = this._computeRequired(amfItem);
-    result.schema = {};
+    const binding = this._computeBinding(amfItem);
+    const name = this._computeFormName(amfItem);
+    const required = this._computeRequired(amfItem);
+
+    const schemaItem = {};
+
+    const result = {
+      binding,
+      required,
+      hasDescription: false,
+      hasExtendedDescription: false,
+      name,
+      schema: schemaItem,
+    };
+
+    schemaItem.isFile = false; // I am not sure why is this not computed here
+    schemaItem.isUnion = false; // or this.
+    schemaItem.readOnly = false;
+
     const sKey = this._getAmfKey(this.ns.aml.vocabularies.shapes.schema);
     let schema = amfItem[sKey];
     if (schema) {
@@ -425,8 +446,8 @@ export class ApiViewModelTransformer extends AmfHelperMixin(EventsTargetMixin(Li
         schema = schema[0];
       }
       const def = this._resolve(schema);
-      result.schema.type = this._computeModelType(def);
-      result.schema.isEnum = this._hasProperty(def, this.ns.w3.shacl.in);
+      schemaItem.type = this._computeModelType(def);
+      schemaItem.isEnum = this._hasProperty(def, this.ns.w3.shacl.in);
       // Now check if there's cached model for this property
       // So far now it took only required steps to compute cache key of the
       // property.
@@ -435,28 +456,28 @@ export class ApiViewModelTransformer extends AmfHelperMixin(EventsTargetMixin(Li
         // Safe to return it.
         return cachedModel;
       }
-      result.schema.enabled = true;
-      result.schema.inputLabel = this._computeInputLabel(def, result.required, result.name);
-      result.schema.pattern = this._computeShaclProperty(def, 'pattern');
-      result.schema.minLength = this._computeShaclProperty(def, 'minLength');
-      result.schema.maxLength = this._computeShaclProperty(def, 'maxLength');
-      result.schema.defaultValue = this._computeDefaultValue(def);
-      result.schema.multipleOf = this._computeVocabularyShapeProperty(def, 'multipleOf');
-      result.schema.minimum = this._computeShaclProperty(def, 'minInclusive');
-      result.schema.maximum = this._computeShaclProperty(def, 'maxInclusive');
-      result.schema.enum = result.schema.isEnum ? this._computeModelEnum(def) : undefined;
-      result.schema.isArray = result.schema.type === 'array';
-      result.schema.isBool = result.schema.type === 'boolean';
-      result.schema.isObject = result.schema.type === 'object';
-      result.schema.examples = this._computeModelExamples(def);
-      result.schema.items = result.schema.isArray ? this._computeModelItems(def) : undefined;
-      result.schema.inputType =
-        this._computeModelInputType(result.schema.type, result.schema.items);
-      result.schema.format = this._computeVocabularyShapeProperty(schema, 'format');
-      result.schema.pattern = this._computeModelPattern(
-        result.schema.type, result.schema.pattern, result.schema.format);
-      result.schema.isNillable = result.schema.type === 'union' ? this._computeIsNillable(def) : false;
-      result.schema.noAutoEncode = this._computeNoAutoEncode(schema);
+      schemaItem.enabled = true;
+      schemaItem.inputLabel = this._computeInputLabel(def, result.required, result.name);
+      schemaItem.pattern = this._computeShaclProperty(def, 'pattern');
+      schemaItem.minLength = this._computeShaclProperty(def, 'minLength');
+      schemaItem.maxLength = this._computeShaclProperty(def, 'maxLength');
+      schemaItem.defaultValue = this._computeDefaultValue(def);
+      schemaItem.multipleOf = this._computeVocabularyShapeProperty(def, 'multipleOf');
+      schemaItem.minimum = this._computeShaclProperty(def, 'minInclusive');
+      schemaItem.maximum = this._computeShaclProperty(def, 'maxInclusive');
+      schemaItem.enum = schemaItem.isEnum ? this._computeModelEnum(def) : undefined;
+      schemaItem.isArray = schemaItem.type === 'array';
+      schemaItem.isBool = schemaItem.type === 'boolean';
+      schemaItem.isObject = schemaItem.type === 'object';
+      schemaItem.examples = this._computeModelExamples(def);
+      schemaItem.items = schemaItem.isArray ? this._computeModelItems(def) : undefined;
+      schemaItem.inputType =
+        this._computeModelInputType(schemaItem.type, schemaItem.items);
+      schemaItem.format = this._computeVocabularyShapeProperty(schema, 'format');
+      schemaItem.pattern = this._computeModelPattern(
+        schemaItem.type, schemaItem.pattern, schemaItem.format);
+      schemaItem.isNillable = schemaItem.type === 'union' ? this._computeIsNillable(def) : false;
+      schemaItem.noAutoEncode = this._computeNoAutoEncode(schema);
     }
     if (this.noDocs) {
       result.hasDescription = false;
@@ -482,13 +503,20 @@ export class ApiViewModelTransformer extends AmfHelperMixin(EventsTargetMixin(Li
    * Creates a UI model item from AMF json/ld model for a parameter.
    * @param {Object} amfItem AMF model with schema for
    * `http://raml.org/vocabularies/http#Parameter`
-   * @return {Object} UI data model.
+   * @return {ModelItem} UI data model.
    */
   _uiModelForPropertyShape(amfItem) {
     amfItem = this._resolve(amfItem);
-    const result = {};
-    result.binding = 'type';
-    result.name = this._computeShaclProperty(amfItem, 'name');
+
+    const name = this._computeShaclProperty(amfItem, 'name');
+    const result = {
+      binding: 'type',
+      required: false,
+      hasDescription: false,
+      hasExtendedDescription: false,
+      name,
+    };
+
     let def;
     if (this._hasType(amfItem, this.ns.aml.vocabularies.shapes.ScalarShape)) {
       def = amfItem;
@@ -574,13 +602,10 @@ export class ApiViewModelTransformer extends AmfHelperMixin(EventsTargetMixin(Li
    * part of trait or annotation properties description.
    *
    * @param {Object} model Model to extract data from.
-   * @param {Object} processOptions
-   * @return {Array} View model for items.
+   * @param {Object=} processOptions
+   * @return {Array<ModelItem>} View model for items.
    */
-  modelForRawObject(model, processOptions) {
-    if (!processOptions) {
-      processOptions = {};
-    }
+  modelForRawObject(model, processOptions={}) {
     const result = [];
     const keys = Object.keys(model);
     const dataKey = this._getAmfKey(this.ns.raml.vocabularies.data + '');
@@ -605,7 +630,7 @@ export class ApiViewModelTransformer extends AmfHelperMixin(EventsTargetMixin(Li
    *
    * @param {String} key Key of the item in the model.
    * @param {String} model Item model
-   * @return {Object} View model
+   * @return {ModelItem} View model
    */
   _uiModelForRawObject(key, model) {
     let index = key.indexOf('#');
@@ -618,11 +643,15 @@ export class ApiViewModelTransformer extends AmfHelperMixin(EventsTargetMixin(Li
     } else {
       name = key.substr(index + 1);
     }
-    const result = {};
-    result.binding = 'type';
-    result.name = name;
+    const result = {
+      binding: 'type',
+      required: false,
+      hasDescription: false,
+      hasExtendedDescription: false,
+      name,
+    };
     const typeKey = this._getAmfKey(this.ns.raml.vocabularies.data.type);
-    let type = this._computeRawModelValue(model[typeKey]);
+    let type = /** @type String */ (this._computeRawModelValue(model[typeKey]));
     if (!type) {
       type = 'string';
     }
@@ -637,15 +666,17 @@ export class ApiViewModelTransformer extends AmfHelperMixin(EventsTargetMixin(Li
       result.hasDescription = false;
     } else {
       const descKey = this._getAmfKey(this.ns.raml.vocabularies.data.description);
-      result.description = this._computeRawModelValue(model[descKey]);
+      result.description = /** @type String */ (this._computeRawModelValue(model[descKey]));
       result.hasDescription = !!result.description;
     }
 
-    result.required = this._computeRawModelValue(model[this._getAmfKey(this.ns.raml.vocabularies.data.required)]);
+    const requiredValue = model[this._getAmfKey(this.ns.raml.vocabularies.data.required)];
+    result.required = /** @type boolean */ (this._computeRawModelValue(requiredValue));
     result.schema = {};
     result.schema.enabled = true;
     result.schema.type = type || 'string';
-    const displayName = this._computeRawModelValue(model[this._getAmfKey(this.ns.raml.vocabularies.data.displayName)]);
+    const displayNameValue = model[this._getAmfKey(this.ns.raml.vocabularies.data.displayName)];
+    const displayName = /** @type String */ (this._computeRawModelValue(displayNameValue));
     result.schema.inputLabel = this._completeInputLabel(displayName, name, result.required);
     const mlKey = this._getAmfKey(this.ns.raml.vocabularies.data.minLength);
     result.schema.minLength = this._computeRawModelValue(model[mlKey]);
@@ -689,9 +720,9 @@ export class ApiViewModelTransformer extends AmfHelperMixin(EventsTargetMixin(Li
    * Sets up additional properties like `value` or placeholder from
    * values read from the AMF model.
    *
-   * @param {Object} item Computed UI model.
+   * @param {ModelItem} item Computed UI model.
    * @param {Object} processOptions Model creation options
-   * @return {Object}
+   * @return {ModelItem}
    */
   _processAfterItemCreated(item, processOptions) {
     if (item.schema.type === 'null') {
@@ -718,8 +749,8 @@ export class ApiViewModelTransformer extends AmfHelperMixin(EventsTargetMixin(Li
     }
     if (item.required && typeof item.schema.defaultValue !== 'undefined') {
       item.value = item.schema.isArray ?
-        this.__parseArrayExample(item.schema.defaultValue, processOptions) :
-        this._exampleAsValue(item.schema.defaultValue, processOptions);
+        this.__parseArrayExample(/** @type {String} */ (item.schema.defaultValue), processOptions) :
+        this._exampleAsValue(/** @type {String} */ (item.schema.defaultValue), processOptions);
     }
     if (typeof item.value === 'undefined' && item.required) {
       const examples = item.schema.examples;
@@ -757,7 +788,7 @@ export class ApiViewModelTransformer extends AmfHelperMixin(EventsTargetMixin(Li
   /**
    * Completes computation of input label.
    *
-   * @param {?String} displayName Value of the `displayName` property
+   * @param {String} displayName Value of the `displayName` property
    * @param {String} name Property name
    * @param {Boolean} required Is item required
    * @return {String} Common input label construction.
@@ -940,8 +971,8 @@ export class ApiViewModelTransformer extends AmfHelperMixin(EventsTargetMixin(Li
   /**
    * Computes type of the raw model.
    *
-   * @param {Array} model Property schema.
-   * @return {String|undefined} Type of the nproperty.
+   * @param {Array|Object} model Property schema.
+   * @return {String|Number|Boolean|Array|undefined} Type of the nproperty.
    */
   _computeRawModelValue(model) {
     if (!model) {
@@ -1148,7 +1179,7 @@ export class ApiViewModelTransformer extends AmfHelperMixin(EventsTargetMixin(Li
    * Computes `items` property for AMF array property
    *
    * @param {Object} model AMF property model
-   * @return {Object} Array definition model
+   * @return {string} Type of an item
    */
   _computeModelItems(model) {
     if (!this._hasType(model, this.ns.aml.vocabularies.shapes.ArrayShape)) {
@@ -1184,13 +1215,15 @@ export class ApiViewModelTransformer extends AmfHelperMixin(EventsTargetMixin(Li
     }
   }
   /**
-   * Parses a string from example or enum value to be used as default value.
+   * Parses a string from example or enum value to be used as a default value.
    * @param {String} example Example value to process as a value
-   * @param {Object} opts Options:
-   * - name {String} Processed property name
-   * - valueDelimiter {?String} either `:` for headers or `=` for query params
-   * - decodeValues {Boolean} True to url decode value.
-   * @return {[type]} [description]
+   * @param {Object} opts
+   * @param {String=} opts.name Processed property name
+   * @param {String=} opts.valueDelimiter either `:` for headers or `=` for query params
+   * @param {Boolean=} opts.decodeValues True to url decode value.
+   * @param {String=} opts.valueDelimiter
+   *
+   * @return {String} [description]
    */
   _exampleAsValue(example, opts) {
     if (!example || typeof example !== 'string') {
@@ -1217,7 +1250,7 @@ export class ApiViewModelTransformer extends AmfHelperMixin(EventsTargetMixin(Li
    * - name {String} Processed property name
    * - valueDelimiter {?String} either `:` for headers or `=` for query params
    * - decodeValues {Boolean} True to url decode value.
-   * @return {Array} Array of examples or string if cannot parse
+   * @return {Array|String} Array of examples or string if cannot parse
    */
   __parseArrayExample(example, processOptions) {
     try {
@@ -1245,7 +1278,7 @@ export class ApiViewModelTransformer extends AmfHelperMixin(EventsTargetMixin(Li
    * item's type or, in case of array, item's items property.
    *
    * @param {String} type Property data type.
-   * @param {?Array} items Array items if any
+   * @param {ModelItem|Object|String} items Array items if any
    * @return {String} Input field type.
    */
   _computeModelInputType(type, items) {
@@ -1278,7 +1311,7 @@ export class ApiViewModelTransformer extends AmfHelperMixin(EventsTargetMixin(Li
    *
    * @param {String} modelType Type of the property item.
    * @param {String} pattern Pattern declared on the property
-   * @param {?String} format For `datetime` type additional format value.
+   * @param {String=} format For `datetime` type additional format value.
    * `rfc3339` is assumed by default
    * @return {String|undefined} Pattern or undefined if does not exists.
    */

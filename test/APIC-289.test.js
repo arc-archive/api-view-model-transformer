@@ -14,7 +14,7 @@ describe('<api-view-model-transformer>', function() {
       ['Full model', false],
       ['Compact model', true]
     ].forEach(([label, compact]) => {
-      describe(label, () => {
+      describe(String(label), () => {
         describe('PropertyShape schema', () => {
           let amf;
 
