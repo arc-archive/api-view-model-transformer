@@ -11,12 +11,11 @@
     "model-helper"
   ],
   "authors": [
-    "Pawel Psztyc",
-    "The Advanced REST client authors <arc@mulesoft.com>"
+    "Pawel Psztyc"
   ],
   "contributors": [
     "Pawel Psztyc",
-    "The Advanced REST client authors <arc@mulesoft.com>"
+    "Francisco Di Giandomenico"
   ],
   "repository": {
     "type": "git",
@@ -28,7 +27,7 @@
   },
   "dependencies": {
     "@advanced-rest-client/events-target-mixin": "^3.0.0",
-    "@api-components/amf-helper-mixin": "^4.0.26",
+    "@api-components/amf-helper-mixin": "^4.1.0",
     "@api-components/api-example-generator": "^4.0.3",
     "lit-element": "^2.2.1"
   },
@@ -40,21 +39,19 @@
     "@api-components/api-model-generator": "^0.2.0-rc.1",
     "@commitlint/cli": "^8.2.0",
     "@commitlint/config-conventional": "^8.2.0",
-    "@open-wc/testing": "^2.3.7",
-    "@open-wc/testing-karma": "^3.1.42",
-    "@polymer/gen-typescript-declarations": "1.6.1",
+    "@open-wc/testing": "^2.5.13",
+    "@open-wc/testing-karma": "^3.3.15",
+    "@polymer/gen-typescript-declarations": "^1.6.2",
     "deepmerge": "^4.2.1",
-    "es-dev-server": "^1.18.6",
-    "husky": "^3.0.9",
-    "karma": "^4.4.1",
-    "lint-staged": "^9.4.2",
-    "sinon": "^7.5.0"
+    "es-dev-server": "^1.46.5",
+    "husky": "^4.2.5",
+    "lint-staged": "^10.1.7",
+    "sinon": "^9.0.2"
   },
   "scripts": {
     "test": "karma start --coverage",
     "update-types": "gen-typescript-declarations --deleteExisting --outDir .",
     "start": "es-dev-server --app-index demo/index.html --node-resolve --open --watch",
-    "start:compatibility": "es-dev-server --app-index demo/index.html --compatibility all --node-resolve --open --watch",
     "lint:eslint": "eslint --ext .js,.html .",
     "format:eslint": "eslint --ext .js,.html . --fix",
     "lint:prettier": "prettier \"**/*.js\" --list-different || (echo '↑↑ these files are not prettier formatted ↑↑' && exit 1)",
@@ -62,15 +59,12 @@
     "lint": "npm run lint:eslint && npm run lint:prettier",
     "format": "npm run format:eslint && npm run format:prettier",
     "test:watch": "karma start --auto-watch=true --single-run=false",
-    "test:legacy": "karma start --compatibility all --coverage",
-    "test:legacy:watch": "karma start --compatibility all --auto-watch=true --single-run=false",
-    "test:sl": "karma start karma.sl.config.js --compatibility all --coverage",
+    "test:sl": "karma start karma.sl.config.js --compatibility auto --coverage",
     "generate-model": "node demo/model.js"
   },
   "lint-staged": {
     "*.js": [
-      "eslint --fix",
-      "git add"
+      "eslint --fix"
     ]
   }
 }
