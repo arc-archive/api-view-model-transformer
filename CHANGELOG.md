@@ -838,3 +838,54 @@
  [d34c0c9](https://github.com/advanced-rest-client/api-view-model-transformer/commit/d34c0c9f10d614ed85ba372c06fc0d6715f12ec3) by Pawel Psztyc
 
 
+<a name="4.1.0"></a>
+## [4.1.0](https://github.com/advanced-rest-client/api-view-model-transformer/compare/4.0.2...4.1.0) (2020-04-25)
+
+### Build
+
+* bumping version [7a4db0f](https://github.com/advanced-rest-client/api-view-model-transformer/commit/7a4db0f38f85b262a3ba0f15076505ada28eaa1d) by Pawel
+* bumping version [2c5b8f5](https://github.com/advanced-rest-client/api-view-model-transformer/commit/2c5b8f593d40699eea43fb4118694acbeb8d8e32) by Pawel
+* bump version [5493c4c](https://github.com/advanced-rest-client/api-view-model-transformer/commit/5493c4cc6b99f74509d50df58f05aa0f87c1a7a9) by Francisco Di Giandomenico
+
+
+### Update
+
+* [ci skip] automated merge master->stage. syncing main branches [7c4c213](https://github.com/advanced-rest-client/api-view-model-transformer/commit/7c4c21346c101fe244f5b45eb74be5fe5715775c) by Ci agent
+* removing generated models from the repository [b2716af](https://github.com/advanced-rest-client/api-view-model-transformer/commit/b2716af6dbedaa75c830c41717bd841e06876534) by Pawel
+* updating travis configuration [9c58c4e](https://github.com/advanced-rest-client/api-view-model-transformer/commit/9c58c4eff404dfc00b6e8dd38f584f538b09d740) by Pawel
+* manually dispatching view-model-changed event [51b78e8](https://github.com/advanced-rest-client/api-view-model-transformer/commit/51b78e83a7b46e1bca7355f6c22b4a33dfcb0094) by Pawel
+* upgrading example generator [c0e4a62](https://github.com/advanced-rest-client/api-view-model-transformer/commit/c0e4a62dd7acfa3d6b7ab5d3f6beb3826f57964b) by Pawel
+* updating package meta [a0940ab](https://github.com/advanced-rest-client/api-view-model-transformer/commit/a0940ab4f4fdf822f6310c70e59b2cdb29eb7a1b) by Pawel
+* adding types configuration and fixing linter [129a682](https://github.com/advanced-rest-client/api-view-model-transformer/commit/129a682243b2c5128834056a2fb116986667f87a) by Pawel
+* upgrading dependnecies [1a4b743](https://github.com/advanced-rest-client/api-view-model-transformer/commit/1a4b7431aff88b356065ac326da4adf26bee0533) by Pawel
+* update travis.yml [f6ef793](https://github.com/advanced-rest-client/api-view-model-transformer/commit/f6ef793f32946b1cea7f9e95fbab76905dd846e5) by Francisco Di Giandomenico
+* update deps, update models [b51026f](https://github.com/advanced-rest-client/api-view-model-transformer/commit/b51026f3ee8ed154812c27306d4c1ebda7400ea9) by Francisco Di Giandomenico
+
+
+### Documentation
+
+* updating travis badge [1fa543f](https://github.com/advanced-rest-client/api-view-model-transformer/commit/1fa543f8c104bc8d5a5522692fcb0781748c3b3c) by Pawel
+
+
+### Features
+
+* no-auto-encode annotation support [0409e45](https://github.com/advanced-rest-client/api-view-model-transformer/commit/0409e453e765ad92894c96ed820edc8a8dc070d6) by Francisco Di Giandomenico
+
+
+### Bug Fixes
+
+* renaming function [cc0aed0](https://github.com/advanced-rest-client/api-view-model-transformer/commit/cc0aed0e001c3403ad65c105dfa624c7ddc9e83e) by Francisco Di Giandomenico
+* change to _computeNoAutoEncode [b877395](https://github.com/advanced-rest-client/api-view-model-transformer/commit/b877395abff0360a56d8074f5ac9349fc94ba54c) by Francisco Di Giandomenico
+
+
+### Refactor
+
+* moving entire logic to separate JS module [8fc78bf](https://github.com/advanced-rest-client/api-view-model-transformer/commit/8fc78bffae3a2a607c8cfc3a6c4d544dbfa4f3ab) by Pawel
+
+
+### Testing
+
+* at karma timeout [ddaa1e6](https://github.com/advanced-rest-client/api-view-model-transformer/commit/ddaa1e630d40cb51cfe5eea3e771c564c35759c8) by Francisco Di Giandomenico
+* add tests for _computeNoAutoEncode [5084dd0](https://github.com/advanced-rest-client/api-view-model-transformer/commit/5084dd0325a78df2946c2483c8cb96d726a650a8) by Francisco Di Giandomenico
+
+
