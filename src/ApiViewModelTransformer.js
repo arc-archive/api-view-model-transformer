@@ -1,13 +1,7 @@
 import { LitElement } from 'lit-element';
 import { AmfHelperMixin } from '@api-components/amf-helper-mixin/amf-helper-mixin.js';
 import { EventsTargetMixin } from '@advanced-rest-client/events-target-mixin/events-target-mixin.js';
-import '@api-components/api-example-generator/api-example-generator.js';
-
-/** @typedef {
-  import('@api-components/api-example-generator/src/ApiExampleGenerator').ApiExampleGenerator
-  } ApiExampleGenerator */
-
-function noop() {}
+import { ExampleGenerator } from '@api-components/api-example-generator';
 
 const GLOBAL_PATH_PARAMS = [];
 const GLOBAL_QUERY_PARAMS = [];
@@ -241,16 +235,6 @@ export class ApiViewModelTransformer extends AmfHelperMixin(EventsTargetMixin(Li
     }));
   }
 
-  /**
-   * @return {ApiExampleGenerator} Instance of `api-example-generator` element.
-   */
-  get _exampleGenerator() {
-    if (!this.__exampleGenerator) {
-      this.__exampleGenerator = document.createElement('api-example-generator');
-    }
-    return this.__exampleGenerator;
-  }
-
   constructor() {
     super();
     this._buildPropertyHandler = this._buildPropertyHandler.bind(this);
@@ -262,15 +246,6 @@ export class ApiViewModelTransformer extends AmfHelperMixin(EventsTargetMixin(Li
 
   _detachListeners(node) {
     node.removeEventListener('api-property-model-build', this._buildPropertyHandler);
-  }
-
-  disconnectedCallback() {
-    if (super.disconnectedCallback) {
-      super.disconnectedCallback();
-    }
-    if (this.__exampleGenerator) {
-      delete this.__exampleGenerator;
-    }
   }
 
   __amfChanged() {
@@ -1171,8 +1146,7 @@ export class ApiViewModelTransformer extends AmfHelperMixin(EventsTargetMixin(Li
    * defined.
    */
   _computeModelExamples(model) {
-    const gen = this._exampleGenerator;
-    gen.amf = this.amf;
+    const gen = new ExampleGenerator(this.amf);
     return gen.computeExamples(model, 'application/json', {});
   }
   /**
@@ -1237,7 +1211,7 @@ export class ApiViewModelTransformer extends AmfHelperMixin(EventsTargetMixin(Li
       try {
         example = decodeURIComponent(example.replace(/\+/g, ' '));
       } catch (e) {
-        noop();
+        // ...
       }
     }
     return example;
@@ -1266,7 +1240,7 @@ export class ApiViewModelTransformer extends AmfHelperMixin(EventsTargetMixin(Li
         return result.length ? result : undefined;
       }
     } catch (e) {
-      noop();
+      // ...
     }
     return this._exampleAsValue(example, processOptions);
   }
