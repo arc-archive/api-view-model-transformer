@@ -217,24 +217,6 @@ export class ApiViewModelTransformer extends AmfHelperMixin(EventsTargetMixin(Li
     this._shapeChanged(value);
   }
 
-  get viewModel() {
-    return this._viewModel;
-  }
-
-  set viewModel(value) {
-    const old = this._viewModel;
-    if (value === old) {
-      return;
-    }
-    this._viewModel = value;
-    this.dispatchEvent(new CustomEvent('view-model-changed', {
-      composed: true,
-      detail: {
-        value
-      }
-    }));
-  }
-
   constructor() {
     super();
     this._buildPropertyHandler = this._buildPropertyHandler.bind(this);
@@ -303,8 +285,23 @@ export class ApiViewModelTransformer extends AmfHelperMixin(EventsTargetMixin(Li
     }
     const result = this._computeViewModel(shape);
     this.viewModel = result;
+    this._notifyViewModelChanged(result);
     return result;
   }
+
+  /**
+   * Notifies about view model change by dispatching view-model-changed event.
+   * @param {Array<Object>} value
+   */
+  _notifyViewModelChanged(value) {
+    this.dispatchEvent(new CustomEvent('view-model-changed', {
+      composed: true,
+      detail: {
+        value
+      }
+    }));
+  }
+
   /**
    * Conputes model for each item recursively. It allows browser to return
    * the event loop and prohibit ANR to show.
