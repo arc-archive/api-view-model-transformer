@@ -105,6 +105,8 @@ const NUMBER_INPUT_TYPES = ['number', 'integer', 'float'];
  * @property {Boolean=} isObject Flag describing Object value for the property
  * @property {Boolean=} isNillable True when it is an union and one of union
  * items is nil.
+ * @property {Boolean=} isCustom Flag describing whether the item is a custom control.
+ * This is not generated from the AMF model but rather when a custom model is being created manually.
  * @property {String=} inputPlaceholder A placeholder value for the input.
  * @property {Boolean=} inputFloatLabel Only if placeholder is set. Instructs
  * input control to float a label.

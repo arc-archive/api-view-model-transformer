@@ -21,6 +21,7 @@ export declare interface ModelItemSchema {
   isFile: boolean;
   isObject: boolean;
   isNillable: boolean;
+  isCustom: boolean;
   inputPlaceholder: String;
   inputFloatLabel: Boolean;
   isUnion: Boolean;
