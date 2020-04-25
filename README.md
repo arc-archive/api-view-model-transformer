@@ -1,6 +1,6 @@
 [![Published on NPM](https://img.shields.io/npm/v/@api-components/api-view-model-transformer.svg)](https://www.npmjs.com/package/@api-components/api-view-model-transformer)
 
-[![Build Status](https://travis-ci.org/advanced-rest-client/api-view-model-transformer.svg?branch=stage)](https://travis-ci.org/advanced-rest-client/api-view-model-transformer)
+[![Build Status](https://travis-ci.com/advanced-rest-client/api-view-model-transformer.svg)](https://travis-ci.org/advanced-rest-client/api-view-model-transformer)
 
 [![Published on webcomponents.org](https://img.shields.io/badge/webcomponents.org-published-blue.svg)](https://www.webcomponents.org/element/advanced-rest-client/api-view-model-transformer)
 
