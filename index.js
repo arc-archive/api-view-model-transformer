@@ -1,2 +1,1 @@
-import { ApiViewModelTransformer } from './src/ApiViewModelTransformer.js';
-window.customElements.define('api-view-model-transformer', ApiViewModelTransformer);
+export { ApiViewModel } from './src/ApiViewModel.js';

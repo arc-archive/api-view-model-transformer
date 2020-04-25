@@ -1,15 +1,11 @@
-import { fixture, assert } from '@open-wc/testing';
+import { assert } from '@open-wc/testing';
 import { AmfLoader } from './amf-loader.js';
-import '../api-view-model-transformer.js';
+import { ApiViewModel } from '../index.js';
 
 // "raw" model can be an annotation added to another shape.
 // This test the annotations on a security scheme.
 
-describe('<api-view-model-transformer>', function() {
-  async function basicFixture() {
-    return (await fixture(`<api-view-model-transformer></api-view-model-transformer>`));
-  }
-
+describe('ApiViewModel', function() {
   const apiFile = 'annotated-oauth2';
 
   function getSettingValue(element, scheme, name, prop) {
@@ -38,15 +34,14 @@ describe('<api-view-model-transformer>', function() {
           let amf;
 
           before(async () => {
-            amf = await AmfLoader.load(compact, apiFile);
+            amf = await AmfLoader.load(/** @type boolean */ (compact), apiFile);
           });
 
           let element;
           let scheme;
           beforeEach(async () => {
-            element = await basicFixture();
+            element = new ApiViewModel({ amf });
             element.clearCache();
-            element.amf = amf;
             scheme = AmfLoader.lookupSecuritySettings(amf, '/oauth2', 'get');
           });
 

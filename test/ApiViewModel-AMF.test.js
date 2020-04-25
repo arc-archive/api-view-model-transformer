@@ -1,34 +1,26 @@
-import { fixture, assert } from '@open-wc/testing';
+import { assert } from '@open-wc/testing';
 import { AmfLoader } from './amf-loader.js';
-import '../api-view-model-transformer.js';
+import { ApiViewModel } from '../index.js';
 
-describe('<api-view-model-transformer>', function() {
-  async function basicFixture() {
-    return (await fixture(`<api-view-model-transformer></api-view-model-transformer>`));
-  }
-
-  async function manualFixture() {
-    return (await fixture(`<api-view-model-transformer manualmodel></api-view-model-transformer>`));
-  }
-
+describe('ApiViewModel', function() {
   [
     ['Regular model', false],
     ['Compact model', true]
-  ].forEach((item) => {
-    describe(String(item[0]), () => {
+  ].forEach(([label, compact]) => {
+    describe(String(label), () => {
       describe('Model for headers', () => {
         let amf;
         before(async () => {
-          amf = await AmfLoader.load(/** @type boolean */ (item[1]));
+          amf = await AmfLoader.load(/** @type boolean */ (compact));
         });
 
         describe('computeViewModel()', () => {
           let model;
           let element;
           beforeEach(async () => {
-            element = await basicFixture();
+            element = new ApiViewModel({ amf });
             element.clearCache();
-            element.amf = amf;
+            // model = computeHeaders(element, amf, 3);
             model = AmfLoader.lookupOperationHeaders(amf, '/people/{personId}', 'get');
           });
 
@@ -167,9 +159,9 @@ describe('<api-view-model-transformer>', function() {
           let model;
           let element;
           beforeEach(async () => {
-            element = await basicFixture();
+            element = new ApiViewModel({ amf });
             element.clearCache();
-            element.amf = amf;
+            // model = computeHeaders(element, amf, 2);
             model = AmfLoader.lookupOperationHeaders(amf, '/people', 'get');
           });
 
@@ -188,16 +180,15 @@ describe('<api-view-model-transformer>', function() {
       describe('Query parameters model', () => {
         let amf;
         before(async () => {
-          amf = await AmfLoader.load(/** @type boolean */ (item[1]));
+          amf = await AmfLoader.load(/** @type boolean */ (compact));
         });
 
         describe('computeViewModel()', () => {
           let model;
           let element;
           beforeEach(async () => {
-            element = await basicFixture();
+            element = new ApiViewModel({ amf });
             element.clearCache();
-            element.amf = amf;
             model = AmfLoader.lookupOperationParameters(amf, '/test-parameters/{feature}', 'get');
           });
 
@@ -339,9 +330,8 @@ describe('<api-view-model-transformer>', function() {
           let model;
           let element;
           beforeEach(async () => {
-            element = await basicFixture();
+            element = new ApiViewModel({ amf });
             element.clearCache();
-            element.amf = amf;
             model = AmfLoader.lookupOperationParameters(amf, '/people', 'get');
           });
 
@@ -360,9 +350,9 @@ describe('<api-view-model-transformer>', function() {
           let model;
           let element;
           beforeEach(async () => {
-            element = await basicFixture();
+            element = new ApiViewModel({ amf });
             element.clearCache();
-            element.amf = amf;
+            // model = computeHeaders(element, amf, 12);
             model = AmfLoader.lookupOperationHeaders(amf, '/defaultValues', 'get');
           });
 
@@ -395,16 +385,15 @@ describe('<api-view-model-transformer>', function() {
       describe('Path parameters model', () => {
         let amf;
         before(async () => {
-          amf = await AmfLoader.load(/** @type boolean */ (item[1]));
+          amf = await AmfLoader.load(/** @type boolean */ (compact));
         });
 
         describe('computeViewModel()', () => {
           let model;
           let element;
           beforeEach(async () => {
-            element = await basicFixture();
+            element = new ApiViewModel({ amf });
             element.clearCache();
-            element.amf = amf;
             model = AmfLoader.lookupEndpointParameters(amf, '/test-parameters/{feature}');
           });
 
@@ -458,15 +447,15 @@ describe('<api-view-model-transformer>', function() {
       describe('Date formats', () => {
         let amf;
         before(async () => {
-          amf = await AmfLoader.load(/** @type boolean */ (item[1]));
+          amf = await AmfLoader.load(/** @type boolean */ (compact));
         });
 
         let model;
         let element;
         beforeEach(async () => {
-          element = await basicFixture();
+          element = new ApiViewModel({ amf });
           element.clearCache();
-          element.amf = amf;
+          // model = computeHeaders(element, amf, 13);
           model = AmfLoader.lookupOperationHeaders(amf, '/dateformats', 'get');
         });
 
@@ -582,14 +571,14 @@ describe('<api-view-model-transformer>', function() {
       describe('computeViewModel()', () => {
         let amf;
         before(async () => {
-          amf = await AmfLoader.load(/** @type boolean */ (item[1]));
+          amf = await AmfLoader.load(/** @type boolean */ (compact));
         });
 
         let model;
         let element;
-        beforeEach(async () => {
-          element = await manualFixture();
-          element.amf = amf;
+        beforeEach(() => {
+          element = new ApiViewModel({ amf });
+          // model = computeHeaders(element, amf, 13);
           model = AmfLoader.lookupOperationHeaders(amf, '/dateformats', 'get');
         });
 
@@ -597,12 +586,6 @@ describe('<api-view-model-transformer>', function() {
           element.viewModel = 'TEST';
           element.computeViewModel();
           assert.isUndefined(element.viewModel);
-        });
-
-        it('Uses "shape" property when not provided', () => {
-          element.shape = model;
-          const result = element.computeViewModel();
-          assert.typeOf(result, 'array');
         });
 
         it('Returns undefined when no shape', () => {
@@ -622,16 +605,59 @@ describe('<api-view-model-transformer>', function() {
         });
       });
 
-      describe('uiModelForAmfItem()', () => {
+      describe('_computeViewModel()', () => {
         let amf;
         before(async () => {
-          amf = await AmfLoader.load(/** @type boolean */ (item[1]));
+          amf = await AmfLoader.load(/** @type boolean */ (compact));
         });
 
         let element;
-        beforeEach(async () => {
-          element = await manualFixture();
-          element.amf = amf;
+        beforeEach(() => {
+          element = new ApiViewModel({ amf })
+        });
+
+        it('Returns empty array when no argument', () => {
+          const result = element._computeViewModel();
+          assert.typeOf(result, 'array');
+          assert.lengthOf(result, 0);
+        });
+
+        it('Returns empty array when argument is empty array', () => {
+          const result = element._computeViewModel([]);
+          assert.typeOf(result, 'array');
+          assert.lengthOf(result, 0);
+        });
+
+        it('Returns empty array when argument is invalid object', () => {
+          const result = element._computeViewModel({});
+          assert.typeOf(result, 'array');
+          assert.lengthOf(result, 0);
+        });
+
+        it('Do not returns invalid definitions', () => {
+          const result = element._computeViewModel([{}]);
+          assert.typeOf(result, 'array');
+          assert.lengthOf(result, 0);
+        });
+
+        it('Returns valid definitions', () => {
+          // const model = computeHeaders(element, amf, 13);
+          const model = AmfLoader.lookupOperationHeaders(amf, '/dateformats', 'get');
+          const result = element._computeViewModel(model);
+          assert.typeOf(result, 'array');
+          assert.lengthOf(result, 6);
+        });
+      });
+
+      describe('uiModelForAmfItem()', () => {
+        let amf;
+        before(async () => {
+          amf = await AmfLoader.load(/** @type boolean */ (compact));
+        });
+
+        let element;
+        beforeEach(() => {
+          element = new ApiViewModel({ amf })
         });
 
         it('Returns undefined when type is not suppoerted', () => {
@@ -641,6 +667,7 @@ describe('<api-view-model-transformer>', function() {
 
         it('Returns model for http#Parameter', () => {
           const model = AmfLoader.lookupOperationHeaders(amf, '/people/{personId}', 'get')[0];
+          // const model = computeHeaders(element, amf, 3)[0];
           const result = element.uiModelForAmfItem(model);
           assert.typeOf(result, 'object');
         });
@@ -652,18 +679,211 @@ describe('<api-view-model-transformer>', function() {
         });
       });
 
+      describe('_uiModelForPropertyShape()', () => {
+        let amf;
+        before(async () => {
+          amf = await AmfLoader.load(/** @type boolean */ (compact));
+        });
+
+        let element;
+        beforeEach(async () => {
+          element = new ApiViewModel({ amf })
+          element.clearCache();
+        });
+
+        it('Returns an object', () => {
+          const model = AmfLoader.lookupShapeProperties(amf, 3);
+          const result = element._uiModelForPropertyShape(model[0]);
+          assert.typeOf(result, 'object');
+        });
+
+        it('Result\'s binding is "type"', () => {
+          const model = AmfLoader.lookupShapeProperties(amf, 3);
+          const result = element._uiModelForPropertyShape(model[0]);
+          assert.equal(result.binding, 'type');
+        });
+
+        it('Computes name property', () => {
+          const model = AmfLoader.lookupShapeProperties(amf, 3);
+          const result = element._uiModelForPropertyShape(model[0]);
+          assert.equal(result.name, 'error');
+        });
+
+        it('Has name and binding only when no range', () => {
+          const model = Object.assign({}, AmfLoader.lookupShapeProperties(amf, 3)[0]);
+          const key = AmfLoader.keyFor(amf, AmfLoader.ns().raml.vocabularies.shapes.range);
+          delete model[key];
+          const result = element._uiModelForPropertyShape(model);
+          assert.typeOf(result.name, 'string');
+          assert.typeOf(result.binding, 'string');
+          assert.lengthOf(Object.keys(result), 5);
+        });
+
+        it('required is computed', () => {
+          const model = AmfLoader.lookupShapeProperties(amf, 3)[0];
+          const result = element._uiModelForPropertyShape(model);
+          assert.isTrue(result.required);
+        });
+
+        it('Schema is set', () => {
+          const model = AmfLoader.lookupShapeProperties(amf, 3)[0];
+          const result = element._uiModelForPropertyShape(model);
+          assert.typeOf(result.schema, 'object');
+        });
+
+        it('schema.enabled is always true', () => {
+          const model = AmfLoader.lookupShapeProperties(amf, 3)[0];
+          const result = element._uiModelForPropertyShape(model);
+          assert.isTrue(result.schema.enabled);
+        });
+
+        it('schema.type is computed', () => {
+          const model = AmfLoader.lookupShapeProperties(amf, 3)[0];
+          const result = element._uiModelForPropertyShape(model);
+          assert.equal(result.schema.type, 'boolean');
+        });
+
+        it('schema.isEnum is false when no enum', () => {
+          const model = AmfLoader.lookupShapeProperties(amf, 3)[0];
+          const result = element._uiModelForPropertyShape(model);
+          assert.isFalse(result.schema.isEnum);
+        });
+
+        it('schema.isEnum is true if enum value', () => {
+          const model = AmfLoader.lookupShapeProperties(amf, 10)[0];
+          const result = element._uiModelForPropertyShape(model);
+          assert.isTrue(result.schema.isEnum);
+        });
+
+        it('schema.inputLabel is computed', () => {
+          const model = AmfLoader.lookupShapeProperties(amf, 3)[0];
+          const result = element._uiModelForPropertyShape(model);
+          assert.equal(result.schema.inputLabel, 'error*');
+        });
+
+        it('schema.pattern is undefined when missing', () => {
+          const model = AmfLoader.lookupShapeProperties(amf, 3)[0];
+          const result = element._uiModelForPropertyShape(model);
+          assert.isUndefined(result.schema.pattern);
+        });
+
+        it('schema.pattern is computed', () => {
+          const model = AmfLoader.lookupShapeProperties(amf, 5)[2];
+          const result = element._uiModelForPropertyShape(model);
+          assert.equal(result.schema.pattern, '^[0-9a-zA-Z ]+$');
+        });
+
+        it('schema.minLength is undefined when missing', () => {
+          const model = AmfLoader.lookupShapeProperties(amf, 3)[0];
+          const result = element._uiModelForPropertyShape(model);
+          assert.isUndefined(result.schema.minLength);
+        });
+
+        it('schema.maxLength is undefined when missing', () => {
+          const model = AmfLoader.lookupShapeProperties(amf, 3)[0];
+          const result = element._uiModelForPropertyShape(model);
+          assert.isUndefined(result.schema.maxLength);
+        });
+
+        it('schema.minLength is set', () => {
+          const model = AmfLoader.lookupShapeProperties(amf, 7)[0];
+          const result = element._uiModelForPropertyShape(model);
+          assert.equal(result.schema.minLength, 10);
+        });
+
+        it('schema.maxLength is set', () => {
+          const model = AmfLoader.lookupShapeProperties(amf, 7)[0];
+          const result = element._uiModelForPropertyShape(model);
+          assert.equal(result.schema.maxLength, 20);
+        });
+
+        it('schema.defaultValue is computed', () => {
+          const model = AmfLoader.lookupShapeProperties(amf, 3)[0];
+          const result = element._uiModelForPropertyShape(model);
+          assert.isTrue(result.schema.defaultValue);
+        });
+
+        it('schema.defaultValue is undefined when missing', () => {
+          const model = AmfLoader.lookupShapeProperties(amf, 3)[1];
+          const result = element._uiModelForPropertyShape(model);
+          assert.isUndefined(result.schema.defaultValue);
+        });
+
+        it('schema.minimum is computed', () => {
+          const model = AmfLoader.lookupShapeProperties(amf, 4)[0];
+          const result = element._uiModelForPropertyShape(model);
+          assert.equal(result.schema.minimum, 2.0);
+        });
+
+        it('schema.minimum is undefined when missing', () => {
+          const model = AmfLoader.lookupShapeProperties(amf, 3)[1];
+          const result = element._uiModelForPropertyShape(model);
+          assert.isUndefined(result.schema.minimum);
+        });
+
+        it('schema.maximum is computed', () => {
+          const model = AmfLoader.lookupShapeProperties(amf, 4)[0];
+          const result = element._uiModelForPropertyShape(model);
+          assert.equal(result.schema.maximum, 12.0);
+        });
+
+        it('schema.maximum is undefined when missing', () => {
+          const model = AmfLoader.lookupShapeProperties(amf, 3)[1];
+          const result = element._uiModelForPropertyShape(model);
+          assert.isUndefined(result.schema.maximum);
+        });
+
+        it('description is computed', () => {
+          const model = AmfLoader.lookupShapeProperties(amf, 8)[1];
+          const result = element._uiModelForPropertyShape(model);
+          assert.typeOf(result.description, 'string');
+        });
+
+        it('hasDescription is true when has description', () => {
+          const model = AmfLoader.lookupShapeProperties(amf, 8)[1];
+          const result = element._uiModelForPropertyShape(model);
+          assert.isTrue(result.hasDescription);
+        });
+
+        it('description is undefined when missing', () => {
+          const model = AmfLoader.lookupShapeProperties(amf, 4);
+          const result = element._uiModelForPropertyShape(model);
+          assert.isUndefined(result.description);
+        });
+
+        it('hasDescription is false when no description', () => {
+          const model = AmfLoader.lookupShapeProperties(amf, 4);
+          const result = element._uiModelForPropertyShape(model);
+          assert.isFalse(result.hasDescription);
+        });
+
+        it('description is undefined when noDocs is set', () => {
+          element.noDocs = true;
+          const model = AmfLoader.lookupShapeProperties(amf, 8)[1];
+          const result = element._uiModelForPropertyShape(model);
+          assert.isUndefined(result.description);
+        });
+
+        it('hasDescription is false when noDocs is set', () => {
+          element.noDocs = true;
+          const model = AmfLoader.lookupShapeProperties(amf, 8)[1];
+          const result = element._uiModelForPropertyShape(model);
+          assert.isFalse(result.hasDescription);
+        });
+      });
+
       describe('Nillable union', () => {
         let amf;
         before(async () => {
-          amf = await AmfLoader.load(/** @type boolean */ (item[1]));
+          amf = await AmfLoader.load(/** @type boolean */ (compact));
         });
 
         let element;
         let model;
         beforeEach(async () => {
-          element = await manualFixture();
+          element = new ApiViewModel({ amf })
           element.clearCache();
-          element.amf = amf;
+          // model = computeHeaders(element, amf, 14);
           model = AmfLoader.lookupOperationHeaders(amf, '/nillableUnion', 'get');
         });
 

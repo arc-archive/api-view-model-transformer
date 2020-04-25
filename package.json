@@ -29,7 +29,7 @@
   "dependencies": {
     "@advanced-rest-client/events-target-mixin": "^3.0.0",
     "@api-components/amf-helper-mixin": "^4.1.1",
-    "@api-components/api-example-generator": "^4.2.0",
+    "@api-components/api-example-generator": "^4.2.2",
     "lit-element": "^2.2.1"
   },
   "devDependencies": {
@@ -42,7 +42,6 @@
     "@commitlint/config-conventional": "^8.2.0",
     "@open-wc/testing": "^2.5.13",
     "@open-wc/testing-karma": "^3.3.15",
-    "@polymer/gen-typescript-declarations": "^1.6.2",
     "deepmerge": "^4.2.1",
     "es-dev-server": "^1.46.5",
     "husky": "^4.2.5",
@@ -53,13 +52,13 @@
   },
   "scripts": {
     "test": "karma start --coverage",
-    "update-types": "gen-typescript-declarations --deleteExisting --outDir .",
     "start": "es-dev-server --app-index demo/index.html --node-resolve --open --watch",
     "lint:eslint": "eslint --ext .js,.html .",
     "format:eslint": "eslint --ext .js,.html . --fix",
     "lint:prettier": "prettier \"**/*.js\" --list-different || (echo '↑↑ these files are not prettier formatted ↑↑' && exit 1)",
     "format:prettier": "prettier \"**/*.js\" --write",
     "lint": "npm run lint:eslint && npm run lint:prettier",
+    "lint:types": "tsc",
     "format": "npm run format:eslint && npm run format:prettier",
     "test:watch": "karma start --auto-watch=true --single-run=false",
     "test:sl": "karma start karma.sl.config.js --compatibility auto --coverage",

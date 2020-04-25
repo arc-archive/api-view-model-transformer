@@ -1,12 +1,8 @@
-import { fixture, assert } from '@open-wc/testing';
+import { assert } from '@open-wc/testing';
 import { AmfLoader } from './amf-loader.js';
-import '../api-view-model-transformer.js';
+import { ApiViewModel } from '../index.js';
 
-describe('<api-view-model-transformer>', function() {
-  async function basicFixture() {
-    return (await fixture(`<api-view-model-transformer></api-view-model-transformer>`));
-  }
-
+describe('ApiViewModel', function() {
   const apiFile = 'APIC-298';
 
   describe('APIC-298', () => {
@@ -19,15 +15,14 @@ describe('<api-view-model-transformer>', function() {
           let amf;
 
           before(async () => {
-            amf = await AmfLoader.load(compact, apiFile);
+            amf = await AmfLoader.load(/** @type boolean */ (compact), apiFile);
           });
 
           let element;
           let model;
           beforeEach(async () => {
-            element = await basicFixture();
+            element = new ApiViewModel({ amf });
             element.clearCache();
-            element.amf = amf;
 
             model = AmfLoader.lookupEndpointParameters(amf, '/prescreens/{id}');
           });
