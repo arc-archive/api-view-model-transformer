@@ -889,3 +889,24 @@
 * add tests for _computeNoAutoEncode [5084dd0](https://github.com/advanced-rest-client/api-view-model-transformer/commit/5084dd0325a78df2946c2483c8cb96d726a650a8) by Francisco Di Giandomenico
 
 
+<a name="4.1.1"></a>
+## [4.1.1](https://github.com/advanced-rest-client/api-view-model-transformer/compare/4.0.4...4.1.1) (2020-04-25)
+
+### Build
+
+* bumping version [14af402](https://github.com/advanced-rest-client/api-view-model-transformer/commit/14af402128e6c060f9d0074a93ab29d5bee7f41f) by Pawel
+* bumping version [7a4db0f](https://github.com/advanced-rest-client/api-view-model-transformer/commit/7a4db0f38f85b262a3ba0f15076505ada28eaa1d) by Pawel
+
+
+### Update
+
+* adding `isCustom` property [bf26c79](https://github.com/advanced-rest-client/api-view-model-transformer/commit/bf26c795140d6cb50586e4f2e0957c1c23bebba4) by Pawel
+* [ci skip] automated merge master->stage. syncing main branches [9d6fa73](https://github.com/advanced-rest-client/api-view-model-transformer/commit/9d6fa7382491b8ef60763f009ee1b97f78316a27) by Ci agent
+* [ci skip] automated merge master->stage. syncing main branches [7c4c213](https://github.com/advanced-rest-client/api-view-model-transformer/commit/7c4c21346c101fe244f5b45eb74be5fe5715775c) by Ci agent
+
+
+### Refactor
+
+* moving entire logic to separate JS module [8fc78bf](https://github.com/advanced-rest-client/api-view-model-transformer/commit/8fc78bffae3a2a607c8cfc3a6c4d544dbfa4f3ab) by Pawel
+
+
