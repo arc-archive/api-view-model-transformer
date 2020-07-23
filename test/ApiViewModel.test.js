@@ -852,8 +852,8 @@ describe('ApiViewModel', function() {
       assert.isFalse(element._computeNoAutoEncode());
     });
 
-    it('Returns true if no-auto-encoding is present', () => {
-      assert.isTrue(element._computeNoAutoEncode(model));
+    it('Returns false if no-auto-encoding is present', () => {
+      assert.isFalse(element._computeNoAutoEncode(model));
     });
   });
 });
