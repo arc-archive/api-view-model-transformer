@@ -1,0 +1,15 @@
+#%RAML 1.0
+title: No auto encoding API
+version: v1
+baseUri: http://{baseUri}
+baseUriParameters:
+  (no-auto-encoding):
+  baseUri:
+    (no-auto-encoding):
+    enum:
+      - "example.org/v1"
+      - "example-int.org/v2"
+      - "example.org/v2"
+
+/entity:
+  get:
