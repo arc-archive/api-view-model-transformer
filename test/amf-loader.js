@@ -174,4 +174,24 @@ AmfLoader.keyFor = function(amf, name) {
   return helper._getAmfKey(name);
 };
 
+AmfLoader.lookupServer = function(amf, serverUrl) {
+  helper.amf = amf;
+  let webApi = helper._computeWebApi(amf);
+  if (Array.isArray(webApi)) {
+    webApi = webApi[0];
+  }
+  const serverKey = helper._getAmfKey(helper.ns.aml.vocabularies.apiContract.server);
+  const servers = helper._ensureArray(webApi[serverKey]);
+  return servers.find(server => {
+    const urlTemplateKey = helper._getAmfKey(helper.ns.aml.vocabularies.core.urlTemplate);
+    return helper._getValue(server, urlTemplateKey) === serverUrl;
+  });
+}
+
+AmfLoader.getVariable = function(amf, model) {
+  helper.amf = amf;
+  const vKey = helper._getAmfKey(helper.ns.aml.vocabularies.apiContract.variable);
+  return model[vKey];
+}
+
 AmfLoader.ns = () => helper.ns;
