@@ -399,7 +399,7 @@ export class ApiViewModel extends AmfHelperMixin(Object) {
       decodeValues: decodeValues
     };
     this._processAfterItemCreated(result, processOptions);
-    result.autoEncode = this._computeNoAutoEncode(amfItem);
+    result.noAutoEncode = this._computeNoAutoEncode(amfItem);
     // store cache
     appendGlobalValue(result);
     return result;
