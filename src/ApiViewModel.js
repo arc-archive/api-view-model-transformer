@@ -382,7 +382,7 @@ export class ApiViewModel extends AmfHelperMixin(Object) {
       schemaItem.pattern = this._computeModelPattern(
         schemaItem.type, schemaItem.pattern, schemaItem.format);
       schemaItem.isNillable = schemaItem.type === 'union' ? this._computeIsNillable(def) : false;
-      schemaItem.noAutoEncode = this._computeNoAutoEncode(schema);
+      schemaItem.noAutoEncode = this._hasNoAutoEncodeProperty(schema);
     }
     if (this.noDocs) {
       result.hasDescription = false;
@@ -399,7 +399,7 @@ export class ApiViewModel extends AmfHelperMixin(Object) {
       decodeValues: decodeValues
     };
     this._processAfterItemCreated(result, processOptions);
-    result.noAutoEncode = this._computeNoAutoEncode(amfItem);
+    result.noAutoEncode = this._hasNoAutoEncodeProperty(amfItem);
     // store cache
     appendGlobalValue(result);
     return result;
@@ -1436,7 +1436,7 @@ export class ApiViewModel extends AmfHelperMixin(Object) {
    * @param {Object} shape An object to test for the annotation.
    * @return {boolean} True if the annotation is set.
    */
-  _computeNoAutoEncode(shape) {
+  _hasNoAutoEncodeProperty(shape) {
     if (!shape) {
       return false;
     }

@@ -834,13 +834,13 @@ describe('ApiViewModel', function() {
   describe('_computeNoAutoEncode()', () => {
     let element;
     const model = {
-      'amf': {
+      'amf://id': {
         'http://a.ml/vocabularies/core#extensionName': {
           '@value': 'no-auto-encoding'
         }
       },
       'http://a.ml/vocabularies/document#customDomainProperties': [{
-        '@id': 'amf'
+        '@id': 'amf://id'
       }]
     };
 
@@ -849,11 +849,11 @@ describe('ApiViewModel', function() {
     });
 
     it('Returns false if no value', () => {
-      assert.isFalse(element._computeNoAutoEncode());
+      assert.isFalse(element._hasNoAutoEncodeProperty());
     });
 
-    it('Returns false if no-auto-encoding is present', () => {
-      assert.isFalse(element._computeNoAutoEncode(model));
+    it('Returns true if no-auto-encoding is present', () => {
+      assert.isTrue(element._hasNoAutoEncodeProperty(model));
     });
   });
 });
