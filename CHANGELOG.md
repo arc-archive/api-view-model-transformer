@@ -910,3 +910,18 @@
 * moving entire logic to separate JS module [8fc78bf](https://github.com/advanced-rest-client/api-view-model-transformer/commit/8fc78bffae3a2a607c8cfc3a6c4d544dbfa4f3ab) by Pawel
 
 
+<a name="4.2.0"></a>
+## [4.2.0](https://github.com/advanced-rest-client/api-view-model-transformer/compare/4.1.0...4.2.0) (2020-07-24)
+
+### Build
+
+* bumping version [14af402](https://github.com/advanced-rest-client/api-view-model-transformer/commit/14af402128e6c060f9d0074a93ab29d5bee7f41f) by Pawel
+
+
+### Update
+
+* [ci skip] automated merge master->stage. syncing main branches [98da5c9](https://github.com/advanced-rest-client/api-view-model-transformer/commit/98da5c9220142dc63b7deaf38bdc31d3343d57e6) by Ci agent
+* adding `isCustom` property [bf26c79](https://github.com/advanced-rest-client/api-view-model-transformer/commit/bf26c795140d6cb50586e4f2e0957c1c23bebba4) by Pawel
+* [ci skip] automated merge master->stage. syncing main branches [9d6fa73](https://github.com/advanced-rest-client/api-view-model-transformer/commit/9d6fa7382491b8ef60763f009ee1b97f78316a27) by Ci agent
+
+
