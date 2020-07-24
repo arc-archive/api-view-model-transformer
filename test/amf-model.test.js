@@ -161,6 +161,17 @@ describe('<api-view-model-transformer>', function() {
             assert.isUndefined(schema.pattern, 'pattern is set');
             assert.equal(schema.type, 'string', 'type is set');
           });
+
+          it('computes model with noAutoEncode set to true', async () => {
+            const amf = await AmfLoader.load(/** @type boolean */ (item[1]), 'no-auto-encoding');
+            element = await basicFixture();
+            element.amf = amf;
+            const server = AmfLoader.lookupServer(amf, 'http://{baseUri}');
+            const variable = AmfLoader.getVariable(amf, server);
+            const result = element.computeViewModel(variable);
+            assert.lengthOf(result, 1);
+            assert.isTrue(result[0].noAutoEncode);
+          });
         });
 
         describe('Nil values', () => {

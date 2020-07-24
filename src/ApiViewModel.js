@@ -382,7 +382,7 @@ export class ApiViewModel extends AmfHelperMixin(Object) {
       schemaItem.pattern = this._computeModelPattern(
         schemaItem.type, schemaItem.pattern, schemaItem.format);
       schemaItem.isNillable = schemaItem.type === 'union' ? this._computeIsNillable(def) : false;
-      schemaItem.noAutoEncode = this._computeNoAutoEncode(schema);
+      schemaItem.noAutoEncode = this._hasNoAutoEncodeProperty(schema);
     }
     if (this.noDocs) {
       result.hasDescription = false;
@@ -399,7 +399,7 @@ export class ApiViewModel extends AmfHelperMixin(Object) {
       decodeValues: decodeValues
     };
     this._processAfterItemCreated(result, processOptions);
-    result.autoEncode = this._computeNoAutoEncode(amfItem);
+    result.noAutoEncode = this._hasNoAutoEncodeProperty(amfItem);
     // store cache
     appendGlobalValue(result);
     return result;
@@ -1436,7 +1436,7 @@ export class ApiViewModel extends AmfHelperMixin(Object) {
    * @param {Object} shape An object to test for the annotation.
    * @return {boolean} True if the annotation is set.
    */
-  _computeNoAutoEncode(shape) {
+  _hasNoAutoEncodeProperty(shape) {
     if (!shape) {
       return false;
     }
@@ -1446,7 +1446,7 @@ export class ApiViewModel extends AmfHelperMixin(Object) {
       return false;
     }
     for (let i = 0, len = values.length; i < len; i++) {
-      const id = /** @type string */ (this._getValue(values[i], '@id'));
+      const id = this._ensureAmfPrefix(/** @type string */ (this._getValue(values[i], '@id')));
       const node = shape[id];
       const extensionNameKey = this._getAmfKey(this.ns.aml.vocabularies.core.extensionName);
       if (this._getValue(node, extensionNameKey) === 'no-auto-encoding') {
@@ -1454,5 +1454,12 @@ export class ApiViewModel extends AmfHelperMixin(Object) {
       }
     }
     return false;
+  }
+
+  _ensureAmfPrefix(id) {
+    if (!id.startsWith('amf://id')) {
+      return `amf://id${id}`;
+    }
+    return id;
   }
 }
