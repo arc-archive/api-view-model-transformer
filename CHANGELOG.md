@@ -925,3 +925,27 @@
 * [ci skip] automated merge master->stage. syncing main branches [9d6fa73](https://github.com/advanced-rest-client/api-view-model-transformer/commit/9d6fa7382491b8ef60763f009ee1b97f78316a27) by Ci agent
 
 
+<a name="4.2.1"></a>
+## [4.2.1](https://github.com/advanced-rest-client/api-view-model-transformer/compare/4.1.1...4.2.1) (2020-09-21)
+
+### Build
+
+* bump version [d50e7f4](https://github.com/advanced-rest-client/api-view-model-transformer/commit/d50e7f4568ccaca433eff9cf622a3b36baa39041) by Carolina Wright
+
+
+### Update
+
+* [ci skip] automated merge master->stage. syncing main branches [9cde64f](https://github.com/advanced-rest-client/api-view-model-transformer/commit/9cde64f7db90327b9f823115edef88726bfe66d4) by Ci agent
+* [ci skip] automated merge master->stage. syncing main branches [98da5c9](https://github.com/advanced-rest-client/api-view-model-transformer/commit/98da5c9220142dc63b7deaf38bdc31d3343d57e6) by Ci agent
+
+
+### Bug Fixes
+
+* missing query parameter when defined as union [47ff1a9](https://github.com/advanced-rest-client/api-view-model-transformer/commit/47ff1a995dbafe2962c5aedab018c9ffd68f693c) by Carolina Wright
+
+
+### Testing
+
+* union query parameters [f7e6d76](https://github.com/advanced-rest-client/api-view-model-transformer/commit/f7e6d7638a269e32ab20fa8f1e0599e673cf7da5) by Carolina Wright
+
+
