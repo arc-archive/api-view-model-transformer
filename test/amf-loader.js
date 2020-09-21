@@ -69,6 +69,21 @@ AmfLoader.lookupOperationParameters = function(amf, endpoint, operation) {
   return helper._ensureArray(expects[key]);
 };
 
+
+/**
+ * Searches for operation query parameters
+ * @param {Object} amf AMF model
+ * @param {string} endpoint Endpoint's path
+ * @param {string} operation Operation name (lowercase)
+ * @return {Array<object>} List of parameters
+ */
+AmfLoader.lookupOperationQueryString = function(amf, endpoint, operation) {
+  const method = AmfLoader.lookupOperation(amf, endpoint, operation);
+  const expects = helper._computeExpects(method);
+  const key = helper._getAmfKey(helper.ns.aml.vocabularies.apiContract.queryString);
+  return helper._ensureArray(expects[key]);
+};
+
 /**
  * Searches for operation headers
  * @param {Object} amf AMF model

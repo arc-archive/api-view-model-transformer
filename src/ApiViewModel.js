@@ -233,11 +233,11 @@ export class ApiViewModel extends AmfHelperMixin(Object) {
   }
 
   /**
-   * Conputes model for each item recursively. It allows browser to return
+   * Computes model for each item recursively. It allows browser to return
    * the event loop and prohibit ANR to show.
    *
    * @param {Array<Object>|Object} items List of remanding AMF model items.
-   * This shuld be copy of the model since this function removes items from
+   * This should be copy of the model since this function removes items from
    * the list.
    * @return {Array<ModelItem>} The view model.
    */
@@ -272,6 +272,8 @@ export class ApiViewModel extends AmfHelperMixin(Object) {
         if (data) {
           result[result.length] = data;
         }
+      } else if (this._hasType(items, this.ns.aml.vocabularies.shapes.UnionShape)) {
+        result = this. _modelForUnion(items);
       }
     }
     return result;
@@ -529,6 +531,36 @@ export class ApiViewModel extends AmfHelperMixin(Object) {
         result.push(item);
       }
     });
+    return result;
+  }
+
+  /**
+   * Creates a view model for union definition.
+   *
+   * @param {Object} model Model to extract data from.
+   * @return {Array<ModelItem>} View model for items.
+   */
+  _modelForUnion(model) {
+    let result;
+    const resolvedModel = this._resolve(model);
+    const key = this._getAmfKey(this.ns.aml.vocabularies.shapes.anyOf);
+    const values = this._ensureArray(resolvedModel[key]);
+    if (values) {
+      result = [];
+      values.forEach(v => {
+        const pKey = this._getAmfKey(this.ns.w3.shacl.property);
+        const items = this._ensureArray(v[pKey]);
+        if (items) {
+          items.forEach((item) => {
+            if (item instanceof Array) {
+              item = item[0];
+            }
+            result.push(this.uiModelForAmfItem(item));
+          });
+        }
+      })
+    }
+
     return result;
   }
 
