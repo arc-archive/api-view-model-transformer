@@ -1,3 +1,4 @@
+/* eslint-disable no-param-reassign */
 import { LitElement } from 'lit-element';
 import { EventsTargetMixin } from '@advanced-rest-client/events-target-mixin/events-target-mixin.js';
 import { ApiViewModel } from './ApiViewModel.js';
@@ -7,15 +8,13 @@ import { ApiViewModel } from './ApiViewModel.js';
  *
  * This element only has public methods of the old implementation.
  *
- * @customElement
- * @mixes EventsTargetMixin
- * @extends LitElement
+ * @deprecated Use the `ApiViewModel` class instead
  */
 export class ApiViewModelTransformer extends EventsTargetMixin(LitElement) {
   static get properties() {
     return {
       /**
-       * An array of propertues for which view model is to be generated.
+       * An array of properties for which view model is to be generated.
        * It accepts model for headers, query parameters, uri parameters and
        * body.
        * If `manualModel` is not set, assigning a value to this property will
@@ -34,7 +33,7 @@ export class ApiViewModelTransformer extends EventsTargetMixin(LitElement) {
       manualModel: { type: Boolean },
       /**
        * Makes the model to always have `hasDescription` to false and
-       * clears and documentation from ther model.
+       * clears and documentation from the model.
        */
       noDocs: { type: Boolean }
     };
@@ -110,6 +109,7 @@ export class ApiViewModelTransformer extends EventsTargetMixin(LitElement) {
    * @param {Array<Object>} value
    */
   _notifyViewModelChanged(value) {
+    this.dispatchEvent(new CustomEvent('change'));
     this.dispatchEvent(new CustomEvent('view-model-changed', {
       composed: true,
       detail: {
@@ -126,7 +126,6 @@ export class ApiViewModelTransformer extends EventsTargetMixin(LitElement) {
   modelForRawObject(model, processOptions={}) {
     return this.__modeler.modelForRawObject(model, processOptions);
   }
-
 
   buildProperty(defaults) {
     return this.__modeler.buildProperty(defaults);

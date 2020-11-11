@@ -11,7 +11,7 @@ export {ApiViewModelTransformer};
 declare class ApiViewModelTransformer extends EventsTargetMixin(LitElement) {
 
   /**
-   * An array of propertues for which view model is to be generated.
+   * An array of properties for which view model is to be generated.
    * It accepts model for headers, query parameters, uri parameters and
    * body.
    * If `manualModel` is not set, assigning a value to this property will
@@ -28,19 +28,23 @@ declare class ApiViewModelTransformer extends EventsTargetMixin(LitElement) {
   /**
    * If set, assigning a value to `shape` will not trigger view model
    * computation.
+   * @attribute
    */
   manualModel: boolean|undefined;
 
   /**
    * Makes the model to always have `hasDescription` to false and
-   * clears and documentation from ther model.
+   * clears and documentation from the model.
+   * @attribute
    */
   noDocs: boolean|undefined;
   constructor();
-  _attachListeners(node: Element): void;
-  _detachListeners(node: Element): void;
+  _attachListeners(node: EventTarget): void;
+  _detachListeners(node: EventTarget): void;
 
   clearCache(): void;
+
+  _shapeChanged(shape: any): void;
 
   computeViewModel(shape: any[]|object): Array<object>|null;
 
@@ -50,7 +54,7 @@ declare class ApiViewModelTransformer extends EventsTargetMixin(LitElement) {
 
   modelForRawObject(model: object, processOptions?: object): Array<object|null>|null;
 
-  _buildPropertyHandler(e: CustomEvent): void;
-
   buildProperty(defaults: object): object;
+  
+  _buildPropertyHandler(e: CustomEvent): void;
 }

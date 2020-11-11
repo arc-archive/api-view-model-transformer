@@ -1,1 +1,2 @@
-export {ApiViewModel} from './src/ApiViewModel.js';
+export {ApiViewModel} from './src/ApiViewModel';
+export * from './src/types';

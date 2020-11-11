@@ -2,31 +2,8 @@ import { assert } from '@open-wc/testing';
 import { ApiViewModel } from '../index.js';
 
 describe('ApiViewModel', function() {
-  describe('_computeBinding()', () => {
-    let element;
-    const model = {
-      'http://a.ml/vocabularies/apiContract#binding': [{
-        '@value': 'test-value'
-      }]
-    };
-
-    beforeEach(() => {
-      element = new ApiViewModel();
-    });
-
-    it('Returns undefined when no binding', () => {
-      const result = element._computeBinding({});
-      assert.isUndefined(result);
-    });
-
-    it('Returns binding value', () => {
-      const result = element._computeBinding(model);
-      assert.equal(result, 'test-value');
-    });
-  });
-
   describe('_computeFormName()', () => {
-    let element;
+    let element = /** @type ApiViewModel */ (null);
     const model = {
       'http://a.ml/vocabularies/core#name': [{
         '@value': 'test-value'
@@ -48,7 +25,7 @@ describe('ApiViewModel', function() {
   });
 
   describe('_computeDescription()', () => {
-    let element;
+    let element = /** @type ApiViewModel */ (null);
     const model = {
       'http://a.ml/vocabularies/core#description': [{
         '@value': 'test-value'
@@ -70,30 +47,8 @@ describe('ApiViewModel', function() {
     });
   });
 
-  describe('_computeRequired()', () => {
-    let element;
-    const model = {
-      'http://a.ml/vocabularies/apiContract#required': [{
-        '@value': 'test-value'
-      }]
-    };
-    before(async () => {
-      element = new ApiViewModel();
-    });
-
-    it('Returns undefined when no name', () => {
-      const result = element._computeRequired({});
-      assert.isUndefined(result);
-    });
-
-    it('Returns required value', () => {
-      const result = element._computeRequired(model);
-      assert.equal(result, 'test-value');
-    });
-  });
-
   describe('_computeModelType()', () => {
-    let element;
+    let element = /** @type ApiViewModel */ (null);
 
     before(async () => {
       element = new ApiViewModel();
@@ -170,7 +125,7 @@ describe('ApiViewModel', function() {
   });
 
   describe('_computeModelType() - ScalarShape', () => {
-    let element;
+    let element = /** @type ApiViewModel */ (null);
     const shape = {
       '@type': ['http://a.ml/vocabularies/shapes#ScalarShape'],
       'http://www.w3.org/ns/shacl#datatype': [{
@@ -209,9 +164,8 @@ describe('ApiViewModel', function() {
     });
   });
 
-
   describe('_computeInputLabel()', () => {
-    let element;
+    let element = /** @type ApiViewModel */ (null);
     before(async () => {
       element = new ApiViewModel();
     });
@@ -250,7 +204,7 @@ describe('ApiViewModel', function() {
   describe('_computeShaclProperty()', () => {
     const key = 'http://www.w3.org/ns/shacl#';
 
-    let element;
+    let element = /** @type ApiViewModel */ (null);
     before(async () => {
       element = new ApiViewModel();
     });
@@ -276,7 +230,7 @@ describe('ApiViewModel', function() {
   describe('_computeVocabularyShapeProperty()', () => {
     const key = 'http://a.ml/vocabularies/shapes#';
 
-    let element;
+    let element = /** @type ApiViewModel */ (null);
     before(async () => {
       element = new ApiViewModel();
     });
@@ -300,7 +254,7 @@ describe('ApiViewModel', function() {
   });
 
   describe('_computeModelEnum()', () => {
-    let element;
+    let element = /** @type ApiViewModel */ (null);
     let model;
     before(async () => {
       element = new ApiViewModel();
@@ -367,23 +321,23 @@ describe('ApiViewModel', function() {
   });
 
   describe('_computeModelPattern()', () => {
-    let element;
+    let element = /** @type ApiViewModel */ (null);
     before(async () => {
       element = new ApiViewModel();
     });
 
-    it('Always returns pattern if provided', () => {
+    it('always returns pattern if provided', () => {
       const result = element._computeModelPattern('time', 'test-pattern');
       assert.equal(result, 'test-pattern');
     });
 
-    it('Returns pattern for time type', () => {
-      const result = element._computeModelPattern('time');
+    it('returns pattern for time type', () => {
+      const result = element._computeModelPattern('time', undefined);
       assert.equal(result, '^[0-9]{2}:[0-9]{2}:[0-9]{2}\\.?[0-9]{0,3}$');
     });
 
     it('time pattern matches "partial-time" notation of RFC3339', () => {
-      const result = element._computeModelPattern('time');
+      const result = element._computeModelPattern('time', undefined);
       const reg = new RegExp(result);
       assert.isTrue(reg.test('00:00:00'), 'Matches HH:mm:ss');
       assert.isTrue(reg.test('00:00:00.0'), 'Matches HH:mm:ss.f');
@@ -431,42 +385,42 @@ describe('ApiViewModel', function() {
       const result = element._computeModelPattern('datetime', undefined, 'rfc2616');
       assert.equal(result, '');
     });
+  });
 
-    it('_computeTypePlaceholder()', () => {
-      let element;
-      before(async () => {
-        element = new ApiViewModel();
-      });
+  describe('_computeTypePlaceholder()', () => {
+    let element = /** @type ApiViewModel */ (null);
+    before(async () => {
+      element = new ApiViewModel();
+    });
 
-      it('Returns placeholder value for time', () => {
-        const result = element._computeTypePlaceholder('time');
-        assert.equal(result, '00:00:00.000');
-      });
+    it('Returns placeholder value for time', () => {
+      const result = element._computeTypePlaceholder('time');
+      assert.equal(result, '00:00:00.000');
+    });
 
-      it('Returns placeholder value for date', () => {
-        const result = element._computeTypePlaceholder('date');
-        assert.equal(result, '0000-00-00');
-      });
+    it('Returns placeholder value for date', () => {
+      const result = element._computeTypePlaceholder('date');
+      assert.equal(result, '0000-00-00');
+    });
 
-      it('Returns placeholder value for datetime-only', () => {
-        const result = element._computeTypePlaceholder('datetime-only');
-        assert.equal(result, '0000-00-00T00:00:00.000');
-      });
+    it('Returns placeholder value for datetime-only', () => {
+      const result = element._computeTypePlaceholder('datetime-only');
+      assert.equal(result, '0000-00-00T00:00:00.000');
+    });
 
-      it('Returns placeholder value for datetime, default format', () => {
-        const result = element._computeTypePlaceholder('datetime');
-        assert.equal(result, '0000-00-00T00:00:00Z+01:00');
-      });
+    it('Returns placeholder value for datetime, default format', () => {
+      const result = element._computeTypePlaceholder('datetime');
+      assert.equal(result, '0000-00-00T00:00:00Z+01:00');
+    });
 
-      it('Returns placeholder value for datetime, rfc2616 format', () => {
-        const result = element._computeTypePlaceholder('datetime');
-        assert.equal(result, 'Sun, 01 Jan 2000 00:00:00 GMT');
-      });
+    it('Returns placeholder value for datetime, rfc2616 format', () => {
+      const result = element._computeTypePlaceholder('datetime', 'rfc2616');
+      assert.equal(result, 'Sun, 01 Jan 2000 00:00:00 GMT');
     });
   });
 
   describe('buildProperty()', () => {
-    let element;
+    let element = /** @type ApiViewModel */ (null);
     before(async () => {
       element = new ApiViewModel();
     });
@@ -523,7 +477,7 @@ describe('ApiViewModel', function() {
   });
 
   describe('_computeHasExtendedDocumentation()', () => {
-    let element;
+    let element = /** @type ApiViewModel */ (null);
     before(async () => {
       element = new ApiViewModel();
     });
@@ -622,7 +576,7 @@ describe('ApiViewModel', function() {
   });
 
   describe('_computeExtendedDocumentation()', () => {
-    let element;
+    let element = /** @type ApiViewModel */ (null);
     beforeEach(async () => {
       element = new ApiViewModel();
     });
@@ -696,7 +650,7 @@ describe('ApiViewModel', function() {
   });
 
   describe('_computeModelItems()', () => {
-    let element;
+    let element = /** @type ApiViewModel */ (null);
     before(async () => {
       element = new ApiViewModel();
     });
@@ -723,7 +677,7 @@ describe('ApiViewModel', function() {
   });
 
   describe('_computeModelInputType()', () => {
-    let element;
+    let element = /** @type ApiViewModel */ (null);
     before(async () => {
       element = new ApiViewModel();
     });
@@ -751,7 +705,7 @@ describe('ApiViewModel', function() {
   });
 
   describe('_computeIsNillable()', () => {
-    let element;
+    let element = /** @type ApiViewModel */ (null);
     before(async () => {
       element = new ApiViewModel();
     });
@@ -768,7 +722,7 @@ describe('ApiViewModel', function() {
   });
 
   describe('_exampleAsValue()', () => {
-    let element;
+    let element = /** @type ApiViewModel */ (null);
     before(async () => {
       element = new ApiViewModel();
     });
@@ -807,7 +761,7 @@ describe('ApiViewModel', function() {
   });
 
   describe('_parseArrayExample()', () => {
-    let element;
+    let element = /** @type ApiViewModel */ (null);
     before(async () => {
       element = new ApiViewModel();
     });
@@ -832,7 +786,7 @@ describe('ApiViewModel', function() {
   });
 
   describe('_computeNoAutoEncode()', () => {
-    let element;
+    let element = /** @type ApiViewModel */ (null);
     const model = {
       'amf://id': {
         'http://a.ml/vocabularies/core#extensionName': {

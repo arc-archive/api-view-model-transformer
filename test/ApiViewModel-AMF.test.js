@@ -716,7 +716,7 @@ describe('ApiViewModel', function() {
           const result = element._uiModelForPropertyShape(model);
           assert.typeOf(result.name, 'string');
           assert.typeOf(result.binding, 'string');
-          assert.lengthOf(Object.keys(result), 5);
+          assert.lengthOf(Object.keys(result), 6);
         });
 
         it('required is computed', () => {

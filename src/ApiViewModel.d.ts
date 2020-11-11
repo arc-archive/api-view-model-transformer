@@ -1,63 +1,6 @@
 import {AmfHelperMixin} from '@api-components/amf-helper-mixin/amf-helper-mixin.js';
 import { Example } from '@api-components/api-example-generator/src/ExampleGenerator';
-
-export declare interface ModelItemSchema {
-  type: string;
-  inputLabel?: string;
-  inputType?: string;
-  pattern?: string;
-  minLength?: number;
-  maxLength?: number;
-  defaultValue?: string|number|boolean|Array<any>;
-  examples?: Array<Example>;
-  multipleOf?: number;
-  minimum?: number;
-  maximum?: number;
-  enum: Array<any>;
-  isEnum: boolean;
-  isArray: boolean;
-  items?: string|Array<any>;
-  isBool: boolean;
-  isFile: boolean;
-  isObject: boolean;
-  isNillable: boolean;
-  isCustom: boolean;
-  inputPlaceholder: String;
-  inputFloatLabel: Boolean;
-  isUnion: Boolean;
-  anyOf?: Array<Object>;
-  enabled: boolean;
-  fileTypes?: Array<string>;
-  readOnly?: Boolean;
-  format?: string;
-}
-
-export declare interface ModelItem {
-  binding: string;
-  name: string;
-  required: boolean;
-  value?: string|number|boolean|Array<any>;
-  description?: string;
-  hasDescription: boolean;
-  hasExtendedDescription: boolean;
-  extendedDescription?: string;
-  properties?: Array<Object>;
-  schema?: ModelItemSchema;
-}
-
-export declare interface ConstructorOptions {
-  amf?: object|Array<object>;
-  noDocs?: boolean;
-}
-
-export declare interface ProcessOptions {
-  name?: string;
-  valueDelimiter?: string;
-  decodeValues?: boolean;
-  required?: boolean;
-}
-
-export {ApiViewModel};
+import { ModelItemSchema, ModelItem, ConstructorOptions, ProcessOptions } from './types';
 
 /**
  * An element to transform AMF LD model into a form view model.
@@ -91,7 +34,7 @@ export {ApiViewModel};
 declare class ApiViewModel extends AmfHelperMixin(Object) {
 
   /**
-   * An array of propertues for which view model is to be generated.
+   * An array of properties for which view model is to be generated.
    * It accepts model for headers, query parameters, uri parameters and
    * body.
    * If `manualModel` is not set, assigning a value to this property will
@@ -101,8 +44,7 @@ declare class ApiViewModel extends AmfHelperMixin(Object) {
   amf: object[]|object|undefined;
 
   /**
-   * Makes the model to always have `hasDescription` to false and
-   * clears and documentation from ther model.
+   * Makes the model to always have `hasDescription` to false and clears and documentation from the model.
    */
   noDocs: boolean|undefined;
 
@@ -119,20 +61,6 @@ declare class ApiViewModel extends AmfHelperMixin(Object) {
   clearCache(): void;
 
   /**
-   * Called when either `shape` or `manualModel` propeties changed.
-   * If `manualModel` is falsy then it calls `computeViewModel()` function.
-   *
-   * Note, this function won't be called when sub property of the model
-   * change. For peformance rerasons it won't be supported.
-   *
-   * Note, `computeViewModel` is called asynchronusly so `amf`
-   * property can be set.
-   *
-   * @param shape Model for shape
-   */
-  _shapeChanged(shape: any[]): void;
-
-  /**
    * Computes view model from AMF data model. This should not be called if
    * `manualModel` is not set. Use `shape` property instead.
    *
@@ -140,18 +68,18 @@ declare class ApiViewModel extends AmfHelperMixin(Object) {
    * property of the element.
    * @returns A promise resolved to generated model.
    */
-  computeViewModel(shape: object[]|object): Array<ModelItem>|undefined;
+  computeViewModel(shape: object[]|object): ModelItem[]|undefined;
 
   /**
-   * Conputes model for each item recursively. It allows browser to return
+   * Computes model for each item recursively. It allows browser to return
    * the event loop and prohibit ANR to show.
    *
    * @param items List of remanding AMF model items.
-   * This shuld be copy of the model since this function removes items from
+   * This should be copy of the model since this function removes items from
    * the list.
    * @returns The view model.
    */
-  _computeViewModel(items: object[]|object): Array<ModelItem>|undefined;
+  _computeViewModel(items: object[]|object): ModelItem[]|undefined;
 
   /**
    * Creates a UI model item from AMF json/ld model.
@@ -169,7 +97,7 @@ declare class ApiViewModel extends AmfHelperMixin(Object) {
    * @param shape The shape to process
    * @returns Generated view model for an item.
    */
-  _processNodeShape(shape: object): Array<ModelItem>;
+  _processNodeShape(shape: object): ModelItem[];
 
   /**
    * Creates a UI model item from AMF json/ld model for a parameter.
@@ -196,7 +124,15 @@ declare class ApiViewModel extends AmfHelperMixin(Object) {
    * @param model Model to extract data from.
    * @returns View model for items.
    */
-  modelForRawObject(model: object, processOptions?: ProcessOptions): Array<ModelItem>;
+  modelForRawObject(model: object, processOptions?: ProcessOptions): ModelItem[];
+
+  /**
+   * Creates a view model for union definition.
+   *
+   * @param model Model to extract data from.
+   * @returns View model for items.
+   */
+  _modelForUnion(model: any): ModelItem[];
 
   /**
    * Creates a view model from "raw" item (model before resolving).
@@ -232,28 +168,12 @@ declare class ApiViewModel extends AmfHelperMixin(Object) {
   _computeRawExamples(model: object): Example[]|undefined;
 
   /**
-   * Computes value of the `binding` property of the UI model.
-   *
-   * @param model AMF item model
-   * @returns Binding property or undefined if not found.
-   */
-  _computeBinding(model: object): String|undefined;
-
-  /**
-   * Computes fomm (parameter) name from AMF model.
+   * Computes form (parameter) name from AMF model.
    *
    * @param model AMF item model
    * @returns Name property or undefined if not found.
    */
   _computeFormName(model: object): String|undefined;
-
-  /**
-   * Computes `required` property from AMF model.
-   *
-   * @param model AMF item model
-   * @returns True if the property is required.
-   */
-  _computeRequired(model: object): boolean|undefined;
 
   /**
    * Computes `minCount` property from AMF model for PropertyShape object.
@@ -267,7 +187,7 @@ declare class ApiViewModel extends AmfHelperMixin(Object) {
    * Computes type of the model. It's RAML data type property.
    *
    * @param shape Property schema.
-   * @returns Type of the nproperty.
+   * @returns Type of the property.
    */
   _computeModelType(shape: object): string;
 
@@ -275,7 +195,7 @@ declare class ApiViewModel extends AmfHelperMixin(Object) {
    * Computes type of the raw model.
    *
    * @param model Property schema.
-   * @returns Type of the nproperty.
+   * @returns Type of the property.
    */
   _computeRawModelValue(model: object[]|object): string|number|boolean|object[]|null|undefined;
 
@@ -425,7 +345,7 @@ declare class ApiViewModel extends AmfHelperMixin(Object) {
    * `rfc3339` is assumed by default
    * @returns Placeholder value.
    */
-  _computeTypePlaceholder(type: string, format: string): string|undefined;
+  _computeTypePlaceholder(type: string, format?: string): string|undefined;
 
   /**
    * Builds empty view model without traversing AMF model.
@@ -458,7 +378,7 @@ declare class ApiViewModel extends AmfHelperMixin(Object) {
    * Returns `true` only when passed shape has `shapes#anyOf` array and
    * one of the union properties is of a type od NilShape.
    *
-   * @param shape Schape test for nillable union.
+   * @param shape Shape test for nillable union.
    */
   _computeIsNillable(shape: object): boolean;
 
@@ -468,5 +388,7 @@ declare class ApiViewModel extends AmfHelperMixin(Object) {
    * @param shape An object to test for the annotation.
    * @return True if the annotation is set.
    */
-  _computeNoAutoEncode(shape: object): boolean;
+  _hasNoAutoEncodeProperty(shape: object): boolean;
+
+  _ensureAmfPrefix(id: string): string;
 }
