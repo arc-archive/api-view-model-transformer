@@ -37,6 +37,7 @@
     "@api-components/api-model-generator": "^0.2.9",
     "@open-wc/eslint-config": "^4.0.1",
     "@open-wc/testing": "^2.5.32",
+    "@open-wc/testing-karma": "^4.0.9",
     "@web/test-runner": "^0.9.7",
     "@web/test-runner-playwright": "^0.6.4",
     "deepmerge": "^4.2.1",
