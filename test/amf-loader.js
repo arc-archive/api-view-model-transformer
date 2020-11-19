@@ -9,7 +9,7 @@ const helper = new HelperElement();
 AmfLoader.load = async function(compact=false, fileName='demo-api') {
   const suffix = compact ? '-compact' : '';
   const file = `${fileName}${suffix}.json`;
-  const url = location.protocol + '//' + location.host + '/demo/'+ file;
+  const url = location.protocol + '//' + location.host + '/base/demo/'+ file;
   const response = await fetch(url);
   if (!response.ok) {
     throw new Error('Unable to download API data model');
