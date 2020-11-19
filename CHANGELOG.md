@@ -978,3 +978,17 @@
 * union query parameters [f7e6d76](https://github.com/advanced-rest-client/api-view-model-transformer/commit/f7e6d7638a269e32ab20fa8f1e0599e673cf7da5) by Carolina Wright
 
 
+<a name="4.2.3"></a>
+## [4.2.3](https://github.com/advanced-rest-client/api-view-model-transformer/compare/4.2.1...4.2.3) (2020-11-19)
+
+### Update
+
+* [ci skip] automated merge master->stage. syncing main branches [741a4c1](https://github.com/advanced-rest-client/api-view-model-transformer/commit/741a4c18ccf740bd52e47854ce6facdec648c7ea) by Ci agent
+* [ci skip] automated merge master->stage. syncing main branches [2bdc68b](https://github.com/advanced-rest-client/api-view-model-transformer/commit/2bdc68b3cbb5158d36d27978758935f87a5f5fe8) by Ci agent
+
+
+### Refactor
+
+* upgrading to the new testing framework [928e95f](https://github.com/advanced-rest-client/api-view-model-transformer/commit/928e95f9367daea37fc0c2dd134a58a7fdc86502) by Pawel
+
+
