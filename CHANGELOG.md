@@ -992,3 +992,12 @@
 * upgrading to the new testing framework [928e95f](https://github.com/advanced-rest-client/api-view-model-transformer/commit/928e95f9367daea37fc0c2dd134a58a7fdc86502) by Pawel
 
 
+<a name="4.2.4"></a>
+## [4.2.4](https://github.com/advanced-rest-client/api-view-model-transformer/compare/4.2.2...4.2.4) (2020-11-19)
+
+### Update
+
+* [ci skip] automated merge master->stage. syncing main branches [a4757c4](https://github.com/advanced-rest-client/api-view-model-transformer/commit/a4757c40b584efcc98f0c172b767b239d9972abc) by Ci agent
+* [ci skip] automated merge master->stage. syncing main branches [741a4c1](https://github.com/advanced-rest-client/api-view-model-transformer/commit/741a4c18ccf740bd52e47854ce6facdec648c7ea) by Ci agent
+
+
