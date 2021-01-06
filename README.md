@@ -9,6 +9,10 @@
 A library to transform AMF's ld-json model into a form view model. The form view is used to power editors embedded in the api-request-editor element.
 The model should be used to build a form view for request parameters like header, query parameters, uri parameters or the body.
 
+## Deprecation notice
+
+This element is moved to `api-forms` repository and `@api-components/api-forms` package. This element will be deprecated and archived once the migration finish.
+
 ## Version compatibility
 
 This version only works with AMF model version 2 (AMF parser >= 4.0.0).
